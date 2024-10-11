@@ -7,7 +7,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **kwargs):
         # Path ของไฟล์ Excel
-        file_path = '/Users/yaneekumsudsang/Downloads/data4.xlsx'
+        file_path = '/Users/yaneekumsudsang/Koupon/data4.xlsx'
 
         # Load Excel workbook
         wb = load_workbook(filename=file_path)
