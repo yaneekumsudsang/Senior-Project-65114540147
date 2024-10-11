@@ -22,9 +22,6 @@ class Command(BaseCommand):
                 if not store_name:
                     continue
 
-                # ไม่ต้องแปลงวันที่แล้ว ใช้ expiration_date จาก Excel โดยตรง
-                # expiration_date ถูกส่งมาในฟอร์แมต YYYY-MM-DD แล้ว
-
                 # บันทึกข้อมูลเข้าสู่ Promotion model
                 promotion = Promotion(
                     store_name=store_name,
