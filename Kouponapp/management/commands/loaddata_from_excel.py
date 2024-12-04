@@ -1,5 +1,7 @@
 from django.core.management.base import BaseCommand
 from openpyxl import load_workbook
+
+from Koupon import settings
 from Kouponapp.models import Promotion
 
 class Command(BaseCommand):
@@ -7,7 +9,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **kwargs):
         # Path ของไฟล์ Excel
-        file_path = '/Users/yaneekumsudsang/Downloads/data4.xlsx'
+        file_path = settings.BASE_DIR / '/Users/yaneekumsudsang/Koupon/data4.xlsx'
 
         # Load Excel workbook
         wb = load_workbook(filename=file_path)
@@ -22,7 +24,6 @@ class Command(BaseCommand):
                 if not store_name:
                     continue
 
-                # ไม่ต้องแปลงวันที่แล้ว ใช้ expiration_date จาก Excel โดยตรง
                 # expiration_date ถูกส่งมาในฟอร์แมต YYYY-MM-DD แล้ว
 
                 # บันทึกข้อมูลเข้าสู่ Promotion model
