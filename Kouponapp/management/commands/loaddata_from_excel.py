@@ -7,13 +7,13 @@ from Kouponapp.models import Promotion
 class Command(BaseCommand):
     help = "Load promotion data from data4.xlsx file"
 
-    def handle(self, *args, **kwargs):
+    def sheet1(self, *args, **kwargs):
         # Path ของไฟล์ Excel
         file_path = settings.BASE_DIR / '/Users/yaneekumsudsang/Koupon/data4.xlsx'
 
         # Load Excel workbook
         wb = load_workbook(filename=file_path)
-        ws = wb.active  # สมมติว่า sheet แรกคือที่เราต้องการอ่าน
+        ws = wb.worksheets[0]  # อ่านชีทแรก
 
         # เริ่มอ่านข้อมูลจากแถวที่ 2
         for row in ws.iter_rows(min_row=2, values_only=True):
@@ -23,8 +23,6 @@ class Command(BaseCommand):
                 # ตรวจสอบว่า store_name มีหรือไม่ (เพื่อไม่ให้บันทึกข้อมูลที่ไม่สมบูรณ์)
                 if not store_name:
                     continue
-
-                # expiration_date ถูกส่งมาในฟอร์แมต YYYY-MM-DD แล้ว
 
                 # บันทึกข้อมูลเข้าสู่ Promotion model
                 promotion = Promotion(
