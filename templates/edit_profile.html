@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>แก้ไขข้อมูลสมาชิก</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 font-sans flex justify-center items-center min-h-screen">
+
+    <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-lg">
+        <!-- รูปโปรไฟล์ -->
+        <div class="flex justify-center mb-6 relative">
+            <div class="relative">
+                <div class="rounded-full bg-blue-500 w-24 h-24 flex items-center justify-center text-white text-3xl">
+                    <span>👤</span> <!-- ไอคอนหรือรูปภาพ -->
+                </div>
+                <button class="absolute bottom-0 right-0 bg-white border border-gray-300 rounded-full p-1 shadow-sm hover:bg-gray-100">
+                    ✏️ <!-- ไอคอนแก้ไข -->
+                </button>
+            </div>
+        </div>
+
+        <!-- รหัสสมาชิก -->
+        <p class="text-center text-gray-600 mb-4">รหัสสมาชิก: 001</p>
+
+        <!-- ฟอร์ม -->
+        <form method="post" class="space-y-4">
+            {% csrf_token %}
+            {{ form.as_p }}
+
+            <!-- ปุ่มบันทึก -->
+            <div class="flex justify-center">
+                <button type="submit" class="bg-[#164863] text-white px-6 py-2 rounded-full hover:bg-[#113d55] focus:outline-none">
+                    บันทึก
+                </button>
+            </div>
+        </form>
+    </div>
+
+</body>
+</html>

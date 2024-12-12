@@ -6,23 +6,26 @@
     <title>KOUPON</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
+
 <body class="bg-white font-sans">
-
-    <!-- Header Section -->
-    <header class="flex justify-between items-center px-6 py-4 shadow">
-        <div class="text-center">
-            <!-- Logo Section -->
-
-            <img src="https://raw.githubusercontent.com/yaneekumsudsang/logo/refs/heads/main/logo.png" alt="KP KOUPON" class="mx-auto w-14"><!-- Replace with actual logo path -->
-        </div>
-
-        <!-- Navigation Buttons -->
-        <div class="flex space-x-4">
-            <button class="px-4 py-2 bg-[#164863] border text-white rounded-lg hover:bg-[#DDF2FD] hover:text-[#164863]">สมัครสมาชิก</button>
-            <button class="px-4 py-2 bg-[#164863] border text-white rounded-lg hover:bg-[#DDF2FD] hover:text-[#164863]">เข้าสู่ระบบ</button>
-        </div>
-    </header>
-
+{#    #}
+{#    <!-- Header Section -->#}
+{#    <header class="flex justify-between items-center px-6 py-4 shadow">#}
+{#        <div class="text-center">#}
+{#            <!-- Logo Section -->#}
+{##}
+{#            <img src="https://raw.githubusercontent.com/yaneekumsudsang/logo/refs/heads/main/logo.png" alt="KP KOUPON" class="mx-auto w-14"><!-- Replace with actual logo path -->#}
+{#        </div>#}
+{##}
+{#        <!-- Navigation Buttons -->#}
+{#        <div class="flex space-x-4">#}
+{#            <a href="/register" class="px-4 py-2 bg-[#164863] border text-white rounded-lg hover:bg-[#DDF2FD] hover:text-[#164863]">สมัครสมาชิก</a>#}
+{#            <button class="px-4 py-2 bg-[#164863] border text-white rounded-lg hover:bg-[#DDF2FD] hover:text-[#164863]">เข้าสู่ระบบ</button>#}
+{#        </div>#}
+{#    </header>#}
+{#    #}
+    {% extends "nav.html" %}
+    {% block title %}
     <!-- Promotion Section -->
     <section class="mt-8 px-6">
         <div class="flex justify-between items-center">
@@ -43,6 +46,7 @@
             <!-- Add more cards as needed -->
         </div>
     </section>
+    {% endblock %}
 
 </body>
 </html>

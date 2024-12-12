@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>สมัครสมาชิก</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 font-sans flex justify-center items-center min-h-screen">
+
+    <div class="bg-[rgba(221,242,253,0.5)] p-8 rounded-lg shadow-lg w-full max-w-md border ">
+        
+    <div class="flex px-4 py-3 bg-[#DDF2FD] rounded-full space-x-2 justify-between">
+  <a href="/register" class="w-1/2 text-center px-4 py-2 bg-[#164863] text-white rounded-full hover:bg-[#113d55] focus:outline-none">
+    สมัครสมาชิก
+  <a href="/login" class="w-1/2 text-center px-4 py-2 bg-[#DDF2FD] text-[#164863] rounded-full hover:bg-[#cde8f9] focus:outline-none">
+    เข้าสู่ระบบ
+  </a>
+    </div>
+
+
+    <!-- Form Start -->
+        <form method="post" class="space-y-4">
+            {% csrf_token %}
+            
+            <!-- Display Form Fields -->
+            <div class="space-y-4">
+                {{ form.as_p }} <!-- Display the form as paragraphs -->
+            </div>
+
+            <!-- Submit Button -->
+            <div class="flex justify-center">
+                <button type="submit" class="bg-[#164863] text-white px-6 py-2 rounded-lg focus:outline-none hover:bg-[#DDF2FD] hover:text-[#164863]">
+                    สมัครสมาชิก
+                </button>
+            </div>
+        </form>
+    </div>
+
+</body>
+</html>

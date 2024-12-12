@@ -37,7 +37,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    'Kouponapp.apps.KouponappConfig',
+    'Kouponapp',
 ]
 
 MIDDLEWARE = [
@@ -129,3 +129,4 @@ STATIC_ROOT = BASE_DIR / "staticfiles"  # โฟลเดอร์สำหร�
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+LOGIN_REDIRECT_URL = '/home'
