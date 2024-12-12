@@ -39,7 +39,7 @@ class RegisterForm(forms.Form):
             raise forms.ValidationError('รหัสผ่านไม่ตรงกัน')
         return confirm_password
 
-class LoginForm(AuthenticationForm):
+class LoginForm(forms.Form):
     username = forms.CharField(
         label="ชื่อผู้ใช้งาน",
         max_length=150,

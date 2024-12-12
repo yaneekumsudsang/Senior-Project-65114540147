@@ -20,7 +20,6 @@ def promotions_view(request):
     data = Promotion.objects.all()
     return render(request, 'home.html', {'data':data})
 
-
 def register(request):
     if request.method == 'POST':
         form = RegisterForm(request.POST)
@@ -92,7 +91,7 @@ def user_login(request):
 @login_required
 def edit_profile(request):
     if request.method == 'POST':
-        form = EditProfileForm(request.POST, instance=request.user)
+        form = Member(request.POST, instance=request.user)
         if form.is_valid():
             form.save()
             messages.success(request, 'แก้ไขข้อมูลสำเร็จแล้ว')
@@ -100,6 +99,6 @@ def edit_profile(request):
         else:
             messages.error(request, 'มีข้อผิดพลาด กรุณาตรวจสอบข้อมูลอีกครั้ง')
     else:
-        form = EditProfileForm(instance=request.user)
+        form = Member(instance=request.user)
 
     return render(request, 'edit_profile.html', {'form': form})

@@ -8,22 +8,6 @@
 </head>
 
 <body class="bg-white font-sans">
-{#    #}
-{#    <!-- Header Section -->#}
-{#    <header class="flex justify-between items-center px-6 py-4 shadow">#}
-{#        <div class="text-center">#}
-{#            <!-- Logo Section -->#}
-{##}
-{#            <img src="https://raw.githubusercontent.com/yaneekumsudsang/logo/refs/heads/main/logo.png" alt="KP KOUPON" class="mx-auto w-14"><!-- Replace with actual logo path -->#}
-{#        </div>#}
-{##}
-{#        <!-- Navigation Buttons -->#}
-{#        <div class="flex space-x-4">#}
-{#            <a href="/register" class="px-4 py-2 bg-[#164863] border text-white rounded-lg hover:bg-[#DDF2FD] hover:text-[#164863]">สมัครสมาชิก</a>#}
-{#            <button class="px-4 py-2 bg-[#164863] border text-white rounded-lg hover:bg-[#DDF2FD] hover:text-[#164863]">เข้าสู่ระบบ</button>#}
-{#        </div>#}
-{#    </header>#}
-{#    #}
     {% extends "nav.html" %}
     {% block title %}
     <!-- Promotion Section -->
@@ -38,9 +22,9 @@
             <!-- Card 1 -->
             {% for i in data %}
             <div class="bg-white p-6 rounded-lg text-center shadow-xl border h-60 ">
-                <h3 class="text-black text-left text-xl font-bold ">{{ i.store_name }}</h3>
-                <p class="text-2xl text-red-600 font-bold mt-12">{{ i.coupon_name }}</p>
-                <p class="text-sm text-gray-500 mt-16">{{ i.expiration_date }}</p>
+                <h3 class="text-black text-left text-xl font-bold ">{{ i.store }}</h3>
+                <p class="text-2xl text-red-600 font-bold mt-12">{{ i.name }}</p>
+                <p class="text-sm text-gray-500 mt-16">{{ i.end }}</p>
             </div>
             {% endfor %}
             <!-- Add more cards as needed -->
