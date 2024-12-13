@@ -94,29 +94,16 @@ def koupon_logout(request):
 
 @login_required
 def edit_profile(request):
-    try:
-        member = Member.objects.get(user=request.user)  # ดึงข้อมูลจากโมเดล Member
-    except Member.DoesNotExist:
-        messages.error(request, 'ไม่พบข้อมูล Member ของผู้ใช้')
-        return redirect('profile')  # หรือเปลี่ยนไปหน้าอื่นที่เหมาะสม
-
     if request.method == 'POST':
-        # ใช้ instance ของ User และ Member ในฟอร์ม
-        form = EditProfileForm(request.POST, request.FILES, instance=request.user, member=member)
+        form = EditProfileForm(request.POST, request.FILES, instance=request.user)
         if form.is_valid():
             user = form.save()  # บันทึกข้อมูลใน User
-            # บันทึกข้อมูลใน Member
-            member.phone = form.cleaned_data.get('phone')
-            member.profile_img = form.cleaned_data.get('profile_img')
-            member.save()
-
             messages.success(request, 'แก้ไขข้อมูลสำเร็จแล้ว')
-            return redirect('profile')  # หรือหน้าโปรไฟล์
+            return redirect('member')  # หรือหน้าโปรไฟล์
         else:
             messages.error(request, 'มีข้อผิดพลาด กรุณาตรวจสอบข้อมูลอีกครั้ง')
     else:
-        # โหลดข้อมูลจาก User และ Member ลงในฟอร์ม
-        form = EditProfileForm(instance=request.user, member=member)
+        form = EditProfileForm(instance=request.user)
 
     return render(request, 'edit_profile.html', {'form': form})
 

@@ -70,7 +70,6 @@ class EditProfileForm(forms.ModelForm):
             'class': 'form-control-file',
         })
     )
-
     class Meta:
         model = User
         fields = ['first_name', 'last_name', 'email']  # ฟิลด์จาก User

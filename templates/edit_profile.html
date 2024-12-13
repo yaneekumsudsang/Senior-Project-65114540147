@@ -1,33 +1,36 @@
 {% extends "nav.html" %}
 
-{% block title %}แก้ไขข้อมูลส่วนตัว{% endblock %}
-
-{% block content %}
-<div class="container" style="max-width: 600px; margin: auto;">
-    <h1>แก้ไขข้อมูลส่วนตัว</h1>
-    <form method="post" enctype="multipart/form-data">
-        {% csrf_token %}
-        <div class="form-group">
-            <label for="first_name">ชื่อ</label>
-            {{ form.first_name }}
+{% block title %}
+    <!-- Profile Edit Section -->
+    <section class="mt-8 px-6">
+        <div class="flex justify-between items-center">
+            <h2 class="text-2xl font-bold text-[#164863]">แก้ไขข้อมูลส่วนตัว</h2>
         </div>
-        <div class="form-group">
-            <label for="last_name">นามสกุล</label>
-            {{ form.last_name }}
-        </div>
-        <div class="form-group">
-            <label for="email">อีเมล</label>
-            {{ form.email }}
-        </div>
-        <div class="form-group">
-            <label for="phone">เบอร์โทรศัพท์</label>
-            {{ form.phone }}
-        </div>
-        <div class="form-group">
-            <label for="profile_img">รูปโปรไฟล์</label>
-            {{ form.profile_img }}
-        </div>
-        <button type="submit" class="btn btn-primary" style="margin-top: 20px;">บันทึกการเปลี่ยนแปลง</button>
-    </form>
-</div>
+        
+        <!-- Edit Profile Form -->
+        <form method="post" enctype="multipart/form-data" class="mt-6">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="first_name" class="block text-sm font-medium text-gray-700">ชื่อ</label>
+                {{ form.first_name }}
+            </div>
+            <div class="form-group">
+                <label for="last_name" class="block text-sm font-medium text-gray-700">นามสกุล</label>
+                {{ form.last_name }}
+            </div>
+            <div class="form-group">
+                <label for="email" class="block text-sm font-medium text-gray-700">อีเมล</label>
+                {{ form.email }}
+            </div>
+            <div class="form-group">
+                <label for="phone" class="block text-sm font-medium text-gray-700">เบอร์โทรศัพท์</label>
+                {{ form.phone }}
+            </div>
+            <div class="form-group">
+                <label for="profile_img" class="block text-sm font-medium text-gray-700">รูปโปรไฟล์</label>
+                {{ form.profile_img }}
+            </div>
+            <button type="submit" class="btn btn-primary mt-6">บันทึกการเปลี่ยนแปลง</button>
+        </form>
+    </section>
 {% endblock %}
