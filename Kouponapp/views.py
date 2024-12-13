@@ -9,6 +9,11 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from .forms import LoginForm
 from django.views.decorators.cache import never_cache
+from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from .forms import EditProfileForm
+from .models import Member
 
 def promotions_view(request):
     data = Promotion.objects.all()[:8]
@@ -94,16 +99,23 @@ def koupon_logout(request):
 
 @login_required
 def edit_profile(request):
+    try:
+        member = Member.objects.get(user=request.user)  # ดึงข้อมูลจาก Member
+    except Member.DoesNotExist:
+        member = None  # หากไม่พบข้อมูล Member ให้ใช้ None แทน
+
     if request.method == 'POST':
-        form = EditProfileForm(request.POST, request.FILES, instance=request.user)
+        # ใช้ instance ของ User และ Member ในฟอร์ม
+        form = EditProfileForm(request.POST, request.FILES, instance=request.user, member=member)
         if form.is_valid():
-            user = form.save()  # บันทึกข้อมูลใน User
+            form.save()  # บันทึกข้อมูลใน User และ Member
             messages.success(request, 'แก้ไขข้อมูลสำเร็จแล้ว')
-            return redirect('member')  # หรือหน้าโปรไฟล์
+            return redirect('profile')  # หรือหน้าโปรไฟล์
         else:
             messages.error(request, 'มีข้อผิดพลาด กรุณาตรวจสอบข้อมูลอีกครั้ง')
     else:
-        form = EditProfileForm(instance=request.user)
+        # โหลดข้อมูลจาก User และ Member ลงในฟอร์ม
+        form = EditProfileForm(instance=request.user, member=member)
 
     return render(request, 'edit_profile.html', {'form': form})
 

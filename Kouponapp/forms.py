@@ -1,6 +1,9 @@
 from django import forms
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.models import User
+from django import forms
+from django.contrib.auth.models import User
+from .models import Member
 
 class RegisterForm(forms.Form):
     username = forms.CharField(label="ชื่อผู้ใช้", max_length=150, widget=forms.TextInput(attrs={
@@ -70,6 +73,7 @@ class EditProfileForm(forms.ModelForm):
             'class': 'form-control-file',
         })
     )
+
     class Meta:
         model = User
         fields = ['first_name', 'last_name', 'email']  # ฟิลด์จาก User
