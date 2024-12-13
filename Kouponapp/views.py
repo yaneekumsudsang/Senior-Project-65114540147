@@ -1,12 +1,6 @@
 from .models import *
 from django.contrib.auth.models import User
 from .forms import RegisterForm
-from django.shortcuts import render, redirect
-from django.contrib.auth import authenticate, login
-from django.contrib import messages
-from .forms import LoginForm
-from django.shortcuts import render, redirect
-from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from .forms import EditProfileForm
 import logging
@@ -14,11 +8,15 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from .forms import LoginForm
-
+from django.views.decorators.cache import never_cache
 
 def promotions_view(request):
-    data = Promotion.objects.all()
+    data = Promotion.objects.all()[:8]
     return render(request, 'home.html', {'data':data})
+
+def promotions_member(request):
+    member_promotions = Promotion.objects.all()
+    return render(request, 'member.html', {'member_promotions':member_promotions})
 
 def register(request):
     if request.method == 'POST':
@@ -89,22 +87,38 @@ def user_login(request):
 
     logger.info('Rendering login form')
     return render(request, 'login.html', {'form': form})
-
+@never_cache
 def koupon_logout(request):
     logout(request)
     return redirect('koupon')
 
 @login_required
 def edit_profile(request):
+    try:
+        member = Member.objects.get(user=request.user)  # ดึงข้อมูลจากโมเดล Member
+    except Member.DoesNotExist:
+        messages.error(request, 'ไม่พบข้อมูล Member ของผู้ใช้')
+        return redirect('profile')  # หรือเปลี่ยนไปหน้าอื่นที่เหมาะสม
+
     if request.method == 'POST':
-        form = Member(request.POST, instance=request.user)
+        # ใช้ instance ของ User และ Member ในฟอร์ม
+        form = EditProfileForm(request.POST, request.FILES, instance=request.user, member=member)
         if form.is_valid():
-            form.save()
+            user = form.save()  # บันทึกข้อมูลใน User
+            # บันทึกข้อมูลใน Member
+            member.phone = form.cleaned_data.get('phone')
+            member.profile_img = form.cleaned_data.get('profile_img')
+            member.save()
+
             messages.success(request, 'แก้ไขข้อมูลสำเร็จแล้ว')
-            return redirect('profile')  # เปลี่ยนเส้นทางไปยังหน้าข้อมูลสมาชิก
+            return redirect('profile')  # หรือหน้าโปรไฟล์
         else:
             messages.error(request, 'มีข้อผิดพลาด กรุณาตรวจสอบข้อมูลอีกครั้ง')
     else:
-        form = Member(instance=request.user)
+        # โหลดข้อมูลจาก User และ Member ลงในฟอร์ม
+        form = EditProfileForm(instance=request.user, member=member)
 
     return render(request, 'edit_profile.html', {'form': form})
+
+def scan_qr(request):
+    return render(request, 'scan_qr.html')

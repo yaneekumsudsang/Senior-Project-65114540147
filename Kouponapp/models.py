@@ -6,12 +6,14 @@ class Store(models.Model):
         # id
     store_name = models.CharField(max_length=255, unique=True, verbose_name="ชื่อร้าน")
     owner = models.ForeignKey('Kouponapp.Owner', on_delete=models.CASCADE, related_name='stores',verbose_name="เจ้าของร้าน")
+
     class Meta:
         verbose_name_plural = 'ร้าน'
         verbose_name = 'ร้าน'
 
     def __str__(self):
-        return self.store_name
+     return self.store_name
+
 class Member(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, unique=True, verbose_name="ชื่อผู้ใช้")
     phone = models.CharField(max_length=10, blank=True, null=True, verbose_name="เบอร์โทรศัพท์")
@@ -52,7 +54,7 @@ class Promotion(models.Model):
         verbose_name = 'โปรโมชั่น'
 
     def __str__(self):
-        return f"{self.name} ({self.store.name})"
+        return f"{self.name} ({self.store.store_name})"
 
 class Coupon(models.Model):
     id = models.AutoField(primary_key=True, verbose_name="ไอดีคูปอง")
