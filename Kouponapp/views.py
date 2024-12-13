@@ -11,7 +11,7 @@ from django.contrib.auth.decorators import login_required
 from .forms import EditProfileForm
 import logging
 from django.shortcuts import render, redirect
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from .forms import LoginForm
 
@@ -56,24 +56,26 @@ def register(request):
 logger = logging.getLogger(__name__)
 def user_login(request):
     logger.info('Starting login process')  # Log when function starts
-
+    print('starting login process')
     if request.method == 'POST':
-        logger.info('Received POST request')
+        print('Received POST request')
         form = LoginForm(request.POST)
+        print(form.is_valid())
 
         if form.is_valid():
-            logger.info('Form is valid')
+            print('Form is valid')
             username = form.cleaned_data['username']
             password = form.cleaned_data['password']
+            print(username, password)
 
-            logger.debug(f'Attempting to authenticate user: {username}')  # Debug username
+            print(f'Attempting to authenticate user: {username}')  # Debug username
             user = authenticate(request, username=username, password=password)
 
             if user is not None:
-                logger.info(f'User {username} authenticated successfully')
+                print(f'User {username} authenticated successfully')
                 login(request, user)  # Log in the user
                 messages.success(request, 'เข้าสู่ระบบสำเร็จ')
-                return redirect('home')  # Redirect to the home page
+                return redirect('koupon')  # Redirect to the home page
             else:
                 logger.warning(f'Failed login attempt for username: {username}')
                 messages.error(request, 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง')
@@ -87,6 +89,10 @@ def user_login(request):
 
     logger.info('Rendering login form')
     return render(request, 'login.html', {'form': form})
+
+def koupon_logout(request):
+    logout(request)
+    return redirect('koupon')
 
 @login_required
 def edit_profile(request):

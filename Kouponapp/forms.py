@@ -55,7 +55,7 @@ class LoginForm(forms.Form):
             'placeholder': 'รหัสผ่าน',
         })
     )
-class EditProfileForm(forms.ModelForm):
+class EditProfileForm(forms.Form):
     class Meta:
         model = User
         fields = ['first_name', 'last_name', 'email']
