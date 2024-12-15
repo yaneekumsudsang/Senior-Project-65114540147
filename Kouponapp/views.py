@@ -2,7 +2,6 @@ from .models import *
 from django.contrib.auth.models import User
 from .forms import RegisterForm
 from django.contrib.auth.decorators import login_required
-from .forms import EditProfileForm
 import logging
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
@@ -12,16 +11,29 @@ from django.views.decorators.cache import never_cache
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from .forms import EditProfileForm
+from .forms import ProfileForm
 from .models import Member
+from django.shortcuts import render, get_object_or_404
+from .models import Promotion
 
 def promotions_view(request):
     data = Promotion.objects.all()[:8]
     return render(request, 'home.html', {'data':data})
 
+
 def promotions_member(request):
     member_promotions = Promotion.objects.all()
     return render(request, 'member.html', {'member_promotions':member_promotions})
+
+#@login_required
+def promotion_list(request):
+    # ดึงข้อมูลทั้งหมดจาก Promotion
+    promotions = Promotion.objects.all()
+    return render(request, 'promotion_list.html', {'promotions': promotions})
+
+def UsedCoupons(request):
+    promotions = Promotion.objects.all()
+    return render(request, 'UsedCoupons.html', {'promotions':promotions})
 
 def register(request):
     if request.method == 'POST':
@@ -54,7 +66,6 @@ def register(request):
         form = RegisterForm()
 
     return render(request, 'register.html', {'form': form})
-
 
 logger = logging.getLogger(__name__)
 def user_login(request):
@@ -98,7 +109,7 @@ def koupon_logout(request):
     return redirect('koupon')
 
 @login_required
-def edit_profile(request):
+def profile_view(request):
     try:
         member = Member.objects.get(user=request.user)  # ดึงข้อมูลจาก Member
     except Member.DoesNotExist:
@@ -106,7 +117,7 @@ def edit_profile(request):
 
     if request.method == 'POST':
         # ใช้ instance ของ User และ Member ในฟอร์ม
-        form = EditProfileForm(request.POST, request.FILES, instance=request.user, member=member)
+        form = ProfileForm(request.POST, request.FILES, instance=request.user, member=member)
         if form.is_valid():
             form.save()  # บันทึกข้อมูลใน User และ Member
             messages.success(request, 'แก้ไขข้อมูลสำเร็จแล้ว')
@@ -115,9 +126,9 @@ def edit_profile(request):
             messages.error(request, 'มีข้อผิดพลาด กรุณาตรวจสอบข้อมูลอีกครั้ง')
     else:
         # โหลดข้อมูลจาก User และ Member ลงในฟอร์ม
-        form = EditProfileForm(instance=request.user, member=member)
+        form = ProfileForm(instance=request.user, member=member)
 
-    return render(request, 'edit_profile.html', {'form': form})
+    return render(request, 'profile.html', {'form': form})
 
 def scan_qr(request):
     return render(request, 'scan_qr.html')

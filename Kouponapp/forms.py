@@ -58,12 +58,12 @@ class LoginForm(forms.Form):
             'placeholder': 'รหัสผ่าน',
         })
     )
-class EditProfileForm(forms.ModelForm):
+class ProfileForm(forms.ModelForm):
     phone = forms.CharField(
         max_length=10,
         required=False,
         widget=forms.TextInput(attrs={
-            'class': 'w-full p-2 border border-gray-300 rounded-lg',
+            'class': 'w-60 p-2 border border-gray-300 rounded-lg',
             'placeholder': 'เบอร์โทรศัพท์'
         })
     )

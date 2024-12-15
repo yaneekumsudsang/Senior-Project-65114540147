@@ -1,0 +1,54 @@
+{% extends "nav.html" %}
+
+{% block title %}
+    <!-- Profile View Section -->
+    <h2 class="text-2xl ml-20 mt-6 font-bold text-[#164863]">ข้อมูลของฉัน</h2>
+    <section class="flex items-center justify-center">
+        <div class="bg-white ">
+
+        <!-- Display Profile Information -->
+        <form method="post" enctype="multipart/form-data" class="mt-6">
+            {% csrf_token %}
+            <div class="relative inline-block">
+    <!-- รูปโปรไฟล์ -->
+    {% if member.profile_img %}
+        <img src="{{ member.profile_img.url }}" alt="Profile Image" class="w-48 h-48 object-cover rounded-full flex items-center justify-center border border-gray-300">
+    {% else %}
+        <div class="w-48 h-48 bg-blue-100 text-white flex items-center justify-center rounded-full overflow-hidden relative">
+            <span class="text-9xl font-bold">👤</span> <!-- ใช้ '?' แทนรูปโปรไฟล์เมื่อไม่มีรูป -->
+        </div>
+    {% endif %}
+
+    <!-- ปุ่มแก้ไข -->
+    <label for="profile_img" class="absolute top-2 right-2 bg-white p-2 rounded-full shadow hover:bg-gray-100 cursor-pointer z-10">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600" viewBox="0 0 20 20" fill="currentColor">
+            <path d="M17.414 2.586a2 2 0 010 2.828l-10 10a2 2 0 01-.707.707l-4 1a1 1 0 01-1.262-1.262l1-4a2 2 0 01.707-.707l10-10a2 2 0 012.828 0zM15.293 3.293l-10 10L4 16l2.293-.293 10-10L15.293 3.293zM16.707 1.707a4 4 0 00-5.656 0l-10 10a4 4 0 00-1.177 2.122l-1 4a3 3 0 003.707 3.707l4-1a4 4 0 002.122-1.177l10-10a4 4 0 000-5.656z" />
+        </svg>
+        <!-- ฟิลด์สำหรับอัปโหลดรูป -->
+        <input type="file" id="profile_img" name="profile_img" class="hidden" />
+    </label>
+</div>
+            <form method="post" enctype="multipart/form-data" class="mt-6">
+    {% csrf_token %}
+    <div class="form-group">
+        <label for="first_name" class="block text-sm font-medium text-gray-700">ชื่อ</label>
+        <input type="text" name="first_name" value="{{ user.first_name }}" class="w-60 p-2 border border-gray-300 rounded-lg bg-white" />
+    </div>
+    <div class="form-group">
+        <label for="last_name" class="block text-sm font-medium text-gray-700">นามสกุล</label>
+        <input type="text" name="last_name" value="{{ user.last_name }}" class="w-60 p-2 border border-gray-300 rounded-lg bg-white" />
+    </div>
+    <div class="form-group">
+        <label for="email" class="block text-sm font-medium text-gray-700">อีเมล</label>
+        <input type="email" name="email" value="{{ user.email }}" class="w-60 p-2 border border-gray-300 rounded-lg bg-white" />
+    </div>
+            </form>
+            <div class="form-group mt-4">
+                <label for="phone" class="block text-sm font-medium text-gray-700">เบอร์โทรศัพท์</label>
+                {{ form.phone }}
+            </div>
+        <button type="submit" class="px-6 py-2 mt-4 bg-[#164863] border text-white rounded-lg hover:bg-[#DDF2FD] hover:text-[#164863]">บันทึกข้อมูล</button>
+        </form>
+        </div>
+    </section>
+{% endblock %}

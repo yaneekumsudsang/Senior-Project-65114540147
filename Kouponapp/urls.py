@@ -8,8 +8,10 @@ urlpatterns = [
     path('register/', views.register, name='register'),
     path('login/', views.user_login, name='login'),
     path('koupon_logout/', views.koupon_logout, name='koupon_logout'),
-    path('edit_profile/', views.edit_profile, name='edit_profile'),
+    path('profile/', views.profile_view, name='profile'),
     path('scan_qr/', views.scan_qr, name='scan_qr'),
+    path('promotions/', views.promotion_list, name='promotion_list'),
+    path('UsedCoupons/', views.UsedCoupons, name='UsedCoupons'),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
