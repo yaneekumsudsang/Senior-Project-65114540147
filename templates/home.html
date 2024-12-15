@@ -1,20 +1,35 @@
- {% extends "nav.html" %}
+{% extends "nav.html" %}
 
-    {% block title %}
-    <!-- Promotion Section -->
-    <section class="mt-8 px-6">
-        <div class="flex justify-between items-center">
-            <h2 class="text-2xl font-bold text-[#164863]">โปรโมชั่น</h2>
-            <a href="#" class="text-sm text-gray-500">ดูทั้งหมด</a>
-        </div>
+{% block title %}
+<!-- Promotion Section -->
+<section class="mt-8 px-6">
+    <div class="flex justify-between items-center">
+        <h2 class="text-2xl font-bold text-[#164863]">โปรโมชั่น</h2>
+        {% if not user.is_authenticated %}
+            <!-- ถ้าไม่ได้ล็อกอินให้ Redirect ไปหน้าล็อกอิน -->
+            <a href="{% url 'login' %}?next={% url 'promotions_member' %}" class="text-sm text-gray-500">
+                ดูทั้งหมด
+            </a>
+        {% else %}
+            <!-- ถ้าล็อกอินแล้วก็แสดงปุ่มตามปกติ -->
+            <a href="{% url 'promotions_member' %}" class="text-sm text-gray-500">
+                ดูทั้งหมด
+            </a>
+        {% endif %}
+    </div>
 
-        <!-- Promotion Cards -->
-        <div class="grid grid-cols-4 gap-4 mt-4">
-            <!-- Card 1 -->
-            {% for i in data %}
-            <div class="bg-white p-6 rounded-lg text-center shadow-xl border h-60 ">
-                <h3 class="text-black text-left text-xl font-bold ">{{ i.store }}</h3>
-                <div>
+    <!-- Promotion Cards: 1 แถว เลื่อนได้แนวนอน -->
+    <div class="flex space-x-4 overflow-x-auto mt-4 p-2 no-scrollbar">
+        {% for i in data %}
+        <a href="{% url 'promotion_details' id=i.id %}" class="flex-shrink-0">
+            <div class="bg-white p-4 w-72 h-80 rounded-lg text-center shadow-xl border flex flex-col justify-between">
+                <!-- ชื่อร้านค้า -->
+                <h3 class="text-black text-left text-l font-bold break-words whitespace-normal">
+                    {{ i.store }}
+                </h3>
+
+                <!-- โลโก้ร้านค้า -->
+                <div class="flex justify-center mt-2">
                     {% if i.picture %}
                         <img src="{{ i.picture.url }}" alt="Store Logo" class="w-12 h-12 object-cover rounded-full">
                     {% else %}
@@ -23,14 +38,20 @@
                         </div>
                     {% endif %}
                 </div>
-                <p class="text-2xl text-red-600 font-bold mt-12">{{ i.name }}</p>
-                <p class="text-sm text-gray-500 mt-16">{{ i.end }}</p>
-            </div>
-            {% endfor %}
-            <!-- Add more cards as needed -->
-        </div>
-    </section>
-    {% endblock %}
 
-</body>
-</html>
+                <!-- ชื่อโปรโมชั่น -->
+                <p class="text-xl text-red-600 font-bold mt-4 break-words whitespace-normal">
+                    {{ i.name }}
+                </p>
+
+                <!-- วันหมดอายุ -->
+                <p class="text-sm text-gray-500 mt-4 break-words whitespace-normal">
+                    {{ i.end }}
+                </p>
+            </div>
+        </a>    
+        {% endfor %}
+    </div>
+</section>
+
+{% endblock %}

@@ -20,10 +20,12 @@ def promotions_view(request):
     data = Promotion.objects.all()[:8]
     return render(request, 'home.html', {'data':data})
 
-
 def promotions_member(request):
-    member_promotions = Promotion.objects.all()
-    return render(request, 'member.html', {'member_promotions':member_promotions})
+    member_promotions = Promotion.objects.all()  # ดึงข้อมูลทั้งหมดจาก Promotion
+    return render(request, 'member.html', {'promotions_member': member_promotions})
+def PromotionDetails(request, id):
+    promotion = get_object_or_404(Promotion, id=id)
+    return render(request, 'PromotionDetails.html', {'promotion': promotion})
 
 #@login_required
 def promotion_list(request):
@@ -89,7 +91,7 @@ def user_login(request):
                 print(f'User {username} authenticated successfully')
                 login(request, user)  # Log in the user
                 messages.success(request, 'เข้าสู่ระบบสำเร็จ')
-                return redirect('koupon')  # Redirect to the home page
+                return redirect('promotions_member')  # Redirect to the home page
             else:
                 logger.warning(f'Failed login attempt for username: {username}')
                 messages.error(request, 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง')
@@ -103,6 +105,7 @@ def user_login(request):
 
     logger.info('Rendering login form')
     return render(request, 'login.html', {'form': form})
+
 @never_cache
 def koupon_logout(request):
     logout(request)
