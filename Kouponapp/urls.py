@@ -14,6 +14,7 @@ urlpatterns = [
     path('promotions/', views.promotion_list, name='promotion_list'),
     path('UsedCoupons/', views.UsedCoupons, name='UsedCoupons'),
     path('promotion/<int:id>/', views.PromotionDetails, name='promotion_details'),
+    path('promotions_all/', views.promotions_all, name='promotions_all'),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

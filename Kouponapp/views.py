@@ -17,11 +17,15 @@ from django.shortcuts import render, get_object_or_404
 from .models import Promotion
 
 def promotions_view(request):
-    data = Promotion.objects.all()[:8]
+    data = Promotion.objects.all()[:5]
     return render(request, 'home.html', {'data':data})
 
+def promotions_all(request):
+    all_promotions = Promotion.objects.all()  # ดึงข้อมูลโปรโมชั่นทั้งหมด
+    return render(request, 'promotions_all.html', {'all_promotions': all_promotions})
+
 def promotions_member(request):
-    member_promotions = Promotion.objects.all()  # ดึงข้อมูลทั้งหมดจาก Promotion
+    member_promotions = Promotion.objects.all()[:10]  # ดึงข้อมูลทั้งหมดจาก Promotion
     return render(request, 'member.html', {'promotions_member': member_promotions})
 def PromotionDetails(request, id):
     promotion = get_object_or_404(Promotion, id=id)

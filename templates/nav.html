@@ -18,16 +18,65 @@
         <!-- Navigation Buttons -->
         <div class="flex space-x-4">
             {% if user.is_authenticated %}
-                <a href="#" class="px-2 py-2">โปรโมชั่น</a>
-                <a href="{% url 'profile' %}" class="px-2 py-2">ข้อมูลของฉัน</a>
-                <a href="{% url 'scan_qr' %}" class="px-2 py-2">สแกนคิวอาร์โค้ด</a>
-                <a href="#" class="px-2 py-2">แลกคูปอง</a>
-                <a href="/promotions/" class="px-2 py-2">คูปองสะสม</a>
-                <a href="/UsedCoupons" class="px-2 py-2">ประวัติการใช้งานคูปอง</a>
-                <a href="#" class="px-2 py-2">เติมเงิน</a>
-                <a href="#" class="px-2 py-2">ชำระเงิน</a>
-                <a href="#" class="px-2 py-2">โอนเงิน</a>
-                <a href="{% url 'koupon_logout' %}" class="px-4 py-2 bg-[#164863] border text-white rounded-lg hover:bg-[#DDF2FD] hover:text-[#164863]">Logout</a>
+                <div class="flex flex-wrap justify-center px-6 mt-6 space-x-4">
+    <!-- โปรโมชั่น -->
+    <a href="{% url 'promotions_all' %}" class="flex items-center bg-[#DDF2FD] px-1 py-3 rounded-lg hover:bg-[#cde8f9] mx-0.5 h-12 w-34">
+        <span class="mr-1 text-m">🏷️</span>
+        <span class="text-[#164863] font-medium">โปรโมชั่น</span>
+    </a>
+
+    <!-- ข้อมูลของฉัน -->
+    <a href="{% url 'profile' %}" class="flex items-center bg-[#DDF2FD] px-1 py-3 rounded-lg hover:bg-[#cde8f9] mx-0.5 h-12 w-34">
+        <span class="mr-1 text-m">👤</span>
+        <span class="text-[#164863] font-medium">ข้อมูลของฉัน</span>
+    </a>
+
+    <!-- สแกนคิวอาร์โค้ด -->
+    <a href="{% url 'scan_qr' %}" class="flex items-center bg-[#DDF2FD] px-1 py-3 rounded-lg hover:bg-[#cde8f9] mx-0.5 h-12 w-34">
+        <span class="mr-1 text-m">🔍</span>
+        <span class="text-[#164863] font-medium">สแกนคิวอาร์โค้ด</span>
+    </a>
+
+    <!-- แลกคูปอง -->
+    <a href="#" class="flex items-center bg-[#DDF2FD] px-1 py-3 rounded-lg hover:bg-[#cde8f9] mx-0.5 h-12 w-34">
+        <span class="mr-1 text-m">🎟️</span>
+        <span class="text-[#164863] font-medium">แลกคูปอง</span>
+    </a>
+
+    <!-- คูปองสะสม -->
+    <a href="/promotions/" class="flex items-center bg-[#DDF2FD] px-1 py-3 rounded-lg hover:bg-[#cde8f9] mx-0.5 h-12 w-34">
+        <span class="mr-1 text-m">🎫</span>
+        <span class="text-[#164863] font-medium">คูปองสะสม</span>
+    </a>
+
+    <!-- ประวัติการใช้งานคูปอง -->
+    <a href="/UsedCoupons" class="flex items-center bg-[#DDF2FD] px-1 py-3 rounded-lg hover:bg-[#cde8f9] mx-0.5 h-12 w-34">
+        <span class="mr-1 text-m">🕒</span>
+        <span class="text-[#164863] font-medium">ประวัติการใช้งานคูปอง</span>
+    </a>
+
+    <!-- เติมเงิน -->
+    <a href="#" class="flex items-center bg-[#DDF2FD] px-1 py-3 rounded-lg hover:bg-[#cde8f9] mx-0.5 h-12 w-34">
+        <span class="mr-1 text-m">➕</span>
+        <span class="text-[#164863] font-medium">เติมเงิน</span>
+    </a>
+
+    <!-- ชำระเงิน -->
+    <a href="#" class="flex items-center bg-[#DDF2FD] px-1 py-3 rounded-lg hover:bg-[#cde8f9] mx-0.5 h-12 w-34">
+        <span class="mr-1 text-m">💰</span>
+        <span class="text-[#164863] font-medium">ชำระเงิน</span>
+    </a>
+
+    <!-- โอนเงิน -->
+    <a href="#" class="flex items-center bg-[#DDF2FD] px-1 py-3 rounded-lg hover:bg-[#cde8f9] mx-0.5 h-12 w-34">
+        <span class="mr-1 text-m">🔄</span>
+        <span class="text-[#164863] font-medium">โอนเงิน</span>
+    </a>
+                <a href="{% url 'koupon_logout' %}" class="flex items-center bg-[#DDF2FD] px-1 py-3 rounded-lg hover:bg-[#cde8f9] mx-0.5 h-12 w-34">
+    <span class="mr-1 text-m">🚪</span>
+    <span class="text-[#164863] font-medium">Logout</span>
+</a>
+</div>
             {% else %}
                 <a href="/register" class="px-4 py-2 bg-[#164863] border text-white rounded-lg hover:bg-[#DDF2FD] hover:text-[#164863]">สมัครสมาชิก</a>
                 <a href="/login" class="px-4 py-2 bg-[#164863] border text-white rounded-lg hover:bg-[#DDF2FD] hover:text-[#164863]">เข้าสู่ระบบ</a>

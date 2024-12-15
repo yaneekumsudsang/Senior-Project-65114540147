@@ -5,13 +5,11 @@
 <section class="mt-8 px-6">
     <div class="flex justify-between items-center">
         <h2 class="text-2xl font-bold text-[#164863]">โปรโมชั่น</h2>
-        <a href="{% url 'promotions_member' %}" class="text-sm text-gray-500">
-            ดูทั้งหมด
-        </a>
+        <a href="{% url 'promotions_all' %}" class="text-sm text-gray-500">ดูทั้งหมด</a>
     </div>
 
     <!-- Promotion Cards: 1 แถว เลื่อนได้แนวนอน -->
-    <div class="flex space-x-4 overflow-x-auto mt-4 p-2 no-scrollbar">
+    <div class="flex space-x-4 overflow-x-auto mt-4 ml-10 mr-10 p-6 no-scrollbar">
         {% for promotion in promotions_member %}
         <a href="{% url 'promotion_details' id=promotion.id %}" class="flex-shrink-0">
             <div class="bg-white p-6 w-72 h-80 rounded-lg text-center shadow-xl border w-60 flex flex-col justify-between">
@@ -37,7 +35,7 @@
                 </p>
 
                 <!-- วันหมดอายุ -->
-                <p class="text-sm text-gray-500 mt-4 break-words whitespace-normal">
+                <p class="text-sm text-gray-500 mt-4 break-words whitespace-normal">ใช้งานได้ถึง
                     {{ promotion.end }}
                 </p>
             </div>

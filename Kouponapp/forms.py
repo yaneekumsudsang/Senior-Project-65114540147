@@ -7,31 +7,31 @@ from .models import Member
 
 class RegisterForm(forms.Form):
     username = forms.CharField(label="ชื่อผู้ใช้", max_length=150, widget=forms.TextInput(attrs={
-        'class': 'w-full p-2 border border-gray-300 rounded-2xl',
+        'class': 'w-full p-2 border border-[#164863] rounded-2xl',
         'placeholder': 'ชื่อผู้ใช้',
     }))
     first_name = forms.CharField(label="ชื่อ", max_length=30, widget=forms.TextInput(attrs={
-        'class': 'w-full p-2 border border-gray-300 rounded-2xl',
+        'class': 'w-full p-2 border border-[#164863] rounded-2xl',
         'placeholder': 'ชื่อ',
     }))
     last_name = forms.CharField(label="นามสกุล", max_length=30, widget=forms.TextInput(attrs={
-        'class': 'w-full p-2 border border-gray-300 rounded-2xl',
+        'class': 'w-full p-2 border border-[#164863] rounded-2xl',
         'placeholder': 'นามสกุล',
     }))
     phone = forms.CharField(label="เบอร์โทรศัพท์", max_length=15, widget=forms.TextInput(attrs={
-        'class': 'w-full p-2 border border-gray-300 rounded-2xl',
+        'class': 'w-full p-2 border border-[#164863] rounded-2xl',
         'placeholder': 'เบอร์โทรศัพท์',
     }))
     email = forms.EmailField(label="อีเมล", widget=forms.EmailInput(attrs={
-        'class': 'w-full p-2 border border-gray-300 rounded-2xl',
+        'class': 'w-full p-2 border border-[#164863] rounded-2xl',
         'placeholder': 'อีเมล',
     }))
     password = forms.CharField(label="รหัสผ่าน", widget=forms.PasswordInput(attrs={
-        'class': 'w-full p-2 border border-gray-300 rounded-2xl',
+        'class': 'w-full p-2 border border-[#164863] rounded-2xl',
         'placeholder': 'รหัสผ่าน',
     }))
     confirm_password = forms.CharField(label="ยืนยันรหัสผ่าน", widget=forms.PasswordInput(attrs={
-        'class': 'w-full p-2 border border-gray-300 rounded-2xl',
+        'class': 'w-full p-2 border border-[#164863] rounded-2xl',
         'placeholder': 'ยืนยันรหัสผ่าน',
     }))
 
@@ -47,14 +47,14 @@ class LoginForm(forms.Form):
         label="ชื่อผู้ใช้งาน",
         max_length=150,
         widget=forms.TextInput(attrs={
-            'class': 'w-full p-2 border border-gray-300 rounded-2xl',
+            'class': 'w-full p-2 border border-[#164863] rounded-2xl',
             'placeholder': 'ชื่อผู้ใช้งาน',
         })
     )
     password = forms.CharField(
         label="รหัสผ่าน",
         widget=forms.PasswordInput(attrs={
-            'class': 'w-full p-2 border border-gray-300 rounded-2xl',
+            'class': 'w-full p-2 border border-[#164863] rounded-2xl',
             'placeholder': 'รหัสผ่าน',
         })
     )
