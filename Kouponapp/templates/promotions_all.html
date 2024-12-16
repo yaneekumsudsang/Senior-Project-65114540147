@@ -4,7 +4,7 @@
 <body class="bg-gray-100 min-h-screen">
     <!-- หัวข้อ -->
     <section class="mt-6 px-6">
-    
+
         <div class="flex justify-center items-center mt-4">
             <div class="flex border border-[#164863] rounded-full overflow-hidden">
                 <a href="#" class="px-6 py-2 bg-[#164863] text-white font-medium m-2 rounded-full focus:outline-none">
@@ -16,6 +16,7 @@
         <!-- Promotion Cards -->
         <div class="grid grid-cols-1 gap-3 h-[500px] overflow-y-auto place-items-center mt-4">
             {% for promotion in all_promotions %}
+                <a href="{% url 'promotion_details' id=promotion.id %}" class="flex-shrink-0">
             <div class="relative bg-white shadow-xl h-32 flex items-center border p-4 rounded-lg">
                 <!-- วงกลมซ้าย -->
                 <div class="absolute z-10 top-1/2 left-0 transform -translate-y-1/2 -translate-x-1/2 w-14 h-14 bg-white rounded-full border-2 border-gray-100" style="clip-path: inset(0 0 0 50%);"></div>
@@ -43,6 +44,7 @@
             </div>
             {% empty %}
             <p class="text-center text-gray-500">ไม่มีโปรโมชั่นในขณะนี้</p>
+                </a>
             {% endfor %}
         </div>
 

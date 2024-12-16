@@ -1,5 +1,3 @@
 django
 openpyxl
 pillow
-qrcode
-pyzbar

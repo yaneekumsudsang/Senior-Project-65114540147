@@ -126,9 +126,9 @@ def user_login(request):
 @never_cache
 def koupon_logout(request):
     logout(request)
-    return redirect('koupon')
+    return redirect('home')
 
-@login_required
+
 def profile_view(request):
     try:
         member = Member.objects.get(user=request.user)  # ดึงข้อมูลจาก Member
@@ -155,7 +155,7 @@ def promotions_store(request):
     # ตรวจสอบว่า user เป็นเจ้าของร้าน (is_owner=True)
     if not request.user.member.is_owner:
         # ถ้าไม่ใช่เจ้าของร้าน ให้ redirect ไปยังหน้าอื่น
-        return redirect('home')  # หรือไปยังหน้าอื่นที่คุณต้องการ
+        return redirect('promotions_store')  # หรือไปยังหน้าอื่นที่คุณต้องการ
 
     # ดึงข้อมูลร้านที่เจ้าของมี
     store = Store.objects.filter(owner=request.user.member).first()

@@ -16,6 +16,7 @@
         <div class="grid grid-cols-1 gap-3 h-[500px] overflow-y-auto place-items-center mt-4">
             {% if promotions %}
                 {% for promotion in promotions %}
+                    <a href="{% url 'promotion_details' id=promotion.id %}" class="flex-shrink-0">
                 <div class="relative bg-white shadow-xl h-32 flex items-center border p-4 rounded-lg">
                     <!-- วงกลมซ้าย -->
                     <div class="absolute z-10 top-1/2 left-0 transform -translate-y-1/2 -translate-x-1/2 w-14 h-14 bg-white rounded-full border-2 border-gray-100" style="clip-path: inset(0 0 0 50%);"></div>
@@ -41,6 +42,7 @@
                         <p class="text-sm text-gray-800 mt-3">ใช้งานได้ถึง: {{ promotion.end|date:"d F Y" }}</p>
                     </div>
                 </div>
+                    </a>
                 {% endfor %}
             {% else %}
             <p class="text-center text-gray-500">ยังไม่มีโปรโมชั่นสำหรับร้านของคุณ</p>
