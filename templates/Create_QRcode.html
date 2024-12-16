@@ -1,0 +1,5 @@
+<form method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+    <input type="file" name="qr_image" accept="image/*" required>
+    <button type="submit">Scan QR Code</button>
+</form>

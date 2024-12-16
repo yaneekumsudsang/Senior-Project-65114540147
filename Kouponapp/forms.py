@@ -4,6 +4,10 @@ from django.contrib.auth.models import User
 from django import forms
 from django.contrib.auth.models import User
 from .models import Member
+from django import forms
+from django.contrib.auth.models import User
+from django import forms
+from django.contrib.auth.models import User
 
 class RegisterForm(forms.Form):
     username = forms.CharField(label="ชื่อผู้ใช้", max_length=150, widget=forms.TextInput(attrs={

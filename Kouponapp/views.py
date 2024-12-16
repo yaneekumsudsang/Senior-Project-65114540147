@@ -1,20 +1,22 @@
-from .models import *
-from django.contrib.auth.models import User
 from .forms import RegisterForm
-from django.contrib.auth.decorators import login_required
 import logging
-from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
-from django.contrib import messages
 from .forms import LoginForm
 from django.views.decorators.cache import never_cache
-from django.shortcuts import render, redirect
-from django.contrib.auth.decorators import login_required
-from django.contrib import messages
-from .forms import ProfileForm
 from .models import Member
 from django.shortcuts import render, get_object_or_404
-from .models import Promotion
+from .forms import ProfileForm
+from django.contrib.auth.models import User
+from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
+from .models import Store, Promotion
+from django.shortcuts import redirect
+from django.contrib.auth import authenticate, login
+from django.contrib import messages
+import logging
+from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
+from .models import Coupon
 
 def promotions_view(request):
     data = Promotion.objects.all()[:5]
@@ -27,11 +29,12 @@ def promotions_all(request):
 def promotions_member(request):
     member_promotions = Promotion.objects.all()[:10]  # ดึงข้อมูลทั้งหมดจาก Promotion
     return render(request, 'member.html', {'promotions_member': member_promotions})
+
 def PromotionDetails(request, id):
     promotion = get_object_or_404(Promotion, id=id)
     return render(request, 'PromotionDetails.html', {'promotion': promotion})
 
-#@login_required
+@login_required
 def promotion_list(request):
     # ดึงข้อมูลทั้งหมดจาก Promotion
     promotions = Promotion.objects.all()
@@ -94,8 +97,18 @@ def user_login(request):
             if user is not None:
                 print(f'User {username} authenticated successfully')
                 login(request, user)  # Log in the user
+
+                # ตรวจสอบว่า user เป็นเจ้าของร้าน
+                if user.member.is_owner:
+                    # ถ้าเป็นเจ้าของร้าน, redirect ไปยังหน้า 'owner/promotions'
+                    return redirect('promotions_store')  # หน้าโปรโมชั่นของเจ้าของร้าน
+                else:
+                    # ถ้าไม่ใช่เจ้าของร้าน, redirect ไปยังหน้าโปรไฟล์หรือตามต้องการ
+                    return redirect('home')  # หรือหน้าอื่นที่ต้องการ
+
                 messages.success(request, 'เข้าสู่ระบบสำเร็จ')
                 return redirect('promotions_member')  # Redirect to the home page
+
             else:
                 logger.warning(f'Failed login attempt for username: {username}')
                 messages.error(request, 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง')
@@ -137,5 +150,30 @@ def profile_view(request):
 
     return render(request, 'profile.html', {'form': form})
 
-def scan_qr(request):
-    return render(request, 'scan_qr.html')
+@login_required
+def promotions_store(request):
+    # ตรวจสอบว่า user เป็นเจ้าของร้าน (is_owner=True)
+    if not request.user.member.is_owner:
+        # ถ้าไม่ใช่เจ้าของร้าน ให้ redirect ไปยังหน้าอื่น
+        return redirect('home')  # หรือไปยังหน้าอื่นที่คุณต้องการ
+
+    # ดึงข้อมูลร้านที่เจ้าของมี
+    store = Store.objects.filter(owner=request.user.member).first()
+
+    # ถ้าพบร้านที่เจ้าของมี
+    if store:
+        # ดึงโปรโมชันที่เชื่อมโยงกับร้านของเจ้าของ
+        promotions = Promotion.objects.filter(store=store)
+    else:
+        promotions = []
+
+    # ส่งข้อมูลโปรโมชันไปยังเทมเพลต
+    return render(request, 'promotions_store.html', {'promotions': promotions})
+
+@login_required
+def used_coupons_by_member_store(request):
+    # ดึงข้อมูลคูปองที่สมาชิกใช้
+    used_coupons = Coupon.objects.filter(member_id=request.user.member, used=True).select_related('promotion', 'promotion__store')
+
+    # ส่งข้อมูลไปยังเทมเพลต
+    return render(request, 'used_coupons_by_member_store.html', {'used_coupons': used_coupons})

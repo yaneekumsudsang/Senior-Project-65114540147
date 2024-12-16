@@ -2,22 +2,12 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.contrib.auth.models import AbstractUser, Permission
 
-class Store(models.Model):
-        # id
-    store_name = models.CharField(max_length=255, unique=True, verbose_name="ชื่อร้าน")
-    owner = models.ForeignKey('Kouponapp.Owner', on_delete=models.CASCADE, related_name='stores',verbose_name="เจ้าของร้าน")
-
-    class Meta:
-        verbose_name_plural = 'ร้าน'
-        verbose_name = 'ร้าน'
-
-    def __str__(self):
-     return self.store_name
-
 class Member(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, unique=True, verbose_name="ชื่อผู้ใช้")
+    is_owner = models.BooleanField(default=False, verbose_name="เป็นเจ้าของร้าน")  # ใช้ BooleanField แทนค่า 1/0
     phone = models.CharField(max_length=10, blank=True, null=True, verbose_name="เบอร์โทรศัพท์")
     profile_img = models.ImageField(upload_to='profiles/', blank=True, null=True, verbose_name="รูปโปรไฟล์")
+    shop_logo = models.ImageField(upload_to='shop_logos/', blank=True, null=True, verbose_name="โลโก้ร้าน")
 
     class Meta:
         verbose_name_plural = 'สมาชิก'
@@ -26,17 +16,22 @@ class Member(models.Model):
     def __str__(self):
         return self.user.username
 
-class Owner(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='owner_profile', verbose_name="ชื่อผู้ใช้")
-    phone = models.CharField(max_length=15, null=True, blank=True, verbose_name="เบอร์โทรศัพท์")
-    shop_logo = models.ImageField(upload_to='shop_logos/', null=True, blank=True, verbose_name="โลโก้ร้าน") # อนุญาตให้ว่างได้
+class Store(models.Model):
+    id = models.AutoField(primary_key=True)  # ID ของร้านค้า
+    store_name = models.CharField(max_length=255, verbose_name="ชื่อร้าน")  # ชื่อร้านค้า
+    owner = models.ForeignKey(
+        Member,
+        on_delete=models.CASCADE,
+        related_name='stores',
+        verbose_name="เจ้าของร้าน"
+    )  # เชื่อมกับ Member (ผู้เป็นเจ้าของร้าน)
 
     class Meta:
-        verbose_name_plural = 'เจ้าของร้าน'
-        verbose_name = 'เจ้าของร้าน'
+        verbose_name = "ร้านค้า"
+        verbose_name_plural = "ร้านค้าทั้งหมด"
 
     def __str__(self):
-        return f"{self.user.username}'s Profile"
+        return self.store_name
 
 class Promotion(models.Model):
     store = models.ForeignKey(Store, on_delete=models.CASCADE, related_name='promotions', verbose_name="ชื่อร้าน")
