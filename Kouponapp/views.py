@@ -1,22 +1,19 @@
-from .forms import RegisterForm
 import logging
-from django.contrib.auth import authenticate, login, logout
-from .forms import LoginForm
-from django.views.decorators.cache import never_cache
-from .models import Member
-from django.shortcuts import render, get_object_or_404
-from .forms import ProfileForm
-from django.contrib.auth.models import User
-from django.shortcuts import render, redirect
-from django.contrib.auth.decorators import login_required
-from .models import Store, Promotion
-from django.shortcuts import redirect
-from django.contrib.auth import authenticate, login
+
+# Django built-in imports
 from django.contrib import messages
-import logging
-from django.shortcuts import render
+from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
-from .models import Coupon
+from django.contrib.auth.models import User
+from django.shortcuts import render, redirect, get_object_or_404
+from django.views.decorators.cache import never_cache
+
+# Third-party imports
+from qr_code.qrcode.utils import QRCodeOptions
+
+# Local app imports
+from .forms import RegisterForm, LoginForm, ProfileForm, PromotionForm
+from .models import Member, Store, Promotion, Coupon
 
 def promotions_view(request):
     data = Promotion.objects.all()[:5]
@@ -177,3 +174,45 @@ def used_coupons_by_member_store(request):
 
     # ส่งข้อมูลไปยังเทมเพลต
     return render(request, 'used_coupons_by_member_store.html', {'used_coupons': used_coupons})
+
+def CouponDesign_Store(request, id=None):
+    if id:  # แก้ไขข้อมูลคูปองที่มีอยู่
+        promotion = get_object_or_404(Promotion, id=id)
+    else:  # สร้างคูปองใหม่
+        promotion = None
+
+    if request.method == 'POST':
+        form = PromotionForm(request.POST, request.FILES, instance=promotion)
+        if form.is_valid():
+            promotion = form.save()  # บันทึกข้อมูลลงในฐานข้อมูล
+            return redirect('CouponPreview', id=promotion.id)  # ไปยังหน้าตัวอย่างคูปอง
+    else:
+        form = PromotionForm(instance=promotion)
+
+    return render(request, 'CouponDesign_Store.html', {'form': form, 'promotion': promotion})
+def CreateQRcode_Store(request, promotion_id):
+    # ดึงข้อมูล Promotion จากฐานข้อมูล
+    promotion = get_object_or_404(Promotion, id=promotion_id)
+
+    # สร้าง URL สำหรับ QR Code
+    qr_data = f"http://yourwebsite.com/promotions/{promotion.id}/"
+
+    # ตั้งค่าการสร้าง QR Code
+    qr_options = QRCodeOptions(size="L", border=4, error_correction="L")
+
+    # ส่งข้อมูล QR Code ไปยัง Template
+    return render(request, "CreateQRcode_Store.html", {
+        "promotion": promotion,
+        "qr_data": qr_data,
+        "qr_options": qr_options,
+    })
+
+# ฟังก์ชันแสดงหน้าคูปอง
+def view_promotion(request, promotion_id):
+    # ดึงข้อมูล Promotion จากฐานข้อมูล
+    promotion = get_object_or_404(Promotion, id=promotion_id)
+
+    # ส่งข้อมูลไปยัง Template
+    return render(request, "ScanQRcodeAddCoupons.html", {
+        "promotion": promotion,
+    })

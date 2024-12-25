@@ -67,7 +67,7 @@ class Command(BaseCommand):
         #Promotion
         promotion_sheet = wb['Promotion']
         for row in promotion_sheet.iter_rows(min_row=2, values_only=True):
-            promotion_id, store_id, picture, cupsize, cups, discount, free, name, start, end, *_ = row
+            promotion_id, store_id, picture, cupsize, cups, discount, free, name, details, start, end, *_ = row
             # ค้นหา Store
             store = Store.objects.filter(id=store_id).first()
             if not store:
@@ -98,6 +98,7 @@ class Command(BaseCommand):
                     'discount': discount,
                     'free': free,
                     'name': name,
+                    'details': details,
                     'start': start,
                     'end': end,
                 }

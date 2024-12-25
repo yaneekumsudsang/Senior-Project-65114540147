@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ออกแบบคูปอง</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
+
+    <div class="max-w-md mx-auto bg-white rounded-xl shadow-lg mt-10 p-6">
+        <h1 class="text-2xl font-bold text-center text-[#164863] mb-6">{{ promotion.name|default:"ออกแบบคูปอง" }}</h1>
+        <form method="post" enctype="multipart/form-data" class="space-y-4">
+            {% csrf_token %}
+
+            <!-- อัปโหลดรูปโปรโมชั่น -->
+            <div class="relative w-full h-36 bg-gray-200 rounded-lg flex justify-center items-center shadow-md">
+                <!-- รูปภาพพรีวิว -->
+                <img id="preview" src="#" alt="รูปภาพ" class="hidden w-full h-full object-cover rounded-lg" />
+
+                <!-- ไอคอนและข้อความ -->
+                <div id="upload-placeholder" class="absolute inset-0 flex flex-col justify-center items-center text-gray-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-12 h-12 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    </svg>
+                    <span>เพิ่มรูปภาพ</span>
+                </div>
+
+                <!-- Input File -->
+                <input type="file" id="picture" name="picture" accept="image/*"
+                    class="absolute inset-0 opacity-0 cursor-pointer" />
+            </div>
+
+            <!-- ชื่อโปรโมชั่น -->
+            <div>
+                <label for="name" class="block text-m font-bold text-[#164863]">ชื่อโปรโมชั่น</label>
+                <input type="text" id="name" name="name" placeholder="ชื่อโปรโมชั่น"
+                    class="mt-1 p-2 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+            </div>
+
+            <!-- รายละเอียดโปรโมชั่น -->
+            <div>
+                <label for="description" class="block text-m font-bold text-[#164863]">รายละเอียดโปรโมชั่น</label>
+                <textarea id="description" name="description" placeholder="รายละเอียดโปรโมชั่น"
+                    class="mt-1 p-2 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm h-24"></textarea>
+            </div>
+
+            <!-- วันที่เริ่มต้น และ วันหมดอายุ -->
+            <div class="flex space-x-4">
+                <div class="w-1/2">
+                    <label for="start" class="block text-m font-bold text-[#164863]">วันที่เริ่มต้นใช้งาน</label>
+                    <input type="date" id="start" name="start"
+                        class="mt-1 p-2 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                </div>
+                <div class="w-1/2">
+                    <label for="end" class="block text-m font-bold text-[#164863]">วันหมดอายุคูปอง</label>
+                    <input type="date" id="end" name="end"
+                        class="mt-1 p-2 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                </div>
+            </div>
+
+            <div class="flex space-x-4">
+    <!-- ขนาดแก้ว -->
+    <div class="w-1/2">
+        <label for="cupsize" class="block text-m font-bold text-[#164863]">ขนาดแก้ว</label>
+        <select id="cupsize" name="cupsize"
+            class="mt-1 p-2 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+            <option value="">เลือกขนาดแก้ว</option>
+            <option value="regular">ขนาดปกติ</option>
+            <option value="large">ขนาดใหญ่</option>
+        </select>
+    </div>
+
+    <!-- จำนวนแก้วที่สะสม -->
+    <div class="w-1/2">
+        <label for="cups" class="block text-m font-bold text-[#164863]">จำนวนแก้วที่สะสม</label>
+        <input type="number" id="cups" name="cups" placeholder="0" min="0"
+            class="mt-1 p-2 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+    </div>
+</div>
+
+            <div class="flex space-x-4">
+    <!-- ส่วนลด -->
+    <div class="w-1/2">
+        <label for="discount" class="block text-m font-bold text-[#164863]">ส่วนลด (%)</label>
+        <input type="number" id="discount" name="discount" placeholder="ระบุส่วนลดเป็น %" min="0" max="100"
+            class="mt-1 p-2 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+    </div>
+
+    <!-- จำนวนแก้วฟรี -->
+    <div class="w-1/2">
+        <label for="free" class="block text-m font-bold text-[#164863]">จำนวนแก้วฟรี</label>
+        <input type="number" id="free" name="free" placeholder="0" min="0"
+            class="mt-1 p-2 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+    </div>
+</div>
+
+
+            <!-- ปุ่มบันทึก -->
+            <div>
+                <button type="submit"
+                    class="w-full bg-[#164863] text-white font-bold py-2 px-4 rounded-full shadow hover:bg-[#DDF2FD] hover:text-[#164863] focus:outline-none focus:ring-2 focus:[#164863] focus:ring-offset-2">
+                    สร้างคูปอง
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+        const imageInput = document.getElementById('picture');
+        const preview = document.getElementById('preview');
+        const placeholder = document.getElementById('upload-placeholder');
+
+        imageInput.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    preview.src = e.target.result; // ตั้งค่า URL ของภาพ
+                    preview.classList.remove('hidden'); // แสดงภาพ
+                    placeholder.classList.add('hidden'); // ซ่อน placeholder
+                };
+                reader.readAsDataURL(file); // อ่านไฟล์เป็น Data URL
+            }
+        });
+        const discountInput = document.getElementById('discount');
+    const freeInput = document.getElementById('free');
+
+    discountInput.addEventListener('input', () => {
+        if (discountInput.value) {
+            freeInput.disabled = true; // ปิดการใช้งานฟิลด์ "จำนวนแก้วฟรี"
+        } else {
+            freeInput.disabled = false; // เปิดใช้งานฟิลด์ "จำนวนแก้วฟรี"
+        }
+    });
+
+    freeInput.addEventListener('input', () => {
+        if (freeInput.value) {
+            discountInput.disabled = true; // ปิดการใช้งานฟิลด์ "ส่วนลด (%)"
+        } else {
+            discountInput.disabled = false; // เปิดใช้งานฟิลด์ "ส่วนลด (%)"
+        }
+    });
+    </script>
+</body>
+</html>

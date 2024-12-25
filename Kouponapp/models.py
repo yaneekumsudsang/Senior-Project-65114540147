@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.contrib.auth.models import AbstractUser, Permission
+from django.core.validators import MinValueValidator, MaxValueValidator
 
 class Member(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, unique=True, verbose_name="ชื่อผู้ใช้")
@@ -37,10 +38,15 @@ class Promotion(models.Model):
     store = models.ForeignKey(Store, on_delete=models.CASCADE, related_name='promotions', verbose_name="ชื่อร้าน")
     picture = models.ImageField(upload_to='promotions/', null=True, blank=True, verbose_name="รูปโปรโมชั่น")
     cupsize = models.CharField(max_length=50, null=True, blank=True, verbose_name="ขนาดแก้ว")
-    cups = models.IntegerField(null=True, blank=True,verbose_name="จำนวนแก้วที่สะสม")
-    discount = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, verbose_name="ส่วนลด")
-    free = models.IntegerField(null=True, blank=True, verbose_name="จำนวนแก้วที่ฟรี")
-    name = models.CharField(max_length=255, verbose_name="ชื่อโปรโมชั่น")
+    cups = models.PositiveIntegerField(null=True, blank=True,verbose_name="จำนวนแก้วที่สะสม")
+    discount = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True, verbose_name="ส่วนลด",
+    validators=[
+        MinValueValidator(0),  # ส่วนลดขั้นต่ำ 0%
+        MaxValueValidator(100)  # ส่วนลดสูงสุด 100%
+    ])
+    free = models.PositiveIntegerField(null=True, blank=True, verbose_name="จำนวนแก้วที่ฟรี")
+    name = models.CharField(max_length=100, verbose_name="ชื่อโปรโมชั่น")
+    details = models.CharField(max_length=200, null=True, blank=True, verbose_name="รายละเอียดโปรโมชั่น")
     start = models.DateField(verbose_name="วันที่เริ่มใช้งานคูปอง")
     end = models.DateField(verbose_name="วันหมดอายุคูปอง")
 

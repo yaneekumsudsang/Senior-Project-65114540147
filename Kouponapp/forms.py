@@ -1,33 +1,28 @@
 from django import forms
 from django.contrib.auth.models import User
+from .models import Promotion
+from django.core.validators import MinValueValidator, MaxValueValidator
 
 class RegisterForm(forms.Form):
     username = forms.CharField(label="ชื่อผู้ใช้", max_length=150, widget=forms.TextInput(attrs={
-        'class': 'w-full p-2 border border-[#164863] rounded-2xl',
         'placeholder': 'ชื่อผู้ใช้',
     }))
     first_name = forms.CharField(label="ชื่อ", max_length=30, widget=forms.TextInput(attrs={
-        'class': 'w-full p-2 border border-[#164863] rounded-2xl',
         'placeholder': 'ชื่อ',
     }))
     last_name = forms.CharField(label="นามสกุล", max_length=30, widget=forms.TextInput(attrs={
-        'class': 'w-full p-2 border border-[#164863] rounded-2xl',
         'placeholder': 'นามสกุล',
     }))
     phone = forms.CharField(label="เบอร์โทรศัพท์", max_length=15, widget=forms.TextInput(attrs={
-        'class': 'w-full p-2 border border-[#164863] rounded-2xl',
         'placeholder': 'เบอร์โทรศัพท์',
     }))
     email = forms.EmailField(label="อีเมล", widget=forms.EmailInput(attrs={
-        'class': 'w-full p-2 border border-[#164863] rounded-2xl',
         'placeholder': 'อีเมล',
     }))
     password = forms.CharField(label="รหัสผ่าน", widget=forms.PasswordInput(attrs={
-        'class': 'w-full p-2 border border-[#164863] rounded-2xl',
         'placeholder': 'รหัสผ่าน',
     }))
     confirm_password = forms.CharField(label="ยืนยันรหัสผ่าน", widget=forms.PasswordInput(attrs={
-        'class': 'w-full p-2 border border-[#164863] rounded-2xl',
         'placeholder': 'ยืนยันรหัสผ่าน',
     }))
 
@@ -43,17 +38,16 @@ class LoginForm(forms.Form):
         label="ชื่อผู้ใช้งาน",
         max_length=150,
         widget=forms.TextInput(attrs={
-            'class': 'w-full p-2 border border-[#164863] rounded-2xl',
             'placeholder': 'ชื่อผู้ใช้งาน',
         })
     )
     password = forms.CharField(
         label="รหัสผ่าน",
         widget=forms.PasswordInput(attrs={
-            'class': 'w-full p-2 border border-[#164863] rounded-2xl',
             'placeholder': 'รหัสผ่าน',
         })
     )
+
 class ProfileForm(forms.ModelForm):
     phone = forms.CharField(
         max_length=10,
@@ -80,3 +74,47 @@ class ProfileForm(forms.ModelForm):
         if member:
             self.fields['phone'].initial = member.phone  # ตั้งค่าเบอร์โทรเริ่มต้น
             self.fields['profile_img'].initial = member.profile_img  # ตั้งค่ารูปโปรไฟล์เริ่มต้น
+
+class PromotionForm(forms.ModelForm):
+    class Meta:
+        model = Promotion
+        fields = ['store', 'picture', 'cupsize', 'cups', 'discount', 'free', 'name', 'details', 'start', 'end']
+        widgets = {
+            'start': forms.DateInput(attrs={'type': 'date'}),
+            'end': forms.DateInput(attrs={'type': 'date'}),
+        }
+        labels = {
+            'store': 'ร้านค้า',
+            'picture': 'รูปภาพ',
+            'cupsize': 'ขนาดแก้ว',
+            'cups': 'จำนวนแก้วที่สะสม',
+            'discount': 'ส่วนลด (%)',
+            'free': 'จำนวนแก้วฟรี',
+            'name': 'ชื่อโปรโมชั่น',
+            'details': 'รายละเอียดโปรโมชั่น',
+            'start': 'วันที่เริ่มใช้งาน',
+            'end': 'วันหมดอายุ',
+        }
+
+    # ฟิลด์จำนวนแก้วที่สะสม
+    cups = forms.IntegerField(
+        label="จำนวนแก้วที่สะสม",
+        validators=[MinValueValidator(0)],  # ค่าต่ำสุดคือ 0
+    )
+
+    # ฟิลด์ส่วนลด
+    discount = forms.DecimalField(
+        label="ส่วนลด (%)",
+        max_digits=5,
+        decimal_places=2,
+        validators=[
+            MinValueValidator(0),  # ค่าต่ำสุดคือ 0%
+            MaxValueValidator(100),  # ค่าสูงสุดคือ 100%
+        ],
+    )
+
+    # ฟิลด์จำนวนแก้วฟรี
+    free = forms.IntegerField(
+        label="จำนวนแก้วฟรี",
+        validators=[MinValueValidator(0)],  # ค่าต่ำสุดคือ 0
+    )

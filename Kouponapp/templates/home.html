@@ -1,7 +1,7 @@
 {% extends "nav.html" %}
 
 {% block title %}
-    
+
 <!-- Promotion Section -->
 <section class="mt-8 px-6">
     <div class="flex justify-between items-center">
@@ -20,7 +20,7 @@
     <!-- Promotion Cards: 1 แถว เลื่อนได้แนวนอน -->
     <div class="flex space-x-4 overflow-x-auto mt-4 ml-10 mr-10 p-8 no-scrollbar">
         {% for i in data %}
-        <a href="{% url 'promotion_details' id=i.id %}" class="flex-shrink-0">
+            <a href="#" class=" flex-shrink-0">
             <div class="bg-white p-4 w-72 h-80 rounded-lg text-center shadow-xl border flex flex-col justify-between">
                 <!-- ชื่อร้านค้า -->
                 <h3 class="text-black text-left text-l font-bold break-words whitespace-normal">
@@ -48,7 +48,7 @@
                     {{ i.end }}
                 </p>
             </div>
-        </a>    
+        </a>
         {% endfor %}
     </div>
 </section>

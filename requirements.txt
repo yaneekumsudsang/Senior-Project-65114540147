@@ -1,3 +1,4 @@
 django
 openpyxl
 pillow
+django-qr-code

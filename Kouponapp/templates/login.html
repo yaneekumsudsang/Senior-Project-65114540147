@@ -9,35 +9,44 @@
 <body class="bg-gray-100 font-sans flex justify-center items-center min-h-screen">
 
     <!-- Form Container -->
-    <div class="bg-[rgba(221,242,253,0.5)] p-8 rounded-lg shadow-lg w-full max-w-md border ">
-        
-<div class="flex justify-center items-center mt-4">
-    <div class="flex border border-[#164863] rounded-full overflow-hidden">
-        <!-- ปุ่มสมัครสมาชิก (ยังไม่ได้เลือก) -->
-        <a href="/register" class="px-6 py-2 bg-[rgba(221,242,253,0.5)] text-[#164863] font-medium m-2 rounded-full focus:outline-none">
-            สมัครสมาชิก
-        </a>
-        <!-- ปุ่มเข้าสู่ระบบ (ถูกเลือก) -->
-        <a href="/login" class="px-6 py-2 bg-[#164863] text-white font-medium m-2 rounded-full focus:outline-none">
-            เข้าสู่ระบบ
-        </a>
-    </div>
-</div>
+    <div class="bg-[rgba(221,242,253,0.5)] p-8 rounded-lg shadow-lg w-full max-w-md border">
 
+        <!-- ปุ่มเลือกเข้าสู่ระบบ/สมัครสมาชิก -->
+        <div class="flex justify-center items-center mt-4">
+            <div class="flex border border-[#164863] rounded-full overflow-hidden">
+                <!-- ปุ่มสมัครสมาชิก -->
+                <a href="/register" class="px-6 py-2 bg-[rgba(221,242,253,0.5)] text-[#164863] font-medium m-2 rounded-full focus:outline-none">
+                    สมัครสมาชิก
+                </a>
+                <!-- ปุ่มเข้าสู่ระบบ -->
+                <a href="/login" class="px-6 py-2 bg-[#164863] text-white font-medium m-2 rounded-full focus:outline-none">
+                    เข้าสู่ระบบ
+                </a>
+            </div>
+        </div>
 
-
-        <!-- Form Start -->
-        <form method="post" class="space-y-4">
+        <!-- ฟอร์มเข้าสู่ระบบ -->
+        <form method="post" class="space-y-4 mt-6">
             {% csrf_token %} <!-- CSRF Token for Django -->
-            
-            <!-- Display Form Fields -->
-            <div class="space-y-4">
-                {{ form.as_p }} <!-- Display the form as paragraphs -->
+
+            <!-- ชื่อผู้ใช้งาน -->
+            <div>
+                <label for="username" class="block text-sm font-medium text-gray-700">ชื่อผู้ใช้งาน</label>
+                <input type="text" id="username" name="username"
+                    class="w-full p-2 border border-[#164863] rounded-2xl" placeholder="ชื่อผู้ใช้งาน">
             </div>
 
-            <!-- Submit Button -->
+            <!-- รหัสผ่าน -->
+            <div>
+                <label for="password" class="block text-sm font-medium text-gray-700">รหัสผ่าน</label>
+                <input type="password" id="password" name="password"
+                    class="w-full p-2 border border-[#164863] rounded-2xl" placeholder="รหัสผ่าน">
+            </div>
+
+            <!-- ปุ่มเข้าสู่ระบบ -->
             <div class="flex justify-center">
-                <button type="submit" class="bg-[#164863] text-white px-6 py-2 rounded-lg focus:outline-none hover:bg-[#DDF2FD] hover:text-[#164863]">
+                <button type="submit"
+                    class="bg-[#164863] text-white px-6 py-2 rounded-lg focus:outline-none hover:bg-[#DDF2FD] hover:text-[#164863]">
                     เข้าสู่ระบบ
                 </button>
             </div>
