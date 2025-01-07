@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>แสดงตัวอย่างโปรโมชั่น</title>
+</head>
+<body>
+    <h1>แสดงตัวอย่างโปรโมชั่น</h1>
+    <p>ชื่อโปรโมชั่น: {{ promotion.name }}</p>
+    <p>รายละเอียด: {{ promotion.details }}</p>
+    <h2>คูปอง:</h2>
+    <ul>
+        {% for coupon in coupons %}
+            <li>
+                {{ coupon.promotion_count }} -
+                {% if coupon.used %}
+                    ใช้แล้ว
+                {% else %}
+                    ยังไม่ได้ใช้
+                {% endif %}
+            </li>
+        {% endfor %}
+    </ul>
+
+    <form method="POST">
+        {% csrf_token %}
+        <button type="submit">บันทึก</button>
+    </form>
+</body>
+</html>

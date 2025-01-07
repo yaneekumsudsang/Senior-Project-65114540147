@@ -79,32 +79,53 @@
     </div>
 </div>
 
-            <div class="flex space-x-4">
+<div class="flex space-x-4">
     <!-- ส่วนลด -->
     <div class="w-1/2">
         <label for="discount" class="block text-m font-bold text-[#164863]">ส่วนลด (%)</label>
-        <input type="number" id="discount" name="discount" placeholder="ระบุส่วนลดเป็น %" min="0" max="100"
+        <input type="number" id="discount" name="discount" placeholder="ระบุส่วนลดเป็น %" min="0" max="100" value="10"
             class="mt-1 p-2 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+        <div class="text-red-500 text-sm mt-1">
+            ไม่สามารถระบุทั้งส่วนลดและจำนวนแก้วฟรีได้
+        </div>
     </div>
 
     <!-- จำนวนแก้วฟรี -->
     <div class="w-1/2">
         <label for="free" class="block text-m font-bold text-[#164863]">จำนวนแก้วฟรี</label>
-        <input type="number" id="free" name="free" placeholder="0" min="0"
+        <input type="number" id="free" name="free" placeholder="0" min="0" value="2"
             class="mt-1 p-2 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+        <div class="text-red-500 text-sm mt-1">
+            ไม่สามารถระบุทั้งส่วนลดและจำนวนแก้วฟรีได้
+        </div>
     </div>
 </div>
 
-
-            <!-- ปุ่มบันทึก -->
-            <div>
-                <button type="submit"
-                    class="w-full bg-[#164863] text-white font-bold py-2 px-4 rounded-full shadow hover:bg-[#DDF2FD] hover:text-[#164863] focus:outline-none focus:ring-2 focus:[#164863] focus:ring-offset-2">
+            <!-- จำนวนคูปองที่ต้องการสร้าง -->
+<div>
+    <label for="coupon_count" class="block text-m font-bold text-[#164863]">จำนวนคูปองที่ต้องการสร้าง</label>
+    <input type="number" id="coupon_count" name="coupon_count" placeholder="ระบุจำนวนคูปอง" min="1"
+        class="mt-1 p-2 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm" />
+</div>
+            <button type="submit" class="w-full bg-[#164863] text-white font-bold py-2 px-4 rounded-full shadow hover:bg-[#DDF2FD] hover:text-[#164863] focus:outline-none focus:ring-2 focus:[#164863] focus:ring-offset-2">
                     สร้างคูปอง
-                </button>
-            </div>
+            </button>
         </form>
     </div>
+
+   {% if form.errors %}
+<div class="text-red-500">
+    <ul>
+        {% for field, errors in form.errors.items %}
+            {% for error in errors %}
+                <li>{{ field }}: {{ error }}</li>
+            {% endfor %}
+        {% endfor %}
+    </ul>
+</div>
+{% endif %}
+
+
 
     <!-- JavaScript -->
     <script>

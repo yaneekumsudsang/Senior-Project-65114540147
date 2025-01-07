@@ -125,7 +125,6 @@ def koupon_logout(request):
     logout(request)
     return redirect('home')
 
-
 def profile_view(request):
     try:
         member = Member.objects.get(user=request.user)  # ดึงข้อมูลจาก Member
@@ -175,44 +174,75 @@ def used_coupons_by_member_store(request):
     # ส่งข้อมูลไปยังเทมเพลต
     return render(request, 'used_coupons_by_member_store.html', {'used_coupons': used_coupons})
 
+
+@login_required
 def CouponDesign_Store(request, id=None):
-    if id:  # แก้ไขข้อมูลคูปองที่มีอยู่
+    # ดึงร้านค้าของผู้ใช้งาน
+    member = get_object_or_404(Member, user=request.user)
+    store = get_object_or_404(Store, owner=member)
+
+    if id:  # แก้ไขโปรโมชั่นที่มีอยู่
         promotion = get_object_or_404(Promotion, id=id)
-    else:  # สร้างคูปองใหม่
+    else:  # สร้างโปรโมชั่นใหม่
         promotion = None
 
     if request.method == 'POST':
         form = PromotionForm(request.POST, request.FILES, instance=promotion)
         if form.is_valid():
-            promotion = form.save()  # บันทึกข้อมูลลงในฐานข้อมูล
-            return redirect('CouponPreview', id=promotion.id)  # ไปยังหน้าตัวอย่างคูปอง
+            # บันทึก Promotion
+            promotion = form.save(commit=False)
+            promotion.store = store
+            promotion.save()
+
+            # เปลี่ยนเส้นทางไปยัง CouponPreview
+            return redirect('CouponPreview', promotion_id=promotion.id)
+        else:
+            print("Form errors:", form.errors)
     else:
         form = PromotionForm(instance=promotion)
 
     return render(request, 'CouponDesign_Store.html', {'form': form, 'promotion': promotion})
-def CreateQRcode_Store(request, promotion_id):
-    # ดึงข้อมูล Promotion จากฐานข้อมูล
+
+@login_required
+def CouponPreview(request, promotion_id):
     promotion = get_object_or_404(Promotion, id=promotion_id)
+    coupons = Coupon.objects.filter(promotion=promotion)
 
-    # สร้าง URL สำหรับ QR Code
-    qr_data = f"http://yourwebsite.com/promotions/{promotion.id}/"
+    if request.method == 'POST':
+        # เมื่อกดบันทึกในหน้า Preview
+        return redirect('CouponSave', promotion_id=promotion.id)
 
-    # ตั้งค่าการสร้าง QR Code
-    qr_options = QRCodeOptions(size="L", border=4, error_correction="L")
-
-    # ส่งข้อมูล QR Code ไปยัง Template
-    return render(request, "CreateQRcode_Store.html", {
-        "promotion": promotion,
-        "qr_data": qr_data,
-        "qr_options": qr_options,
+    return render(request, 'CouponPreview.html', {
+        'promotion': promotion,
+        'coupons': coupons,
     })
 
-# ฟังก์ชันแสดงหน้าคูปอง
-def view_promotion(request, promotion_id):
-    # ดึงข้อมูล Promotion จากฐานข้อมูล
-    promotion = get_object_or_404(Promotion, id=promotion_id)
 
-    # ส่งข้อมูลไปยัง Template
-    return render(request, "ScanQRcodeAddCoupons.html", {
-        "promotion": promotion,
+@login_required
+def CouponSave(request, promotion_id):
+    promotion = get_object_or_404(Promotion, id=promotion_id)
+    coupons = Coupon.objects.filter(promotion=promotion)
+
+    return render(request, 'CouponSave.html', {
+        'promotion': promotion,
+        'coupons': coupons,
     })
+
+
+@login_required
+def use_coupon(request, coupon_id):
+    # ดึงคูปองที่ต้องการใช้งาน
+    coupon = get_object_or_404(Coupon, id=coupon_id)
+
+    # ตรวจสอบว่าคูปองยังไม่ถูกใช้งาน
+    if coupon.used:
+        return redirect('error_page', message="คูปองนี้ถูกใช้งานไปแล้ว")
+
+    # อัปเดตคูปอง: เชื่อมโยงกับ Member ที่ล็อกอินอยู่
+    member = get_object_or_404(Member, user=request.user)
+    coupon.member_id = member  # กำหนดสมาชิกที่ใช้คูปอง
+    coupon.used = True  # ตั้งค่าว่าคูปองถูกใช้งาน
+    coupon.save()
+
+    return redirect('success_page', message="คูปองถูกใช้งานเรียบร้อยแล้ว!")
+

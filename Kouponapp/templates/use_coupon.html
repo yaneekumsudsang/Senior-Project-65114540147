@@ -1,0 +1,9 @@
+{% for coupon in coupons %}
+<div>
+    <p>คูปอง ID: {{ coupon.id }}</p>
+    <p>สถานะ: {% if coupon.used %}ใช้งานแล้ว{% else %}ยังไม่ใช้งาน{% endif %}</p>
+    {% if not coupon.used %}
+    <a href="{% url 'use_coupon' coupon.id %}" class="text-blue-500 underline">ใช้งานคูปอง</a>
+    {% endif %}
+</div>
+{% endfor %}

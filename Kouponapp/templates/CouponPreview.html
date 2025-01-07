@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Preview Coupon</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
+
+<div class="max-w-4xl mx-auto bg-white rounded-xl shadow-lg mt-10 p-6">
+    <h1 class="text-2xl font-bold text-center text-[#164863] mb-6">ตัวอย่างคูปอง</h1>
+
+    <!-- ข้อมูลโปรโมชั่น -->
+    <div class="mb-6">
+        <h2 class="text-xl font-semibold text-[#164863]">ข้อมูลโปรโมชั่น</h2>
+        <p><strong>ชื่อโปรโมชั่น:</strong> {{ promotion.name }}</p>
+        <p><strong>รายละเอียด:</strong> {{ promotion.details }}</p>
+        <p><strong>ส่วนลด:</strong> {{ promotion.discount }}%</p>
+        <p><strong>แก้วฟรี:</strong> {{ promotion.free }}</p>
+        <p><strong>วันที่เริ่ม:</strong> {{ promotion.start }}</p>
+        <p><strong>วันหมดอายุ:</strong> {{ promotion.end }}</p>
+    </div>
+
+    <!-- ข้อมูลคูปอง -->
+    <div>
+        <ul class="list-disc pl-5">
+            {% for coupon in coupons %}
+                <li>
+                    <strong>รหัสคูปอง:</strong> {{ coupon.promotion_id }}
+                    {% if coupon.used %}
+                        <span class="text-red-500">(ใช้งานแล้ว)</span>
+                    {% else %}
+                        <span class="text-green-500">(ยังไม่ใช้งาน)</span>
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <!-- ปุ่มบันทึก -->
+    <div class="mt-6">
+        <a href="{% url 'CouponSave' promotion.id %}" class="block w-full bg-blue-500 text-white text-center py-2 px-4 rounded-lg">
+            บันทึกข้อมูล
+        </a>
+    </div>
+</div>
+
+</body>
+</html>

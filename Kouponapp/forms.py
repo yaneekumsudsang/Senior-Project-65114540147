@@ -1,7 +1,8 @@
 from django import forms
 from django.contrib.auth.models import User
-from .models import Promotion
+from .models import Promotion, Store
 from django.core.validators import MinValueValidator, MaxValueValidator
+from django.core.exceptions import ValidationError
 
 class RegisterForm(forms.Form):
     username = forms.CharField(label="ชื่อผู้ใช้", max_length=150, widget=forms.TextInput(attrs={
@@ -76,15 +77,27 @@ class ProfileForm(forms.ModelForm):
             self.fields['profile_img'].initial = member.profile_img  # ตั้งค่ารูปโปรไฟล์เริ่มต้น
 
 class PromotionForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        member = kwargs.pop('user', None)  # รับข้อมูล Member จาก view
+        super().__init__(*args, **kwargs)
+        if member:
+            self.fields['store'].queryset = Store.objects.filter(owner=member)  # กรองร้านค้าเฉพาะของ Member
+
+    coupon_count = forms.IntegerField(
+        label="จำนวนคูปอง",
+        required=False,
+        initial=1,
+        validators=[MinValueValidator(1)],
+    )
+
     class Meta:
         model = Promotion
-        fields = ['store', 'picture', 'cupsize', 'cups', 'discount', 'free', 'name', 'details', 'start', 'end']
+        fields = ['picture', 'cupsize', 'cups', 'discount', 'free', 'name', 'details', 'start', 'end', 'coupon_count']
         widgets = {
             'start': forms.DateInput(attrs={'type': 'date'}),
             'end': forms.DateInput(attrs={'type': 'date'}),
         }
         labels = {
-            'store': 'ร้านค้า',
             'picture': 'รูปภาพ',
             'cupsize': 'ขนาดแก้ว',
             'cups': 'จำนวนแก้วที่สะสม',
@@ -94,6 +107,7 @@ class PromotionForm(forms.ModelForm):
             'details': 'รายละเอียดโปรโมชั่น',
             'start': 'วันที่เริ่มใช้งาน',
             'end': 'วันหมดอายุ',
+            'count' : 'จำนวนคูปอง'
         }
 
     # ฟิลด์จำนวนแก้วที่สะสม
@@ -107,6 +121,7 @@ class PromotionForm(forms.ModelForm):
         label="ส่วนลด (%)",
         max_digits=5,
         decimal_places=2,
+        required=False,  # ไม่บังคับกรอก
         validators=[
             MinValueValidator(0),  # ค่าต่ำสุดคือ 0%
             MaxValueValidator(100),  # ค่าสูงสุดคือ 100%
@@ -116,5 +131,20 @@ class PromotionForm(forms.ModelForm):
     # ฟิลด์จำนวนแก้วฟรี
     free = forms.IntegerField(
         label="จำนวนแก้วฟรี",
+        required=False,  # ไม่บังคับกรอก
         validators=[MinValueValidator(0)],  # ค่าต่ำสุดคือ 0
     )
+
+    # ตรวจสอบและตั้งค่า default ในฟิลด์ discount และ free
+    def clean(self):
+        cleaned_data = super().clean()
+        discount = cleaned_data.get('discount')
+        free = cleaned_data.get('free')
+
+        if discount and free:
+            raise forms.ValidationError("ไม่สามารถระบุทั้งส่วนลดและจำนวนแก้วฟรีได้")
+
+        if not discount and not free:
+            raise forms.ValidationError("กรุณาระบุอย่างใดอย่างหนึ่ง: ส่วนลดหรือจำนวนแก้วฟรี")
+
+        return cleaned_data

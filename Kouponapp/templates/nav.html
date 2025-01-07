@@ -21,19 +21,15 @@
         {% if user.member and user.member.is_owner %}
         <!-- เมนูสำหรับเจ้าของร้าน -->
         <div class="flex flex-wrap justify-center px-6 mt-6 space-x-4">
-            <a href="#" class="flex items-center bg-[#DDF2FD] px-1 py-3 rounded-lg hover:bg-[#cde8f9] mx-0.5 h-12 w-34">
-                <span class="mr-1 text-m">🏷</span>
-                <span class="text-[#164863] font-medium">สร้างคิวอาร์โค้ด</span>
+            <a href="{% url 'CouponDesign_Store' %}" class="flex items-center bg-[#DDF2FD] px-1 py-3 rounded-lg hover:bg-[#cde8f9] mx-0.5 h-12 w-34">
+                <span class="mr-1 text-m">🎟</span>
+                <span class="text-[#164863] font-medium">สร้างคูปอง</span>
             </a>
             <a href="{% url 'used_coupons_by_member_store' %}" class="flex items-center bg-[#DDF2FD] px-1 py-3 rounded-lg hover:bg-[#cde8f9] mx-0.5 h-12 w-34">
                 <span class="mr-1 text-m">🕒</span>
                 <span class="text-[#164863] font-medium">ประวัติการใช้งานคูปองของลูกค้า</span>
             </a>
-            <a href="{% url 'CouponDesign_Store' %}" class="flex items-center bg-[#DDF2FD] px-1 py-3 rounded-lg hover:bg-[#cde8f9] mx-0.5 h-12 w-34">
-                <span class="mr-1 text-m">🎟</span>
-                <span class="text-[#164863] font-medium">ออกแบบคูปอง</span>
-            </a>
-        <a href="{% url 'koupon_logout' %}" class="flex items-center bg-[#DDF2FD] px-1 py-3 rounded-lg hover:bg-[#cde8f9] mx-0.5 h-12 w-34">
+            <a href="{% url 'koupon_logout' %}" class="flex items-center bg-[#DDF2FD] px-1 py-3 rounded-lg hover:bg-[#cde8f9] mx-0.5 h-12 w-34">
                 <span class="mr-1 text-m">🚪</span>
                 <span class="text-[#164863] font-medium">Logout</span>
             </a>

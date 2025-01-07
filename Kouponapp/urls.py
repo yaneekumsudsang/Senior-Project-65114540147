@@ -17,7 +17,9 @@ urlpatterns = [
     path('owner/promotions/', views.promotions_store, name='promotions_store'),
     path('used_coupons_by_member_store/', views.used_coupons_by_member_store, name='used_coupons_by_member_store'),
     path('promotion/design/', views.CouponDesign_Store, name='CouponDesign_Store'),
-    path('promotions/<int:promotion_id>/qr-code/', views.CreateQRcode_Store, name='create_qrcode_store'),
+    path('coupon_preview/<int:promotion_id>/', views.CouponPreview, name='CouponPreview'),
+    path('promotion/save/<int:promotion_id>/', views.CouponSave, name='CouponSave'),
+    path('coupon/use/<int:coupon_id>/', views.use_coupon, name='use_coupon'),
 ]
 
 if settings.DEBUG:

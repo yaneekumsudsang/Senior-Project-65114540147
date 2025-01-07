@@ -49,6 +49,7 @@ class Promotion(models.Model):
     details = models.CharField(max_length=200, null=True, blank=True, verbose_name="รายละเอียดโปรโมชั่น")
     start = models.DateField(verbose_name="วันที่เริ่มใช้งานคูปอง")
     end = models.DateField(verbose_name="วันหมดอายุคูปอง")
+    count = models.PositiveIntegerField(default=0, verbose_name="จำนวนคูปอง")
 
     class Meta:
         verbose_name_plural = 'โปรโมชั่น'
@@ -60,12 +61,13 @@ class Promotion(models.Model):
 class Coupon(models.Model):
     id = models.AutoField(primary_key=True, verbose_name="ไอดีคูปอง")
     promotion = models.ForeignKey(Promotion, on_delete=models.CASCADE, verbose_name="ไอดีโปรโมชั่น")
+    promotion_count = models.CharField(max_length=20, unique=True, verbose_name="รหัสคูปอง")
     used = models.BooleanField(default=False, verbose_name="ตรวจสอบการใช้งาน")
-    member_id = models.ForeignKey(Member, on_delete=models.CASCADE, verbose_name="สมาชิกที่ใช้งานคูปอง")
+    member_id = models.ForeignKey(Member, on_delete=models.CASCADE, null=True, blank=True, verbose_name="สมาชิกที่ใช้งานคูปอง")
 
     class Meta:
         verbose_name_plural = 'คูปอง'
         verbose_name = 'คูปอง'
 
     def __str__(self):
-        return f"Coupon {self.id}"
+        return f"Coupon {self.promotion_id} for Promotion {self.promotion.id}"

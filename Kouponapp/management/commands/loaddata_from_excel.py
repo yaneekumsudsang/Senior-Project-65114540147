@@ -67,7 +67,7 @@ class Command(BaseCommand):
         #Promotion
         promotion_sheet = wb['Promotion']
         for row in promotion_sheet.iter_rows(min_row=2, values_only=True):
-            promotion_id, store_id, picture, cupsize, cups, discount, free, name, details, start, end, *_ = row
+            promotion_id, store_id, picture, cupsize, cups, discount, free, name, details, start, end, count, *_ = row
             # ค้นหา Store
             store = Store.objects.filter(id=store_id).first()
             if not store:
@@ -87,6 +87,12 @@ class Command(BaseCommand):
                 self.stdout.write(f"Invalid end date format for promotion ID {promotion_id}. Skipping... Error: {e}")
                 continue
 
+            try:
+                count = int(count) if count else 0  # ตรวจสอบว่ามีค่า และแปลงเป็นตัวเลข
+            except ValueError as e:
+                self.stdout.write(f"Invalid count value for promotion ID {promotion_id}. Skipping... Error: {e}")
+                continue
+
             # สร้างหรืออัปเดตข้อมูล Promotion
             promotion_instance, created = Promotion.objects.get_or_create(
                 id=promotion_id,
@@ -101,17 +107,19 @@ class Command(BaseCommand):
                     'details': details,
                     'start': start,
                     'end': end,
+                    'count': count,
                 }
             )
+
             if created:
-                self.stdout.write(f"Created promotion: {name} for store: {store.store_name}")
+                self.stdout.write(f"Created promotion: {name} for store: {store.store_name} with count: {count}")
             else:
-                self.stdout.write(f"Promotion already exists: {name}")
+                self.stdout.write(f"Promotion already exists: {name} with count: {count}")
 
         #Coupon
         coupon_sheet = wb['Coupon']
         for row in coupon_sheet.iter_rows(min_row=2, values_only=True):
-            coupon_id, promotion_id, used, member_id = row
+            coupon_id, promotion_id, used, member_id, promotion_count = row
 
             # ค้นหา Promotion
             promotion = Promotion.objects.filter(id=promotion_id).first()
@@ -121,22 +129,32 @@ class Command(BaseCommand):
 
             # ค้นหา Member
             member = Member.objects.filter(id=member_id).first()
-            if not member:
+            if not member and member_id is not None:
                 self.stdout.write(f"Member ID {member_id} not found. Skipping coupon ID {coupon_id}.")
                 continue
+
+            # ตรวจสอบว่า promotion_count มีค่าหรือไม่
+            if not promotion_count:
+                promotion_count = f"{promotion.id}-{coupon_id}"  # สร้าง promotion_count อัตโนมัติ
 
             # สร้างหรืออัปเดตข้อมูล Coupon
             coupon_instance, created = Coupon.objects.get_or_create(
                 id=coupon_id,
                 defaults={
                     'promotion': promotion,
+                    'promotion_count': promotion_count,
                     'used': used,
                     'member_id': member,
                 }
             )
             if created:
-                self.stdout.write(f"Created coupon ID {coupon_id} for promotion {promotion.name}")
+                self.stdout.write(f"Created coupon ID {coupon_id} with promotion count {promotion_count}")
             else:
-                self.stdout.write(f"Coupon ID {coupon_id} already exists.")
+                # หากคูปองมีอยู่แล้ว อัปเดต promotion_count และข้อมูลอื่น ๆ
+                coupon_instance.promotion_count = promotion_count
+                coupon_instance.used = used
+                coupon_instance.member_id = member
+                coupon_instance.save()
+                self.stdout.write(f"Updated coupon ID {coupon_id} with promotion count {promotion_count}")
 
         self.stdout.write(self.style.SUCCESS("Data loaded successfully!"))
