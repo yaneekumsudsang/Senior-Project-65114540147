@@ -119,7 +119,7 @@ class Command(BaseCommand):
         #Coupon
         coupon_sheet = wb['Coupon']
         for row in coupon_sheet.iter_rows(min_row=2, values_only=True):
-            coupon_id, promotion_id, used, member_id, promotion_count = row
+            coupon_id, promotion_id, used, member_id, promotion_count, qr_code_url = row
 
             # ค้นหา Promotion
             promotion = Promotion.objects.filter(id=promotion_id).first()
@@ -127,34 +127,39 @@ class Command(BaseCommand):
                 self.stdout.write(f"Promotion ID {promotion_id} not found. Skipping coupon ID {coupon_id}.")
                 continue
 
-            # ค้นหา Member
-            member = Member.objects.filter(id=member_id).first()
-            if not member and member_id is not None:
-                self.stdout.write(f"Member ID {member_id} not found. Skipping coupon ID {coupon_id}.")
-                continue
+            # ตรวจสอบจำนวนคูปองที่ควรมี
+            required_coupons = promotion.count  # จำนวนคูปองที่กำหนดในโปรโมชั่น
+            current_coupons = Coupon.objects.filter(promotion=promotion).count()
 
-            # ตรวจสอบว่า promotion_count มีค่าหรือไม่
-            if not promotion_count:
-                promotion_count = f"{promotion.id}-{coupon_id}"  # สร้าง promotion_count อัตโนมัติ
+            if current_coupons < required_coupons:
+                # สร้างคูปองเพิ่ม
+                for i in range(current_coupons + 1, required_coupons + 1):
+                    # กำหนด username ของเจ้าของร้าน
+                    store_owner = getattr(promotion.store.owner, 'user', None)
+                    username = store_owner.username if store_owner else 'unknown'
 
-            # สร้างหรืออัปเดตข้อมูล Coupon
-            coupon_instance, created = Coupon.objects.get_or_create(
-                id=coupon_id,
-                defaults={
-                    'promotion': promotion,
-                    'promotion_count': promotion_count,
-                    'used': used,
-                    'member_id': member,
-                }
-            )
-            if created:
-                self.stdout.write(f"Created coupon ID {coupon_id} with promotion count {promotion_count}")
+                    # สร้าง URL ของ QR Code
+                    qr_code_url = f"http://127.0.0.1/koupon/qr/{username}/use/{promotion.id}/{i}"
+
+                    # สร้างคูปอง
+                    coupon = Coupon.objects.create(
+                        promotion=promotion,
+                        promotion_count=i,  # promotion_count ตามลำดับ
+                        used=False,
+                        member_id=None,  # หากยังไม่มีสมาชิกที่ใช้งานคูปอง
+                        qr_code_url=qr_code_url  # เพิ่ม URL QR Code
+                    )
+                    self.stdout.write(
+                        f"Created coupon ID {coupon.id} for promotion {promotion.id} with promotion_count {i}")
+            elif current_coupons > required_coupons:
+                # ลบคูปองส่วนเกินออก
+                extra_coupons = Coupon.objects.filter(promotion=promotion).order_by('-id')[
+                                :current_coupons - required_coupons]
+                for coupon in extra_coupons:
+                    coupon.delete()
+                    self.stdout.write(f"Deleted extra coupon ID {coupon.id} for promotion {promotion.id}")
             else:
-                # หากคูปองมีอยู่แล้ว อัปเดต promotion_count และข้อมูลอื่น ๆ
-                coupon_instance.promotion_count = promotion_count
-                coupon_instance.used = used
-                coupon_instance.member_id = member
-                coupon_instance.save()
-                self.stdout.write(f"Updated coupon ID {coupon_id} with promotion count {promotion_count}")
+                self.stdout.write(
+                    f"No changes required for promotion ID {promotion.id}. Coupons are already up to date.")
 
         self.stdout.write(self.style.SUCCESS("Data loaded successfully!"))

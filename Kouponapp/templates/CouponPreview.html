@@ -1,50 +1,42 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Preview Coupon</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-gray-100">
+<script src="https://cdn.tailwindcss.com"></script>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6">
+    {% for qr_code in qr_codes %}
+    <div class="bg-white rounded-lg shadow-xl relative border-t-4 border-gray-200 p-6">
+        <!-- วงกลมซ้าย -->
+        <div class="absolute z-10 top-[calc(50%-0.15rem)] left-0 transform -translate-x-1/2 w-14 h-14 bg-white rounded-full border-2 border-gray-100" style="clip-path: inset(0 0 0 50%);"></div>
+        <!-- วงกลมขวา -->
+        <div class="absolute z-10 top-[calc(50%-0.15rem)] right-0 transform translate-x-1/2 w-14 h-14 bg-white rounded-full border-2 border-gray-100" style="clip-path: inset(0 50% 0 0);"></div>
 
-<div class="max-w-4xl mx-auto bg-white rounded-xl shadow-lg mt-10 p-6">
-    <h1 class="text-2xl font-bold text-center text-[#164863] mb-6">ตัวอย่างคูปอง</h1>
+        <!-- หัวข้อ -->
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-red-500 font-bold text-2xl">{{ promotion.store.store_name }}</h2>
+            {% if promotion.discount %}
+                <p class="text-gray-700 text-xl font-bold">ลด {{ promotion.discount|floatformat:0 }}%</p>
+            {% elif promotion.free %}
+                <p class="text-gray-700 text-xl font-bold">{{ promotion.cups }} ฟรี {{ promotion.free }}</p>
+            {% endif %}
+        </div>
+        <p class="text-gray-700 font-semibold">{{ promotion.name }}</p>
 
-    <!-- ข้อมูลโปรโมชั่น -->
-    <div class="mb-6">
-        <h2 class="text-xl font-semibold text-[#164863]">ข้อมูลโปรโมชั่น</h2>
-        <p><strong>ชื่อโปรโมชั่น:</strong> {{ promotion.name }}</p>
-        <p><strong>รายละเอียด:</strong> {{ promotion.details }}</p>
-        <p><strong>ส่วนลด:</strong> {{ promotion.discount }}%</p>
-        <p><strong>แก้วฟรี:</strong> {{ promotion.free }}</p>
-        <p><strong>วันที่เริ่ม:</strong> {{ promotion.start }}</p>
-        <p><strong>วันหมดอายุ:</strong> {{ promotion.end }}</p>
+        <!-- รายละเอียดโปรโมชั่น -->
+        <div class="mt-4 text-gray-600 text-sm">
+            <p>{{ promotion.details }}</p>
+        </div>
+
+        <!-- เส้นประ -->
+        <div class="border-t-2 border-dashed mt-12 mb-6 mx-2"></div>
+
+        <!-- QR Code -->
+        <div class="flex justify-center">
+            <img src="data:image/png;base64,{{ qr_code.qr_image_base64 }}"
+                 alt="QR Code สำหรับคูปอง {{ qr_code.coupon.promotion_count }}"
+                 class="w-32 h-32">
+        </div>
+
+        <!-- หมดอายุ -->
+        <p class="text-center text-gray-400 text-sm mt-4">
+            ใช้งานได้ถึง {{ promotion.end|date:"d F Y" }}
+        </p>
     </div>
-
-    <!-- ข้อมูลคูปอง -->
-    <div>
-        <ul class="list-disc pl-5">
-            {% for coupon in coupons %}
-                <li>
-                    <strong>รหัสคูปอง:</strong> {{ coupon.promotion_id }}
-                    {% if coupon.used %}
-                        <span class="text-red-500">(ใช้งานแล้ว)</span>
-                    {% else %}
-                        <span class="text-green-500">(ยังไม่ใช้งาน)</span>
-                    {% endif %}
-                </li>
-            {% endfor %}
-        </ul>
-    </div>
-
-    <!-- ปุ่มบันทึก -->
-    <div class="mt-6">
-        <a href="{% url 'CouponSave' promotion.id %}" class="block w-full bg-blue-500 text-white text-center py-2 px-4 rounded-lg">
-            บันทึกข้อมูล
-        </a>
-    </div>
+    {% endfor %}
 </div>
-
-</body>
-</html>

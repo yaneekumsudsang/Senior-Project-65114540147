@@ -40,8 +40,8 @@
 
             <!-- รายละเอียดโปรโมชั่น -->
             <div>
-                <label for="description" class="block text-m font-bold text-[#164863]">รายละเอียดโปรโมชั่น</label>
-                <textarea id="description" name="description" placeholder="รายละเอียดโปรโมชั่น"
+                <label for="details" class="block text-m font-bold text-[#164863]">รายละเอียดโปรโมชั่น</label>
+                <textarea id="details" name="details" placeholder="รายละเอียดโปรโมชั่น"
                     class="mt-1 p-2 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm h-24"></textarea>
             </div>
 
@@ -83,21 +83,15 @@
     <!-- ส่วนลด -->
     <div class="w-1/2">
         <label for="discount" class="block text-m font-bold text-[#164863]">ส่วนลด (%)</label>
-        <input type="number" id="discount" name="discount" placeholder="ระบุส่วนลดเป็น %" min="0" max="100" value="10"
+        <input type="number" id="discount" name="discount" placeholder="ระบุส่วนลดเป็น %" min="0" max="100" value="0"
             class="mt-1 p-2 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-        <div class="text-red-500 text-sm mt-1">
-            ไม่สามารถระบุทั้งส่วนลดและจำนวนแก้วฟรีได้
-        </div>
     </div>
 
     <!-- จำนวนแก้วฟรี -->
     <div class="w-1/2">
         <label for="free" class="block text-m font-bold text-[#164863]">จำนวนแก้วฟรี</label>
-        <input type="number" id="free" name="free" placeholder="0" min="0" value="2"
+        <input type="number" id="free" name="free" placeholder="0" min="0" value="0"
             class="mt-1 p-2 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-        <div class="text-red-500 text-sm mt-1">
-            ไม่สามารถระบุทั้งส่วนลดและจำนวนแก้วฟรีได้
-        </div>
     </div>
 </div>
 
@@ -112,20 +106,6 @@
             </button>
         </form>
     </div>
-
-   {% if form.errors %}
-<div class="text-red-500">
-    <ul>
-        {% for field, errors in form.errors.items %}
-            {% for error in errors %}
-                <li>{{ field }}: {{ error }}</li>
-            {% endfor %}
-        {% endfor %}
-    </ul>
-</div>
-{% endif %}
-
-
 
     <!-- JavaScript -->
     <script>

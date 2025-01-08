@@ -1,4 +1,5 @@
 import logging
+from datetime import timezone
 
 # Django built-in imports
 from django.contrib import messages
@@ -14,6 +15,17 @@ from qr_code.qrcode.utils import QRCodeOptions
 # Local app imports
 from .forms import RegisterForm, LoginForm, ProfileForm, PromotionForm
 from .models import Member, Store, Promotion, Coupon
+
+import segno
+import os
+from django.conf import settings
+from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib.auth.decorators import login_required
+import segno
+import io
+import base64
+from .models import Member, Store, Promotion, Coupon
+from .forms import PromotionForm
 
 def promotions_view(request):
     data = Promotion.objects.all()[:5]
@@ -194,55 +206,128 @@ def CouponDesign_Store(request, id=None):
             promotion.store = store
             promotion.save()
 
+            # สร้างคูปองใหม่สำหรับโปรโมชั่นนี้ (ถ้าจำเป็น)
+            coupon, created = Coupon.objects.get_or_create(
+                promotion=promotion,
+                defaults={'promotion_id': promotion.id, 'used': False}
+            )
+
             # เปลี่ยนเส้นทางไปยัง CouponPreview
             return redirect('CouponPreview', promotion_id=promotion.id)
         else:
-            print("Form errors:", form.errors)
+            print("Form Errors:", form.errors)  # แสดงข้อผิดพลาดของฟอร์ม
     else:
         form = PromotionForm(instance=promotion)
 
     return render(request, 'CouponDesign_Store.html', {'form': form, 'promotion': promotion})
 
+def generate_coupon_qr_data(promotion, coupon_number):
+    """
+    Generate a structured data string for the QR code
+    """
+    qr_data = {
+        'promotion_id': promotion.id,
+        'coupon_number': coupon_number,
+        'store_name': promotion.store.store_name,
+        'promotion_name': promotion.name,
+        'valid_until': promotion.end.strftime('%Y-%m-%d'),
+        'discount': float(promotion.discount) if promotion.discount else 0,
+        'free_cups': promotion.free if promotion.free else 0
+    }
+    return str(qr_data)
+
+
 @login_required
 def CouponPreview(request, promotion_id):
     promotion = get_object_or_404(Promotion, id=promotion_id)
-    coupons = Coupon.objects.filter(promotion=promotion)
+    qr_codes = []
 
-    if request.method == 'POST':
-        # เมื่อกดบันทึกในหน้า Preview
-        return redirect('CouponSave', promotion_id=promotion.id)
+    # Get the desired number of coupons from the promotion
+    desired_coupon_count = promotion.count or 1  # Default to 1 if count is not set
+
+    # Get existing coupons count
+    existing_count = Coupon.objects.filter(promotion=promotion).count()
+
+    # Get the base URL from the request
+    base_url = request.build_absolute_uri('/').rstrip('/')
+
+    # Create new coupons if needed
+    if existing_count < desired_coupon_count:
+        # Calculate how many new coupons we need to create
+        new_coupons_needed = desired_coupon_count - existing_count
+
+        # Create the new coupons
+        for i in range(new_coupons_needed):
+            # The promotion_count will be existing_count + current iteration + 1
+            new_promotion_count = existing_count + i + 1
+
+            coupon = Coupon.objects.create(
+                promotion=promotion,
+                promotion_count=new_promotion_count,  # Set the sequential promotion count
+                used=False
+            )
+
+            # Generate the proper URL for the QR code
+            qr_url = f"{base_url}/koupon/qr/{promotion.store.id}/use/{promotion.id}/{coupon.id}"
+
+            # Save the URL to the coupon
+            coupon.qr_code_url = qr_url
+            coupon.save()
+
+            # Generate QR code with the complete URL
+            qr = segno.make(qr_url)
+            buffer = io.BytesIO()
+            qr.save(buffer, kind="png", scale=5)
+            qr_base64 = base64.b64encode(buffer.getvalue()).decode()
+            buffer.close()
+
+            qr_codes.append({
+                'coupon': coupon,
+                'qr_image_base64': qr_base64
+            })
+    else:
+        # Get all existing coupons
+        coupons = Coupon.objects.filter(promotion=promotion)
+        for coupon in coupons:
+            # Update or create QR URL if not exists
+            if not coupon.qr_code_url:
+                coupon.qr_code_url = f"{base_url}/koupon/qr/{promotion.store.id}/use/{promotion.id}/{coupon.id}"
+                coupon.save()
+
+            qr = segno.make(coupon.qr_code_url)
+            buffer = io.BytesIO()
+            qr.save(buffer, kind="png", scale=5)
+            qr_base64 = base64.b64encode(buffer.getvalue()).decode()
+            buffer.close()
+
+            qr_codes.append({
+                'coupon': coupon,
+                'qr_image_base64': qr_base64
+            })
 
     return render(request, 'CouponPreview.html', {
         'promotion': promotion,
-        'coupons': coupons,
+        'qr_codes': qr_codes,
     })
-
-
-@login_required
-def CouponSave(request, promotion_id):
-    promotion = get_object_or_404(Promotion, id=promotion_id)
-    coupons = Coupon.objects.filter(promotion=promotion)
-
-    return render(request, 'CouponSave.html', {
-        'promotion': promotion,
-        'coupons': coupons,
-    })
-
 
 @login_required
 def use_coupon(request, coupon_id):
-    # ดึงคูปองที่ต้องการใช้งาน
     coupon = get_object_or_404(Coupon, id=coupon_id)
 
-    # ตรวจสอบว่าคูปองยังไม่ถูกใช้งาน
+    # Verify coupon validity
     if coupon.used:
-        return redirect('error_page', message="คูปองนี้ถูกใช้งานไปแล้ว")
+        messages.error(request, "คูปองนี้ถูกใช้งานไปแล้ว")
+        return redirect('promotion_details', id=coupon.promotion.id)
 
-    # อัปเดตคูปอง: เชื่อมโยงกับ Member ที่ล็อกอินอยู่
+    if coupon.promotion.end < timezone.now().date():
+        messages.error(request, "คูปองนี้หมดอายุแล้ว")
+        return redirect('promotion_details', id=coupon.promotion.id)
+
+    # Update coupon status
     member = get_object_or_404(Member, user=request.user)
-    coupon.member_id = member  # กำหนดสมาชิกที่ใช้คูปอง
-    coupon.used = True  # ตั้งค่าว่าคูปองถูกใช้งาน
+    coupon.member = member
+    coupon.used = True
     coupon.save()
 
-    return redirect('success_page', message="คูปองถูกใช้งานเรียบร้อยแล้ว!")
-
+    messages.success(request, "ใช้คูปองสำเร็จ")
+    return redirect('promotion_details', id=coupon.promotion.id)

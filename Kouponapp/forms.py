@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.models import User
-from .models import Promotion, Store
+from .models import Promotion, Store, Coupon
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.core.exceptions import ValidationError
 
@@ -96,6 +96,10 @@ class PromotionForm(forms.ModelForm):
         widgets = {
             'start': forms.DateInput(attrs={'type': 'date'}),
             'end': forms.DateInput(attrs={'type': 'date'}),
+            'details': forms.Textarea(attrs={
+                'placeholder': 'กรุณากรอกรายละเอียดโปรโมชั่น',
+                'rows': 3,
+            }),
         }
         labels = {
             'picture': 'รูปภาพ',
@@ -134,7 +138,6 @@ class PromotionForm(forms.ModelForm):
         required=False,  # ไม่บังคับกรอก
         validators=[MinValueValidator(0)],  # ค่าต่ำสุดคือ 0
     )
-
     # ตรวจสอบและตั้งค่า default ในฟิลด์ discount และ free
     def clean(self):
         cleaned_data = super().clean()
@@ -148,3 +151,8 @@ class PromotionForm(forms.ModelForm):
             raise forms.ValidationError("กรุณาระบุอย่างใดอย่างหนึ่ง: ส่วนลดหรือจำนวนแก้วฟรี")
 
         return cleaned_data
+
+class CouponForm(forms.ModelForm):
+    class Meta:
+        model = Coupon
+        fields = ['promotion', 'promotion_count', 'used', 'qr_code_url']

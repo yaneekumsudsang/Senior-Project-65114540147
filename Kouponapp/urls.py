@@ -18,9 +18,9 @@ urlpatterns = [
     path('used_coupons_by_member_store/', views.used_coupons_by_member_store, name='used_coupons_by_member_store'),
     path('promotion/design/', views.CouponDesign_Store, name='CouponDesign_Store'),
     path('coupon_preview/<int:promotion_id>/', views.CouponPreview, name='CouponPreview'),
-    path('promotion/save/<int:promotion_id>/', views.CouponSave, name='CouponSave'),
-    path('coupon/use/<int:coupon_id>/', views.use_coupon, name='use_coupon'),
-]
+    path('koupon/qr/<str:username>/use/<int:promotion_id>/<int:count>/', views.CouponPreview, name='use_coupon'),
+    path('koupon/qr/<int:store_id>/use/<int:promotion_id>/<int:coupon_id>', views.use_coupon, name='use_coupon'),
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

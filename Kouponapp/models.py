@@ -2,6 +2,13 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.contrib.auth.models import AbstractUser, Permission
 from django.core.validators import MinValueValidator, MaxValueValidator
+from io import BytesIO
+from django.core.files import File
+from qr_code import qrcode
+import segno
+import os
+from django.conf import settings
+
 
 class Member(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, unique=True, verbose_name="ชื่อผู้ใช้")
@@ -46,7 +53,7 @@ class Promotion(models.Model):
     ])
     free = models.PositiveIntegerField(null=True, blank=True, verbose_name="จำนวนแก้วที่ฟรี")
     name = models.CharField(max_length=100, verbose_name="ชื่อโปรโมชั่น")
-    details = models.CharField(max_length=200, null=True, blank=True, verbose_name="รายละเอียดโปรโมชั่น")
+    details = models.TextField(max_length=200, null=True, blank=True, verbose_name="รายละเอียดโปรโมชั่น")
     start = models.DateField(verbose_name="วันที่เริ่มใช้งานคูปอง")
     end = models.DateField(verbose_name="วันหมดอายุคูปอง")
     count = models.PositiveIntegerField(default=0, verbose_name="จำนวนคูปอง")
@@ -61,13 +68,27 @@ class Promotion(models.Model):
 class Coupon(models.Model):
     id = models.AutoField(primary_key=True, verbose_name="ไอดีคูปอง")
     promotion = models.ForeignKey(Promotion, on_delete=models.CASCADE, verbose_name="ไอดีโปรโมชั่น")
-    promotion_count = models.CharField(max_length=20, unique=True, verbose_name="รหัสคูปอง")
+    promotion_count = models.PositiveIntegerField(verbose_name="ลำดับคูปอง", default=0)
     used = models.BooleanField(default=False, verbose_name="ตรวจสอบการใช้งาน")
-    member_id = models.ForeignKey(Member, on_delete=models.CASCADE, null=True, blank=True, verbose_name="สมาชิกที่ใช้งานคูปอง")
+    member = models.ForeignKey(Member, on_delete=models.CASCADE, null=True, blank=True, verbose_name="สมาชิกที่ใช้งานคูปอง")
+    qr_code_url = models.URLField(max_length=200, blank=True, null=True, verbose_name="URL ของ QR Code")
+    qr_code_image = models.ImageField(upload_to='qr_codes/', blank=True, null=True, verbose_name="ภาพ QR Code")  # ฟิลด์สำหรับเก็บภาพ QR Code
 
     class Meta:
         verbose_name_plural = 'คูปอง'
         verbose_name = 'คูปอง'
 
     def __str__(self):
-        return f"Coupon {self.promotion_id} for Promotion {self.promotion.id}"
+        return f"Coupon {self.id} for Promotion {self.promotion.id}"
+
+    def generate_qr_code(self):
+        # สร้าง QR Code
+        qr = segno.make(self.promotion_id)
+        qr_code_path = os.path.join(settings.MEDIA_ROOT, f"qr_codes/{self.promotion_id}.png")
+        os.makedirs(os.path.dirname(qr_code_path), exist_ok=True)
+        qr.save(qr_code_path, scale=5)
+        return f"{settings.MEDIA_URL}qr_codes/{self.promotion_id}.png"
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        self.generate_qr_code()
