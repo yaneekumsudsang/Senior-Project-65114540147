@@ -1,44 +1,6 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ใช้คูปอง</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-gray-50 min-h-screen flex items-center justify-center">
-    <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
-        <h1 class="text-2xl font-bold text-center text-red-500 mb-6">{{ coupon.promotion.store.store_name }}</h1>
-
-        <!-- รายละเอียดคูปอง -->
-        <div class="mb-4">
-            <p class="text-lg font-semibold">{{ coupon.promotion.name }}</p>
-            <p class="text-gray-600 mt-2">{{ coupon.promotion.details }}</p>
-        </div>
-
-        <!-- วันหมดอายุ -->
-        <div class="text-gray-500 text-sm mb-4">
-            <p>วันหมดอายุ: {{ coupon.promotion.end|date:"d F Y" }}</p>
-            <p>สถานะคูปอง:
-                {% if coupon.used %}
-                    <span class="text-red-500">ใช้งานแล้ว</span>
-                {% else %}
-                    <span class="text-green-500">ยังไม่ใช้งาน</span>
-                {% endif %}
-            </p>
-        </div>
-
-        <!-- ปุ่มยืนยัน -->
-        {% if not coupon.used %}
-        <form method="POST" class="mt-6">
-            {% csrf_token %}
-            <button type="submit" class="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-lg shadow">
-                ใช้คูปอง
-            </button>
-        </form>
-        {% else %}
-        <p class="text-center text-gray-600 mt-4">คูปองนี้ถูกใช้งานแล้ว</p>
-        {% endif %}
-    </div>
-</body>
-</html>
+<form method="POST" action="{% url 'use_coupon' %}">
+    {% csrf_token %}
+    <input type="hidden" name="store_id" value="{{ store.id }}"> <!-- ส่ง Store ID -->
+    <input type="text" name="scanned_url" placeholder="กรอกข้อมูล QR Code">
+    <button type="submit">ใช้คูปอง</button>
+</form>

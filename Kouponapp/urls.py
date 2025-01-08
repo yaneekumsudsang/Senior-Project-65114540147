@@ -31,6 +31,7 @@ urlpatterns = [
     # การใช้งานคูปอง
     path('scan/qrcode/', views.camera_feed, name='camera_feed'),
     path('detect/qrcode/', views.detect, name='detect_qrcode'),
+    path('use_coupon/', views.use_coupon, name='use_coupon'),
     path("koupon/qr/<int:store_id>/use/<int:promotion_id>/<int:coupon_id>/", views.use_coupon, name="use_coupon"),
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

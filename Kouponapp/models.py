@@ -93,9 +93,10 @@ class Coupon(models.Model):
         super().save(*args, **kwargs)
         self.generate_qr_code()
 
-class ScannedCode(models.Model):
-    data = models.CharField(max_length=500)
-    scanned_at = models.DateTimeField(auto_now_add=True)
+class ScannedQRCode(models.Model):
+    scanned_text = models.TextField()  # ข้อมูลที่ได้จากการสแกน
+    timestamp = models.DateTimeField(auto_now_add=True)  # เวลาที่สแกน
+    is_url = models.BooleanField(default=False)  # ตรวจสอบว่าเป็น URL หรือไม่
 
     def __str__(self):
-        return f"{self.data[:50]}... - {self.scanned_at}"
+        return f"{self.scanned_text} - {self.timestamp}"
