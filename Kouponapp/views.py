@@ -1,6 +1,7 @@
 import logging
 from datetime import timezone
 
+import numpy as np
 # Django built-in imports
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
@@ -26,6 +27,15 @@ import io
 import base64
 from .models import Member, Store, Promotion, Coupon
 from .forms import PromotionForm
+import cv2
+from django.shortcuts import render
+from django.http import StreamingHttpResponse, HttpResponse
+from pyzbar.pyzbar import decode
+import numpy as np
+from .models import ScannedCode
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+import json
 
 def promotions_view(request):
     data = Promotion.objects.all()[:5]
@@ -310,24 +320,65 @@ def CouponPreview(request, promotion_id):
         'qr_codes': qr_codes,
     })
 
+
+class CameraStream(str):
+    def __init__(self):
+        self.camera = cv2.VideoCapture(0)
+
+    def get_frames(self):
+        while True:
+            # Capture frame-by-frame
+            success, frame = self.camera.read()
+            if not success:
+                break
+            else:
+                ret, buffer = cv2.imencode('.jpg', frame)
+                color_image = np.asanyarray(frame)
+                if decode(color_image):
+                    for qrcode in decode(color_image):
+                        barcode_data = (qrcode.data).decode('utf-8')
+                else:
+                    frame = buffer.tobytes()
+                    #hasil2 = b'--frame\r\n'b'Content-Type: image/jpeg\r\n\r\n' + barcode_frame + b'\r\n\r\n'
+                    yield (b'--frame\r\n'
+                           b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')
+
+def camera_feed(request):
+    stream = CameraStream()
+    frames = stream.get_frames()
+    return StreamingHttpResponse(frames, content_type='multipart/x-mixed-replace; boundary=frame')
+
+def detect(request):
+    stream = CameraStream()
+    success, frame = stream.camera.read()
+    if success:
+        status = True
+    else:
+        status = False
+
+    return render(request, 'scan_qrcode.html', context={'cam_status': status})
+
 @login_required
 def use_coupon(request, coupon_id):
     coupon = get_object_or_404(Coupon, id=coupon_id)
 
-    # Verify coupon validity
-    if coupon.used:
-        messages.error(request, "คูปองนี้ถูกใช้งานไปแล้ว")
-        return redirect('promotion_details', id=coupon.promotion.id)
+    if request.method == "POST":
+        # ตรวจสอบสถานะคูปอง
+        if coupon.used:
+            messages.error(request, "คูปองนี้ถูกใช้งานไปแล้ว")
+            return redirect('promotion_details', id=coupon.promotion.id)
 
-    if coupon.promotion.end < timezone.now().date():
-        messages.error(request, "คูปองนี้หมดอายุแล้ว")
-        return redirect('promotion_details', id=coupon.promotion.id)
+        if coupon.promotion.end < timezone.now().date():
+            messages.error(request, "คูปองนี้หมดอายุแล้ว")
+            return redirect('promotion_details', id=coupon.promotion.id)
 
-    # Update coupon status
-    member = get_object_or_404(Member, user=request.user)
-    coupon.member = member
-    coupon.used = True
-    coupon.save()
+        # อัปเดตสถานะคูปอง
+        coupon.used = True
+        coupon.used_at = timezone.now()
+        coupon.save()
 
-    messages.success(request, "ใช้คูปองสำเร็จ")
-    return redirect('promotion_details', id=coupon.promotion.id)
+        messages.success(request, "คูปองถูกใช้งานเรียบร้อยแล้ว")
+        return render(request, 'confirm_coupon_used.html', {'coupon': coupon})
+
+    # แสดงหน้ารายละเอียดคูปองก่อนยืนยัน
+    return render(request, 'use_coupon.html', {'coupon': coupon})

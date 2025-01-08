@@ -2,3 +2,5 @@ django
 openpyxl
 pillow
 django-qr-code
+opencv-python
+pyzbar

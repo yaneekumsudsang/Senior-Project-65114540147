@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ใช้คูปองสำเร็จ</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-green-50 min-h-screen flex items-center justify-center">
+    <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md text-center">
+        <h1 class="text-2xl font-bold text-green-500 mb-6">คูปองถูกใช้งานเรียบร้อยแล้ว</h1>
+
+        <p class="text-gray-700 text-lg">ขอบคุณที่ใช้บริการจาก {{ coupon.promotion.store.store_name }}</p>
+        <p class="text-sm text-gray-500 mt-4">โปรโมชั่น: {{ coupon.promotion.name }}</p>
+
+        <a href="/" class="mt-6 inline-block bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-lg shadow">
+            กลับสู่หน้าหลัก
+        </a>
+    </div>
+</body>
+</html>

@@ -92,3 +92,10 @@ class Coupon(models.Model):
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
         self.generate_qr_code()
+
+class ScannedCode(models.Model):
+    data = models.CharField(max_length=500)
+    scanned_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.data[:50]}... - {self.scanned_at}"
