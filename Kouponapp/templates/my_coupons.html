@@ -39,10 +39,9 @@
                     <div class="bg-dashed border-l-2 border-dashed border-gray-300 mx-4 h-full"></div>
                     <!-- รายละเอียด -->
                     <div class="flex-1 ml-2 mr-5">
-                        <p class="text-xl font-bold text-[#164863]">{{ coupon.promotion.name }}</p>
-                        <p class="text-sm text-gray-600">ร้าน: {{ coupon.promotion.store.store_name }}</p>
-                        <p class="text-sm text-gray-600">หมดอายุ: {{ coupon.promotion.end|date:"d M Y" }}</p>
-                        <p class="text-sm text-gray-600">สแกนโดย: {{ username }}</p>
+                        <p class="text-xl font-bold">{{ coupon.promotion.name }}</p>
+                        <p class="text-sm">{{ coupon.promotion.store.store_name }}</p>
+                        <p class="text-sm mt-3">ใช้งานได้ถึง: {{ coupon.promotion.end|date:"d M Y" }}</p>
                     </div>
                 </div>
             {% empty %}
