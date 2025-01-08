@@ -33,9 +33,7 @@ from django.http import StreamingHttpResponse, HttpResponse
 from pyzbar.pyzbar import decode
 import numpy as np
 from .models import ScannedQRCode
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-import json
+from django.utils import timezone
 
 def promotions_view(request):
     data = Promotion.objects.all()[:5]
@@ -52,12 +50,6 @@ def promotions_member(request):
 def PromotionDetails(request, id):
     promotion = get_object_or_404(Promotion, id=id)
     return render(request, 'PromotionDetails.html', {'promotion': promotion})
-
-@login_required
-def promotion_list(request):
-    # ดึงข้อมูลทั้งหมดจาก Promotion
-    promotions = Promotion.objects.all()
-    return render(request, 'promotion_list.html', {'promotions': promotions})
 
 def UsedCoupons(request):
     promotions = Promotion.objects.all()
@@ -298,7 +290,7 @@ def CouponPreview(request, promotion_id):
         for coupon in coupons:
             # Update or create QR URL if not exists
             if not coupon.qr_code_url:
-                coupon.qr_code_url = f"{base_url}/koupon/qr/{promotion.store.id}/use/{promotion.id}/{coupon.id}"
+                coupon.qr_code_url = f"{base_url}/koupon/qr/{promotion.store.store_name}/use/{promotion.id}/{coupon.id}"
                 coupon.save()
 
             qr = segno.make(coupon.qr_code_url)
@@ -356,45 +348,55 @@ def detect(request):
     return render(request, 'scan_qrcode.html', context={'cam_status': status})
 
 @login_required
-def use_coupon(request):
-    """ฟังก์ชันสำหรับรับข้อมูลที่สแกนได้และดำเนินการกับคูปอง"""
-    if request.method == "POST":
-        scanned_data = request.POST.get("scanned_url")  # รับข้อมูลจาก POST
-        store_id = request.POST.get("store_id")  # รับ store_id จาก POST
+def Collect_coupons(request, store_name, promotion_id, coupon_id):
+    """ฟังก์ชันสำหรับการสแกน QR Code และเก็บคูปอง"""
+    try:
+        # ดึงข้อมูลร้านค้า, โปรโมชั่น และคูปอง
+        store = Store.objects.get(store_name=store_name)
+        promotion = Promotion.objects.get(id=promotion_id, store=store)
+        coupon = Coupon.objects.get(id=coupon_id, promotion=promotion)
 
-        if scanned_data:
-            # ตรวจสอบว่าข้อมูลที่สแกนเป็น URL หรือไม่
-            is_url = scanned_data.startswith("http://") or scanned_data.startswith("https://")
+        # บันทึกการสแกน QR Code
+        scanned_qr = ScannedQRCode.objects.create(
+            scanned_text=coupon.id,
+            is_url=False,
+        )
 
-            # บันทึกข้อมูล QR Code ลงในฐานข้อมูล
-            scanned_qr = ScannedQRCode.objects.create(
-                scanned_text=scanned_data,
-                is_url=is_url
-            )
+        # ดึงข้อมูลชื่อผู้ใช้จาก `request.user`
+        username = request.user.username
 
-            # ตรวจสอบว่าข้อมูลที่สแกนเป็นรหัสคูปอง
-            try:
-                coupon = Coupon.objects.get(id=scanned_data)  # ใช้ ID หรือรหัสที่สแกนได้
-                if coupon.used:
-                    messages.error(request, "คูปองนี้ถูกใช้งานไปแล้ว")
-                elif coupon.promotion.end < timezone.now().date():
-                    messages.error(request, "คูปองนี้หมดอายุแล้ว")
-                else:
-                    # อัปเดตสถานะคูปอง พร้อมบันทึก `store_id`
-                    coupon.used = True
-                    coupon.used_at = timezone.now()
-                    coupon.store_id = store_id  # บันทึก Store ID
-                    coupon.save()
-                    messages.success(request, "ใช้คูปองสำเร็จ")
-                    return render(request, 'confirm_coupon_used.html', {'coupon': coupon, 'store_id': store_id})
-
-            except Coupon.DoesNotExist:
-                messages.error(request, "คูปองไม่ถูกต้อง")
-
-            # หากไม่พบคูปองหรือเป็นข้อมูลอื่น แสดงผลข้อความ
-            return render(request, 'scanned_result.html', {'message': scanned_data, 'store_id': store_id})
+        if coupon.used:
+            messages.error(request, f"คูปองนี้ถูกใช้งานไปแล้วโดย {username}")
+        elif promotion.end < timezone.now().date():
+            messages.error(request, f"คูปองนี้หมดอายุแล้ว โดย {username}")
         else:
-            messages.error(request, "ไม่พบข้อมูลที่สแกนได้")
-            return redirect('scan_qrcode')  # เปลี่ยนเส้นทางไปหน้า QR Code Scanner
-    else:
-        return render(request, 'promotion_list.html')
+            # อัปเดตสถานะคูปอง
+            coupon.used = True
+            coupon.used_at = timezone.now()
+            coupon.save()
+
+            messages.success(request, f"คูปองถูกใช้งานเรียบร้อยแล้วโดย {username}!")
+
+    except Store.DoesNotExist:
+        messages.error(request, "ไม่พบร้านค้านี้ในระบบ")
+    except Promotion.DoesNotExist:
+        messages.error(request, "ไม่พบโปรโมชั่นนี้ในระบบ")
+    except Coupon.DoesNotExist:
+        messages.error(request, "ไม่พบคูปองนี้ในระบบ")
+
+    # เปลี่ยนไปยังหน้าสะสมคูปอง
+    return redirect('my_coupons')
+
+@login_required
+def my_coupons(request):
+    """แสดงรายการคูปองที่ผู้ใช้สะสม"""
+    # ดึงรายการคูปองที่เกี่ยวข้องกับผู้ใช้ปัจจุบัน
+    scanned_qrcodes = ScannedQRCode.objects.all()  # หากต้องการดึงข้อมูลการสแกนทั้งหมด
+
+    # ดึงข้อมูลชื่อผู้ใช้ที่เกี่ยวข้องกับการสแกน
+    username = request.user.username
+
+    # ดึงคูปองทั้งหมดที่เกี่ยวข้อง
+    coupons = Coupon.objects.filter(id__in=scanned_qrcodes.values_list('scanned_text', flat=True))
+
+    return render(request, 'my_coupons.html', {'coupons': coupons, 'username': username})

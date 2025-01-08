@@ -1,6 +1,29 @@
-<form method="POST" action="{% url 'use_coupon' %}">
-    {% csrf_token %}
-    <input type="hidden" name="store_id" value="{{ store.id }}"> <!-- ส่ง Store ID -->
-    <input type="text" name="scanned_url" placeholder="กรอกข้อมูล QR Code">
-    <button type="submit">ใช้คูปอง</button>
-</form>
+<!-- coupon_usage_list.html -->
+{% extends 'nav.html' %}
+
+{% block content %}
+<h2>รายการการใช้คูปอง - {{ store.store_name }}</h2>
+
+<div class="overflow-x-auto">
+    <table class="w-full">
+        <thead>
+            <tr>
+                <th>ผู้ใช้</th>
+                <th>โปรโมชั่น</th>
+                <th>วันที่ใช้</th>
+                <th>รหัสคูปอง</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for usage in usages %}
+            <tr>
+                <td>{{ usage.member.user.username }}</td>
+                <td>{{ usage.coupon.promotion.name }}</td>
+                <td>{{ usage.used_at|date:"d/m/Y H:i" }}</td>
+                <td>{{ usage.coupon.id }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

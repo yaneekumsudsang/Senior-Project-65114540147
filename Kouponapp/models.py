@@ -2,13 +2,9 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.contrib.auth.models import AbstractUser, Permission
 from django.core.validators import MinValueValidator, MaxValueValidator
-from io import BytesIO
-from django.core.files import File
-from qr_code import qrcode
 import segno
 import os
 from django.conf import settings
-
 
 class Member(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, unique=True, verbose_name="ชื่อผู้ใช้")
