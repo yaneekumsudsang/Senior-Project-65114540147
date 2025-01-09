@@ -52,7 +52,7 @@ class Promotion(models.Model):
     details = models.TextField(max_length=200, null=True, blank=True, verbose_name="รายละเอียดโปรโมชั่น")
     start = models.DateField(verbose_name="วันที่เริ่มใช้งานคูปอง")
     end = models.DateField(verbose_name="วันหมดอายุคูปอง")
-    count = models.PositiveIntegerField(default=0, verbose_name="จำนวนคูปอง")
+    count = models.PositiveIntegerField(default=1, verbose_name="จำนวนคูปอง")
 
     class Meta:
         verbose_name_plural = 'โปรโมชั่น'

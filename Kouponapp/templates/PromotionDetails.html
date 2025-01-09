@@ -27,14 +27,18 @@
 
         <!-- QR Code -->
         <div class="flex justify-center">
-            {% if promotion.picture %}
-                <img src="{{ promotion.picture.url }}" alt="QR Code" class="w-24 h-24">
-            {% else %}
-                <div class="w-32 h-32 bg-gray-200 flex items-center justify-center">
-                    <span class="text-gray-500">QR Code</span>
-                </div>
-            {% endif %}
+    {% if promotion.qr_image %}
+        <img src="{{ promotion.qr_image.url }}" alt="QR Code" class="w-24 h-24">
+    {% else %}
+        <div class="w-32 h-32 bg-gray-200 flex items-center justify-center">
+            <span class="text-gray-500">QR Code</span>
         </div>
+    {% endif %}
+</div>
+
+
+
+
 
         <p class="text-center text-gray-400 text-sm mt-4">
             ใช้งานได้ถึง {{ promotion.end|date:"d F Y" }}

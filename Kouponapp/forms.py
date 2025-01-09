@@ -111,7 +111,7 @@ class PromotionForm(forms.ModelForm):
             'details': 'รายละเอียดโปรโมชั่น',
             'start': 'วันที่เริ่มใช้งาน',
             'end': 'วันหมดอายุ',
-            'count' : 'จำนวนคูปอง'
+            'count': 'จำนวนคูปอง'
         }
 
     # ฟิลด์จำนวนแก้วที่สะสม
@@ -139,6 +139,14 @@ class PromotionForm(forms.ModelForm):
         validators=[MinValueValidator(0)],  # ค่าต่ำสุดคือ 0
     )
     # ตรวจสอบและตั้งค่า default ในฟิลด์ discount และ free
+
+    count = forms.IntegerField(
+        label="จำนวนคูปอง",
+        required=False,
+        initial=1,
+        validators=[MinValueValidator(1)],  # ค่าต่ำสุดคือ 1
+    )
+
     def clean(self):
         cleaned_data = super().clean()
         discount = cleaned_data.get('discount')
@@ -151,6 +159,14 @@ class PromotionForm(forms.ModelForm):
             raise forms.ValidationError("กรุณาระบุอย่างใดอย่างหนึ่ง: ส่วนลดหรือจำนวนแก้วฟรี")
 
         return cleaned_data
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        # นำค่าจาก coupon_count ไปใส่ในฟิลด์ count ของโมเดล Promotion
+        instance.count = self.cleaned_data.get('coupon_count', 1)
+        if commit:
+            instance.save()
+        return instance
 
 class CouponForm(forms.ModelForm):
     class Meta:

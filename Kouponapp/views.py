@@ -208,11 +208,22 @@ def CouponDesign_Store(request, id=None):
             promotion.store = store
             promotion.save()
 
-            # สร้างคูปองใหม่สำหรับโปรโมชั่นนี้ (ถ้าจำเป็น)
-            coupon, created = Coupon.objects.get_or_create(
-                promotion=promotion,
-                defaults={'promotion_id': promotion.id, 'used': False}
-            )
+            # จัดการคูปองตามจำนวน `count` ที่กำหนด
+            desired_coupon_count = promotion.count or 1  # ถ้า `count` ไม่มีค่า ให้ใช้ค่า 1
+            existing_coupons = Coupon.objects.filter(promotion=promotion)
+
+            # ลบคูปองที่เกินจำนวน `count`
+            if existing_coupons.count() > desired_coupon_count:
+                excess_coupons = existing_coupons[desired_coupon_count:]
+                excess_coupons.delete()
+
+            # สร้างคูปองใหม่ถ้าจำนวนปัจจุบันไม่เพียงพอ
+            for i in range(existing_coupons.count(), desired_coupon_count):
+                Coupon.objects.create(
+                    promotion=promotion,
+                    promotion_count=i + 1,  # กำหนดเลขลำดับของคูปอง
+                    used=False
+                )
 
             # เปลี่ยนเส้นทางไปยัง CouponPreview
             return redirect('CouponPreview', promotion_id=promotion.id)
@@ -235,80 +246,74 @@ def generate_coupon_qr_data(promotion, coupon_number):
     }
     return str(qr_data)
 
-
 @login_required
 def CouponPreview(request, promotion_id):
     promotion = get_object_or_404(Promotion, id=promotion_id)
     qr_codes = []
 
-    # Get the desired number of coupons from the promotion
-    desired_coupon_count = promotion.count or 1  # Default to 1 if count is not set
+    # จำนวนคูปองที่ลูกค้ากรอก
+    desired_coupon_count = promotion.count or 1  # ถ้าไม่มี count ให้ค่าเริ่มต้นเป็น 1
 
-    # Get existing coupons count
-    existing_count = Coupon.objects.filter(promotion=promotion).count()
-
-    # Get the base URL from the request
+    # URL หลักของระบบ
     base_url = request.build_absolute_uri('/').rstrip('/')
 
-    # Create new coupons if needed
+    # ดึงคูปองที่มีอยู่จากฐานข้อมูล
+    existing_coupons = Coupon.objects.filter(promotion=promotion)
+    existing_count = existing_coupons.count()
+
+    # ตรวจสอบว่าต้องสร้างคูปองใหม่หรือไม่
     if existing_count < desired_coupon_count:
-        # Calculate how many new coupons we need to create
         new_coupons_needed = desired_coupon_count - existing_count
 
-        # Create the new coupons
+        # สร้างคูปองใหม่ตามจำนวนที่ขาด
         for i in range(new_coupons_needed):
-            # The promotion_count will be existing_count + current iteration + 1
-            new_promotion_count = existing_count + i + 1
+            new_promotion_count = existing_count + i + 1  # promotion_count จะเพิ่มขึ้นเรื่อย ๆ
 
+            # สร้างคูปองใหม่
             coupon = Coupon.objects.create(
                 promotion=promotion,
-                promotion_count=new_promotion_count,  # Set the sequential promotion count
+                promotion_count=new_promotion_count,
                 used=False
             )
 
-            # Generate the proper URL for the QR code
+            # สร้าง URL สำหรับ QR Code
             qr_url = f"{base_url}/koupon/qr/{promotion.store.id}/use/{promotion.id}/{coupon.id}"
-
-            # Save the URL to the coupon
-            coupon.qr_code_url = qr_url
+            coupon.qr_code_url = qr_url  # บันทึก URL ลงในคูปอง
             coupon.save()
 
-            # Generate QR code with the complete URL
-            qr = segno.make(qr_url)
-            buffer = io.BytesIO()
-            qr.save(buffer, kind="png", scale=5)
-            qr_base64 = base64.b64encode(buffer.getvalue()).decode()
-            buffer.close()
-
+            # สร้าง QR Code และแปลงเป็น Base64
             qr_codes.append({
                 'coupon': coupon,
-                'qr_image_base64': qr_base64
+                'qr_image_base64': generate_qr_base64(qr_url)
             })
-    else:
-        # Get all existing coupons
-        coupons = Coupon.objects.filter(promotion=promotion)
-        for coupon in coupons:
-            # Update or create QR URL if not exists
-            if not coupon.qr_code_url:
-                coupon.qr_code_url = f"{base_url}/koupon/qr/{promotion.store.store_name}/use/{promotion.id}/{coupon.id}"
-                coupon.save()
 
-            qr = segno.make(coupon.qr_code_url)
-            buffer = io.BytesIO()
-            qr.save(buffer, kind="png", scale=5)
-            qr_base64 = base64.b64encode(buffer.getvalue()).decode()
-            buffer.close()
+    # เพิ่ม QR Code ของคูปองที่มีอยู่แล้ว
+    for coupon in existing_coupons:
+        if not coupon.qr_code_url:  # ถ้า QR Code URL ยังไม่มี
+            coupon.qr_code_url = f"{base_url}/koupon/qr/{promotion.store.id}/use/{promotion.id}/{coupon.id}"
+            coupon.save()
 
-            qr_codes.append({
-                'coupon': coupon,
-                'qr_image_base64': qr_base64
-            })
+        qr_codes.append({
+            'coupon': coupon,
+            'qr_image_base64': generate_qr_base64(coupon.qr_code_url)
+        })
 
     return render(request, 'CouponPreview.html', {
         'promotion': promotion,
         'qr_codes': qr_codes,
     })
 
+
+def generate_qr_base64(qr_url):
+    """
+    ฟังก์ชันช่วยสร้าง QR Code ในรูปแบบ Base64
+    """
+    qr = segno.make(qr_url)
+    buffer = io.BytesIO()
+    qr.save(buffer, kind="png", scale=5)
+    qr_base64 = base64.b64encode(buffer.getvalue()).decode()
+    buffer.close()
+    return qr_base64
 
 class CameraStream(str):
     def __init__(self):

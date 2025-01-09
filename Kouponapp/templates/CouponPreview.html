@@ -1,30 +1,36 @@
 <script src="https://cdn.tailwindcss.com"></script>
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6">
+<div class="flex flex-col items-center justify-center min-h-screen bg-gray-100">
+    <h2 class="text-center text-3xl font-bold text-[#164863] mb-2 mt-6">คูปองสำหรับโปรโมชั่น: {{ promotion.name }}</h2>
+
+     <div class="grid grid-cols-1 gap-3 h-[500px] w-3/4 overflow-y-auto place-items-center mt-2">
     {% for qr_code in qr_codes %}
-    <div class="bg-white rounded-lg shadow-xl relative border-t-4 border-gray-200 p-6">
+    <!-- การ์ดคูปอง -->
+    <div class="bg-white rounded-lg shadow-xl relative border-t-4 border-gray-200 p-6 w-1/3 mb-4">
         <!-- วงกลมซ้าย -->
-        <div class="absolute z-10 top-[calc(50%-0.15rem)] left-0 transform -translate-x-1/2 w-14 h-14 bg-white rounded-full border-2 border-gray-100" style="clip-path: inset(0 0 0 50%);"></div>
+        <div class="absolute z-10 top-1/2 left-0 transform -translate-y-1/2 -translate-x-1/2 w-14 h-14 bg-white rounded-full border-2 border-gray-100" style="clip-path: inset(0 0 0 50%);"></div>
         <!-- วงกลมขวา -->
-        <div class="absolute z-10 top-[calc(50%-0.15rem)] right-0 transform translate-x-1/2 w-14 h-14 bg-white rounded-full border-2 border-gray-100" style="clip-path: inset(0 50% 0 0);"></div>
+        <div class="absolute z-10 top-1/2 right-0 transform -translate-y-1/2 translate-x-1/2 w-14 h-14 bg-white rounded-full border-2 border-gray-100" style="clip-path: inset(0 50% 0 0);"></div>
 
         <!-- หัวข้อ -->
-        <div class="flex justify-between items-center mb-4">
+        <div class="flex justify-between items-center mb-6">
             <h2 class="text-red-500 font-bold text-2xl">{{ promotion.store.store_name }}</h2>
             {% if promotion.discount %}
-                <p class="text-gray-700 text-xl font-bold">ลด {{ promotion.discount|floatformat:0 }}%</p>
+                <p class="text-gray-700 text-lg font-bold">ลด {{ promotion.discount|floatformat:0 }}%</p>
             {% elif promotion.free %}
-                <p class="text-gray-700 text-xl font-bold">{{ promotion.cups }} ฟรี {{ promotion.free }}</p>
+                <p class="text-gray-700 text-lg font-bold">{{ promotion.cups }} ฟรี {{ promotion.free }}</p>
             {% endif %}
         </div>
-        <p class="text-gray-700 font-semibold">{{ promotion.name }}</p>
+
+        <!-- ชื่อโปรโมชั่น -->
+        <p class="text-gray-700 font-semibold text-lg mb-4">{{ promotion.name }}</p>
 
         <!-- รายละเอียดโปรโมชั่น -->
-        <div class="mt-4 text-gray-600 text-sm">
+        <div class="mt-2 text-gray-600 text-sm">
             <p>{{ promotion.details }}</p>
         </div>
 
         <!-- เส้นประ -->
-        <div class="border-t-2 border-dashed mt-12 mb-6 mx-2"></div>
+        <div class="border-t-2 border-dashed mt-6 mb-4"></div>
 
         <!-- QR Code -->
         <div class="flex justify-center">
@@ -33,10 +39,19 @@
                  class="w-32 h-32">
         </div>
 
-        <!-- หมดอายุ -->
+        <!-- วันที่หมดอายุ -->
         <p class="text-center text-gray-400 text-sm mt-4">
             ใช้งานได้ถึง {{ promotion.end|date:"d F Y" }}
         </p>
+     <p class="text-center text-sm text-gray-600">URL: {{ qr_code.coupon.qr_code_url }}</p>
     </div>
+
     {% endfor %}
+            </div>
+    <!-- ปุ่มบันทึกข้อมูล -->
+    <div class="mb-8 mt-6">
+        <a href="{% url 'promotions_store' %}" class="px-8 py-3 bg-[#164863] text-white rounded-full shadow hover:bg-[#DDF2FD] hover:text-[#164863]">
+            บันทึกข้อมูล
+        </a>
+    </div>
 </div>
