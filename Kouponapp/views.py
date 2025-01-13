@@ -34,6 +34,7 @@ from pyzbar.pyzbar import decode
 import numpy as np
 from .models import ScannedQRCode
 from django.utils import timezone
+from django.http import JsonResponse
 
 def promotions_view(request):
     data = Promotion.objects.all()[:5]
@@ -46,10 +47,6 @@ def promotions_all(request):
 def promotions_member(request):
     member_promotions = Promotion.objects.all()[:10]  # ดึงข้อมูลทั้งหมดจาก Promotion
     return render(request, 'member.html', {'promotions_member': member_promotions})
-
-def PromotionDetails(request, id):
-    promotion = get_object_or_404(Promotion, id=id)
-    return render(request, 'PromotionDetails.html', {'promotion': promotion})
 
 def UsedCoupons(request):
     promotions = Promotion.objects.all()
@@ -188,7 +185,6 @@ def used_coupons_by_member_store(request):
     # ส่งข้อมูลไปยังเทมเพลต
     return render(request, 'used_coupons_by_member_store.html', {'used_coupons': used_coupons})
 
-
 @login_required
 def CouponDesign_Store(request, id=None):
     # ดึงร้านค้าของผู้ใช้งาน
@@ -246,56 +242,54 @@ def generate_coupon_qr_data(promotion, coupon_number):
     }
     return str(qr_data)
 
+
 @login_required
 def CouponPreview(request, promotion_id):
     promotion = get_object_or_404(Promotion, id=promotion_id)
     qr_codes = []
 
-    # จำนวนคูปองที่ลูกค้ากรอก
-    desired_coupon_count = promotion.count or 1  # ถ้าไม่มี count ให้ค่าเริ่มต้นเป็น 1
-
-    # URL หลักของระบบ
+    # Get base URL
     base_url = request.build_absolute_uri('/').rstrip('/')
 
-    # ดึงคูปองที่มีอยู่จากฐานข้อมูล
+    # Get or create coupons
     existing_coupons = Coupon.objects.filter(promotion=promotion)
     existing_count = existing_coupons.count()
+    desired_coupon_count = promotion.count or 1
 
-    # ตรวจสอบว่าต้องสร้างคูปองใหม่หรือไม่
     if existing_count < desired_coupon_count:
         new_coupons_needed = desired_coupon_count - existing_count
 
-        # สร้างคูปองใหม่ตามจำนวนที่ขาด
         for i in range(new_coupons_needed):
-            new_promotion_count = existing_count + i + 1  # promotion_count จะเพิ่มขึ้นเรื่อย ๆ
+            new_promotion_count = existing_count + i + 1
 
-            # สร้างคูปองใหม่
+            # Create new coupon
             coupon = Coupon.objects.create(
                 promotion=promotion,
                 promotion_count=new_promotion_count,
-                used=False
+                collect=False
             )
 
-            # สร้าง URL สำหรับ QR Code
-            qr_url = f"{base_url}/koupon/qr/{promotion.store.id}/use/{promotion.id}/{coupon.id}"
-            coupon.qr_code_url = qr_url  # บันทึก URL ลงในคูปอง
-            coupon.save()
+            # Generate QR URL and save it
+            qr_url = f"{base_url}/koupon/qr/{promotion.store.id}/{promotion.id}/{coupon.id}/"
+            coupon.qr_code_url = qr_url
+            coupon.save()  # This will trigger the QR code generation
 
-            # สร้าง QR Code และแปลงเป็น Base64
+            # Add QR code info to the list for display
             qr_codes.append({
                 'coupon': coupon,
-                'qr_image_base64': generate_qr_base64(qr_url)
+                'qr_image_path': f"qr_codes/qr_code_{promotion.id}_{coupon.id}.png",
             })
 
-    # เพิ่ม QR Code ของคูปองที่มีอยู่แล้ว
+    # Handle existing coupons
     for coupon in existing_coupons:
-        if not coupon.qr_code_url:  # ถ้า QR Code URL ยังไม่มี
-            coupon.qr_code_url = f"{base_url}/koupon/qr/{promotion.store.id}/use/{promotion.id}/{coupon.id}"
-            coupon.save()
+        if not coupon.qr_code_url:
+            qr_url = f"{base_url}/koupon/qr/{promotion.store.id}/{promotion.id}/{coupon.id}/"
+            coupon.qr_code_url = qr_url
+            coupon.save()  # This will trigger the QR code generation
 
         qr_codes.append({
             'coupon': coupon,
-            'qr_image_base64': generate_qr_base64(coupon.qr_code_url)
+            'qr_image_path': f"qr_codes/qr_code_{promotion.id}_{coupon.id}.png",
         })
 
     return render(request, 'CouponPreview.html', {
@@ -303,14 +297,13 @@ def CouponPreview(request, promotion_id):
         'qr_codes': qr_codes,
     })
 
-
 def generate_qr_base64(qr_url):
     """
     ฟังก์ชันช่วยสร้าง QR Code ในรูปแบบ Base64
     """
     qr = segno.make(qr_url)
     buffer = io.BytesIO()
-    qr.save(buffer, kind="png", scale=5)
+    qr.save(buffer, kind="png", scale=10)
     qr_base64 = base64.b64encode(buffer.getvalue()).decode()
     buffer.close()
     return qr_base64
@@ -353,11 +346,11 @@ def detect(request):
     return render(request, 'scan_qrcode.html', context={'cam_status': status})
 
 @login_required
-def Collect_coupons(request, store_name, promotion_id, coupon_id):
+def Collect_coupons(request, store_id, promotion_id, coupon_id):
     """ฟังก์ชันสำหรับการสแกน QR Code และเก็บคูปอง"""
     try:
         # ดึงข้อมูลร้านค้า, โปรโมชั่น และคูปอง
-        store = Store.objects.get(store_name=store_name)
+        store = Store.objects.get(pk=store_id)
         promotion = Promotion.objects.get(id=promotion_id, store=store)
         coupon = Coupon.objects.get(id=coupon_id, promotion=promotion)
 
@@ -405,3 +398,49 @@ def my_coupons(request):
     coupons = Coupon.objects.filter(id__in=scanned_qrcodes.values_list('scanned_text', flat=True))
 
     return render(request, 'my_coupons.html', {'coupons': coupons, 'username': username})
+
+def PromotionDetails(request, store_id, promotion_id, coupon_id):
+    promotion = get_object_or_404(Promotion, id=promotion_id, store_id=store_id)
+    coupon = get_object_or_404(Coupon, id=coupon_id, promotion=promotion)
+
+    # เส้นทางรูปภาพใน static/qr_codes
+    image_path = f"qr_codes/{promotion.id}.png"
+
+    return render(request, 'PromotionDetails.html', {
+        'promotion': promotion,
+        'coupon': coupon,
+        'image_path': image_path,
+    })
+
+def PromotionDetailsStore(request, promotion_id, coupon_id):
+    # ดึงข้อมูล Promotion และ Coupon ที่เกี่ยวข้อง
+    promotion = get_object_or_404(Promotion, id=promotion_id)
+    coupon = get_object_or_404(Coupon, id=coupon_id, promotion=promotion)
+
+    return render(request, 'PromotionDetailsStore.html', {
+        'promotion': promotion,
+        'coupon': coupon,
+    })
+
+def update_collect_status(request, coupon_id):
+    try:
+        coupon = get_object_or_404(Coupon, id=coupon_id)
+
+        # Update collect status to True (1)
+        coupon.collect = True
+        coupon.save()
+
+        # Return success response
+        return JsonResponse({
+            'status': 'success',
+            'message': 'Coupon collect status updated successfully',
+            'coupon_id': coupon_id,
+            'collect_status': coupon.collect
+        })
+
+    except Exception as e:
+        # Return error response if something goes wrong
+        return JsonResponse({
+            'status': 'error',
+            'message': str(e)
+        }, status=400)

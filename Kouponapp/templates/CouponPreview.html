@@ -1,3 +1,5 @@
+
+{% load static %}
 <script src="https://cdn.tailwindcss.com"></script>
 <div class="flex flex-col items-center justify-center min-h-screen bg-gray-100">
     <h2 class="text-center text-3xl font-bold text-[#164863] mb-2 mt-6">คูปองสำหรับโปรโมชั่น: {{ promotion.name }}</h2>
@@ -33,10 +35,9 @@
         <div class="border-t-2 border-dashed mt-6 mb-4"></div>
 
         <!-- QR Code -->
-        <div class="flex justify-center">
-            <img src="data:image/png;base64,{{ qr_code.qr_image_base64 }}"
-                 alt="QR Code สำหรับคูปอง {{ qr_code.coupon.promotion_count }}"
-                 class="w-32 h-32">
+        <div class="flex flex-col items-center justify-center">
+            <p class="mb-2">Coupon ID: {{ qr_code.coupon.id }}</p>
+            <img src="{% static qr_code.qr_image_path %}" alt="QR Code for Coupon {{ qr_code.coupon.id }}" class="w-48 h-48">
         </div>
 
         <!-- วันที่หมดอายุ -->

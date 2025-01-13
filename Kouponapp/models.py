@@ -1,3 +1,5 @@
+import io
+
 from django.db import models
 from django.contrib.auth.models import User
 from django.contrib.auth.models import AbstractUser, Permission
@@ -78,16 +80,41 @@ class Coupon(models.Model):
         return f"Coupon {self.id} for Promotion {self.promotion.id}"
 
     def generate_qr_code(self):
-        # สร้าง QR Code
-        qr = segno.make(self.promotion_id)
-        qr_code_path = os.path.join(settings.MEDIA_ROOT, f"qr_codes/{self.promotion_id}.png")
-        os.makedirs(os.path.dirname(qr_code_path), exist_ok=True)
-        qr.save(qr_code_path, scale=5)
-        return f"{settings.MEDIA_URL}qr_codes/{self.promotion_id}.png"
+        if not self.qr_code_url:
+            return
+
+        # Create QR code
+        qr = segno.make(self.qr_code_url)
+
+        # Save to static directory
+        static_qr_path = os.path.join(settings.BASE_DIR, 'static', 'qr_codes')
+        os.makedirs(static_qr_path, exist_ok=True)
+        static_file_path = os.path.join(static_qr_path, f'qr_code_{self.promotion.id}_{self.id}.png')
+        qr.save(static_file_path, scale=10)
+
+        # Save to media directory for database field
+        buffer = io.BytesIO()
+        qr.save(buffer, kind='png', scale=10)
+        buffer.seek(0)
+
+        # Generate filename for the database
+        filename = f'qr_code_{self.promotion.id}_{self.id}.png'
+
+        # Save to database field if not already set
+        if not self.qr_code_image:
+            self.qr_code_image.save(filename, ContentFile(buffer.getvalue()), save=False)
+
+        buffer.close()
 
     def save(self, *args, **kwargs):
+        # First save to get the ID if it's a new instance
         super().save(*args, **kwargs)
-        self.generate_qr_code()
+
+        # Generate QR code if URL is set but image isn't generated yet
+        if self.qr_code_url and (not self.qr_code_image or not os.path.exists(self.qr_code_image.path)):
+            self.generate_qr_code()
+            # Save again to update the image field
+            super().save(update_fields=['qr_code_image'] if self.id else None)
 
 class ScannedQRCode(models.Model):
     scanned_text = models.TextField()  # ข้อมูลที่ได้จากการสแกน
