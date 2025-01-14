@@ -417,6 +417,7 @@ def PromotionDetails(request, store_id, promotion_id, coupon_id):
         'image_path': image_path,
     })
 
+
 def PromotionDetailsStore(request, promotion_id, coupon_id):
     # ดึงข้อมูล Promotion และ Coupon ที่เกี่ยวข้อง
     promotion = get_object_or_404(Promotion, id=promotion_id)
@@ -429,18 +430,27 @@ def PromotionDetailsStore(request, promotion_id, coupon_id):
 
 #@login_required
 def list_member_collect_coupons(request):
-    # Updated to use collect instead of used
-    collected_coupons = Coupon.objects.filter(collect=True).select_related(
+    store = get_object_or_404(Store, owner=request.user.member)
+
+    # Get all coupons for all promotions of this store
+    coupons = Coupon.objects.filter(
+        promotion__store=store
+    ).select_related(
         'promotion',
-        'promotion__store',
-        'member'
-    ).order_by('-promotion__end')
+        'member',
+        'member__user'
+    ).order_by('promotion', 'promotion_count')
+
+    # Calculate statistics
+    total_coupons = coupons.count()
+    collected_coupons = coupons.filter(collect=True).count()
+    available_coupons = total_coupons - collected_coupons
 
     context = {
-        'collected_coupons': collected_coupons,  # Updated variable name
-        'total_coupons': collected_coupons.count(),
-        'total_stores': collected_coupons.values('promotion__store').distinct().count(),
-        'total_promotions': collected_coupons.values('promotion').distinct().count(),
+        'coupons': coupons,
+        'total_coupons': total_coupons,
+        'collected_coupons': collected_coupons,
+        'available_coupons': available_coupons,
     }
 
     return render(request, 'list_member_collect_coupons.html', context)

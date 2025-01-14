@@ -4,36 +4,50 @@
 <div class="min-h-screen bg-gray-100 py-8">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-8">
-            <h1 class="text-3xl font-bold text-gray-900">รายการคูปองที่สมาชิกสแกนรับ</h1>
-            <p class="mt-2 text-gray-600">แสดงรายการคูปองทั้งหมดที่สมาชิกได้รับจากการสแกน</p>
+            <h1 class="text-3xl font-bold text-gray-900">คูปองทั้งหมดของร้าน</h1>
+            <p class="mt-2 text-gray-600">แสดงรายการคูปองทั้งหมดที่สร้างโดยร้านของคุณ</p>
         </div>
 
-        {% if collected_coupons %}
+        <div class="mb-6 bg-white rounded-lg shadow p-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="text-center p-4 bg-blue-50 rounded-lg">
+                    <p class="text-sm text-gray-600">จำนวนคูปองทั้งหมด</p>
+                    <p class="text-2xl font-bold text-blue-600">{{ total_coupons }}</p>
+                </div>
+                <div class="text-center p-4 bg-green-50 rounded-lg">
+                    <p class="text-sm text-gray-600">คูปองที่ถูกสะสมแล้ว</p>
+                    <p class="text-2xl font-bold text-green-600">{{ collected_coupons }}</p>
+                </div>
+                <div class="text-center p-4 bg-yellow-50 rounded-lg">
+                    <p class="text-sm text-gray-600">คูปองที่ยังไม่ถูกสะสม</p>
+                    <p class="text-2xl font-bold text-yellow-600">{{ available_coupons }}</p>
+                </div>
+            </div>
+        </div>
+    <div class="h-[400px] overflow-y-auto place-items-center">
+        {% if coupons %}
         <div class="bg-white shadow-lg rounded-lg overflow-hidden">
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50">
                         <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ลำดับ</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ไอดีคูปอง</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">โปรโมชั่น</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ร้านค้า</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">รายละเอียด</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">วันที่หมดอายุ</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">สถานะ</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ผู้ใช้งาน</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ผู้สะสม</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">วันที่สะสม</th>
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
-                        {% for coupon in collected_coupons %}
+                        {% for coupon in coupons %}
                         <tr class="hover:bg-gray-50">
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                {{ forloop.counter }}
+                                {{ coupon.promotion_count }}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <div class="text-sm font-medium text-gray-900">{{ coupon.promotion.name }}</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm text-gray-900">{{ coupon.promotion.store.store_name }}</div>
                             </td>
                             <td class="px-6 py-4">
                                 <div class="text-sm text-gray-900">
@@ -53,13 +67,13 @@
                                 <div class="text-sm text-gray-900">{{ coupon.promotion.end|date:"d M Y" }}</div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
-                                {% if collected_coupons %}
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                                    สแกนสำเร็จ
+                                {% if coupon.collect %}
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                    สะสมแล้ว
                                 </span>
                                 {% else %}
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                    ยังไม่ได้สแกน
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                    ยังไม่ถูกสะสม
                                 </span>
                                 {% endif %}
                             </td>
@@ -67,6 +81,15 @@
                                 <div class="text-sm text-gray-900">
                                     {% if coupon.member %}
                                         {{ coupon.member.user.first_name }} {{ coupon.member.user.last_name }}
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm text-gray-900">
+                                    {% if coupon.collected_at %}
+                                        {{ coupon.collected_at|date:"d M Y H:i" }}
                                     {% else %}
                                         -
                                     {% endif %}
@@ -80,9 +103,10 @@
         </div>
         {% else %}
         <div class="text-center py-12 bg-white rounded-lg shadow">
-            <p class="text-gray-500 text-lg">ยังไม่มีคูปองที่ถูกสแกนรับ</p>
+            <p class="text-gray-500 text-lg">ยังไม่มีคูปองที่สร้าง</p>
         </div>
         {% endif %}
     </div>
+</div>
 </div>
 {% endblock %}
