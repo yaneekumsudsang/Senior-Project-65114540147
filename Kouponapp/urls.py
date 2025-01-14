@@ -27,6 +27,8 @@ urlpatterns = [
     path("promotion/design/", views.CouponDesign_Store, name="CouponDesign_Store"),
     path("coupon/preview/<int:promotion_id>/", views.CouponPreview, name="CouponPreview"),
     path("owner/promotions/<int:promotion_id>/<int:coupon_id>/", views.PromotionDetailsStore, name="promotion_details_store"),
+    path('coupons/member/collect/', views.list_member_collect_coupons, name='list_member_collect_coupons'),
+
 
     # การใช้งานคูปอง
     path('scan/qrcode/', views.camera_feed, name='camera_feed'),
@@ -34,7 +36,7 @@ urlpatterns = [
     #path('Collect/coupons/', views.Collect_coupons, name='Collect_coupons'),
     path('my/coupons/', views.my_coupons, name='my_coupons'),
     path('koupon/qr/<int:store_id>/<int:promotion_id>/<int:coupon_id>/', views.Collect_coupons, name='collect_coupon'),
-    path('coupon/scan/<int:coupon_id>/', views.update_collect_status, name='update_collect_status'),
+    #path('coupon/scan/<int:coupon_id>/', views.update_collect_status, name='update_collect_status'),
 
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

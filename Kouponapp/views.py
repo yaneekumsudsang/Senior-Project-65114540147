@@ -422,25 +422,21 @@ def PromotionDetailsStore(request, promotion_id, coupon_id):
         'coupon': coupon,
     })
 
-def update_collect_status(request, coupon_id):
-    try:
-        coupon = get_object_or_404(Coupon, id=coupon_id)
+#@login_required
+def list_member_collect_coupons(request):
+    # Query coupons with related promotion and store data
+    used_coupons = Coupon.objects.filter(used=True).select_related(
+        'promotion',
+        'promotion__store',
+        'member'
+    ).order_by('-promotion__end')  # Order by expiration date
 
-        # Update collect status to True (1)
-        coupon.collect = True
-        coupon.save()
+    # Add analytics data to the context
+    context = {
+        'used_coupons': used_coupons,
+        'total_coupons': used_coupons.count(),
+        'total_stores': used_coupons.values('promotion__store').distinct().count(),
+        'total_promotions': used_coupons.values('promotion').distinct().count(),
+    }
 
-        # Return success response
-        return JsonResponse({
-            'status': 'success',
-            'message': 'Coupon collect status updated successfully',
-            'coupon_id': coupon_id,
-            'collect_status': coupon.collect
-        })
-
-    except Exception as e:
-        # Return error response if something goes wrong
-        return JsonResponse({
-            'status': 'error',
-            'message': str(e)
-        }, status=400)
+    return render(request, 'list_member_collect_coupons.html', context)

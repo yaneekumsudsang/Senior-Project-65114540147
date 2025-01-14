@@ -18,6 +18,7 @@
     </content>
     <orderEntry type="jdk" jdkName="SeniorProject" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" name="html5-qrcode" level="application" />
   </component>
   <component name="TemplatesService">
     <option name="TEMPLATE_CONFIGURATION" value="Django" />
