@@ -119,7 +119,7 @@ class Command(BaseCommand):
         #Coupon
         coupon_sheet = wb['Coupon']
         for row in coupon_sheet.iter_rows(min_row=2, values_only=True):
-            coupon_id, promotion_id, used, member_id, promotion_count, qr_code_url = row
+            coupon_id, promotion_id, collect, member_id, promotion_count, qr_code_url = row
 
             # ค้นหา Promotion
             promotion = Promotion.objects.filter(id=promotion_id).first()
@@ -145,7 +145,7 @@ class Command(BaseCommand):
                     coupon = Coupon.objects.create(
                         promotion=promotion,
                         promotion_count=i,  # promotion_count ตามลำดับ
-                        used=False,
+                        collect=False,
                         member_id=None,  # หากยังไม่มีสมาชิกที่ใช้งานคูปอง
                         qr_code_url=qr_code_url  # เพิ่ม URL QR Code
                     )

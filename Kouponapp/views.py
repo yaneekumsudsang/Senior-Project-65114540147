@@ -218,7 +218,7 @@ def CouponDesign_Store(request, id=None):
                 Coupon.objects.create(
                     promotion=promotion,
                     promotion_count=i + 1,  # กำหนดเลขลำดับของคูปอง
-                    used=False
+                    collect=False
                 )
 
             # เปลี่ยนเส้นทางไปยัง CouponPreview
@@ -349,6 +349,8 @@ def detect(request):
 def Collect_coupons(request, store_id, promotion_id, coupon_id):
     """ฟังก์ชันสำหรับการสแกน QR Code และเก็บคูปอง"""
     try:
+        current_member = Member.objects.get(user=request.user)
+
         # ดึงข้อมูลร้านค้า, โปรโมชั่น และคูปอง
         store = Store.objects.get(pk=store_id)
         promotion = Promotion.objects.get(id=promotion_id, store=store)
@@ -356,25 +358,28 @@ def Collect_coupons(request, store_id, promotion_id, coupon_id):
 
         # บันทึกการสแกน QR Code
         scanned_qr = ScannedQRCode.objects.create(
-            scanned_text=coupon.id,
+            scanned_text=str(coupon.id),
             is_url=False,
         )
 
-        # ดึงข้อมูลชื่อผู้ใช้จาก `request.user`
-        username = request.user.username
-
-        if coupon.used:
-            messages.error(request, f"คูปองนี้ถูกใช้งานไปแล้วโดย {username}")
+        if coupon.collect:
+            if coupon.member:
+                messages.error(request, f"คูปองนี้ถูกสะสมไปแล้วโดย {coupon.member.user.username}")
+            else:
+                messages.error(request, "คูปองนี้ถูกสะสมไปแล้ว")
         elif promotion.end < timezone.now().date():
-            messages.error(request, f"คูปองนี้หมดอายุแล้ว โดย {username}")
+            messages.error(request, "คูปองนี้หมดอายุแล้ว")
         else:
             # อัปเดตสถานะคูปอง
-            coupon.used = True
-            coupon.used_at = timezone.now()
+            coupon.collect = True
+            coupon.collected_at = timezone.now()
+            coupon.member = current_member
             coupon.save()
 
-            messages.success(request, f"คูปองถูกใช้งานเรียบร้อยแล้วโดย {username}!")
+            messages.success(request, f"คูปองถูกสะสมเรียบร้อยแล้วโดย {request.user.username}!")
 
+    except Member.DoesNotExist:
+        messages.error(request, "ไม่พบข้อมูลสมาชิกในระบบ")
     except Store.DoesNotExist:
         messages.error(request, "ไม่พบร้านค้านี้ในระบบ")
     except Promotion.DoesNotExist:
@@ -382,20 +387,20 @@ def Collect_coupons(request, store_id, promotion_id, coupon_id):
     except Coupon.DoesNotExist:
         messages.error(request, "ไม่พบคูปองนี้ในระบบ")
 
-    # เปลี่ยนไปยังหน้าสะสมคูปอง
     return redirect('my_coupons')
+
 
 @login_required
 def my_coupons(request):
     """แสดงรายการคูปองที่ผู้ใช้สะสม"""
-    # ดึงรายการคูปองที่เกี่ยวข้องกับผู้ใช้ปัจจุบัน
-    scanned_qrcodes = ScannedQRCode.objects.all()  # หากต้องการดึงข้อมูลการสแกนทั้งหมด
-
-    # ดึงข้อมูลชื่อผู้ใช้ที่เกี่ยวข้องกับการสแกน
+    scanned_qrcodes = ScannedQRCode.objects.all()
     username = request.user.username
 
-    # ดึงคูปองทั้งหมดที่เกี่ยวข้อง
-    coupons = Coupon.objects.filter(id__in=scanned_qrcodes.values_list('scanned_text', flat=True))
+    # Updated to filter by collect status instead of used
+    coupons = Coupon.objects.filter(
+        id__in=scanned_qrcodes.values_list('scanned_text', flat=True),
+        collect=True
+    ).select_related('promotion', 'promotion__store', 'member')
 
     return render(request, 'my_coupons.html', {'coupons': coupons, 'username': username})
 
@@ -424,19 +429,18 @@ def PromotionDetailsStore(request, promotion_id, coupon_id):
 
 #@login_required
 def list_member_collect_coupons(request):
-    # Query coupons with related promotion and store data
-    used_coupons = Coupon.objects.filter(used=True).select_related(
+    # Updated to use collect instead of used
+    collected_coupons = Coupon.objects.filter(collect=True).select_related(
         'promotion',
         'promotion__store',
         'member'
-    ).order_by('-promotion__end')  # Order by expiration date
+    ).order_by('-promotion__end')
 
-    # Add analytics data to the context
     context = {
-        'used_coupons': used_coupons,
-        'total_coupons': used_coupons.count(),
-        'total_stores': used_coupons.values('promotion__store').distinct().count(),
-        'total_promotions': used_coupons.values('promotion').distinct().count(),
+        'collected_coupons': collected_coupons,  # Updated variable name
+        'total_coupons': collected_coupons.count(),
+        'total_stores': collected_coupons.values('promotion__store').distinct().count(),
+        'total_promotions': collected_coupons.values('promotion').distinct().count(),
     }
 
     return render(request, 'list_member_collect_coupons.html', context)

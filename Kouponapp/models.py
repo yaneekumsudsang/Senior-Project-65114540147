@@ -1,5 +1,6 @@
 import io
 
+from django.core.files.base import ContentFile
 from django.db import models
 from django.contrib.auth.models import User
 from django.contrib.auth.models import AbstractUser, Permission
@@ -67,10 +68,11 @@ class Coupon(models.Model):
     id = models.AutoField(primary_key=True, verbose_name="ไอดีคูปอง")
     promotion = models.ForeignKey(Promotion, on_delete=models.CASCADE, verbose_name="ไอดีโปรโมชั่น")
     promotion_count = models.PositiveIntegerField(verbose_name="ลำดับคูปอง", default=0)
-    used = models.BooleanField(default=False, verbose_name="ตรวจสอบการใช้งาน")
-    member = models.ForeignKey(Member, on_delete=models.CASCADE, null=True, blank=True, verbose_name="สมาชิกที่ใช้งานคูปอง")
+    collect = models.BooleanField(default=False, verbose_name="ตรวจสอบการสะสม")  # Changed from used to collect
+    member = models.ForeignKey(Member, on_delete=models.CASCADE, null=True, blank=True, verbose_name="สมาชิกที่สะสมคูปอง")  # Updated verbose name
     qr_code_url = models.URLField(max_length=200, blank=True, null=True, verbose_name="URL ของ QR Code")
-    qr_code_image = models.ImageField(upload_to='qr_codes/', blank=True, null=True, verbose_name="ภาพ QR Code")  # ฟิลด์สำหรับเก็บภาพ QR Code
+    qr_code_image = models.ImageField(upload_to='qr_codes/', blank=True, null=True, verbose_name="ภาพ QR Code")
+    collected_at = models.DateTimeField(null=True, blank=True, verbose_name="เวลาที่สะสม")  # Changed from used_at
 
     class Meta:
         verbose_name_plural = 'คูปอง'

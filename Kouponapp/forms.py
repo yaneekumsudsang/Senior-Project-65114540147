@@ -171,4 +171,4 @@ class PromotionForm(forms.ModelForm):
 class CouponForm(forms.ModelForm):
     class Meta:
         model = Coupon
-        fields = ['promotion', 'promotion_count', 'used', 'qr_code_url']
+        fields = ['promotion', 'promotion_count', 'collect', 'qr_code_url']

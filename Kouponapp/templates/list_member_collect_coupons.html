@@ -8,7 +8,7 @@
             <p class="mt-2 text-gray-600">แสดงรายการคูปองทั้งหมดที่สมาชิกได้รับจากการสแกน</p>
         </div>
 
-        {% if used_coupons %}
+        {% if collected_coupons %}
         <div class="bg-white shadow-lg rounded-lg overflow-hidden">
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-200">
@@ -24,7 +24,7 @@
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
-                        {% for coupon in used_coupons %}
+                        {% for coupon in collected_coupons %}
                         <tr class="hover:bg-gray-50">
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                 {{ forloop.counter }}
@@ -53,7 +53,7 @@
                                 <div class="text-sm text-gray-900">{{ coupon.promotion.end|date:"d M Y" }}</div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
-                                {% if coupon.used %}
+                                {% if collected_coupons %}
                                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
                                     สแกนสำเร็จ
                                 </span>
