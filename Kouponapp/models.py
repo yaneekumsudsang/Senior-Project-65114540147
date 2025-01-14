@@ -73,6 +73,8 @@ class Coupon(models.Model):
     qr_code_url = models.URLField(max_length=200, blank=True, null=True, verbose_name="URL ของ QR Code")
     qr_code_image = models.ImageField(upload_to='qr_codes/', blank=True, null=True, verbose_name="ภาพ QR Code")
     collected_at = models.DateTimeField(null=True, blank=True, verbose_name="เวลาที่สะสม")  # Changed from used_at
+    used = models.BooleanField(default=False, verbose_name="ตรวจสอบการใช้งาน")
+    used_at = models.DateTimeField(null=True, blank=True, verbose_name="เวลาที่ใช้งาน")
 
     class Meta:
         verbose_name_plural = 'คูปอง'

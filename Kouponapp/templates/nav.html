@@ -23,14 +23,24 @@
         {% if user.member and user.member.is_owner %}
         <!-- เมนูสำหรับเจ้าของร้าน -->
         <div class="flex flex-wrap justify-center px-6 mt-6 space-x-4">
+
+            <!-- สแกนคิวอาร์โค้ด -->
+            <a href="{% url 'detect_qrcode' %}" class="flex items-center bg-[#DDF2FD] px-1 py-3 rounded-lg hover:bg-[#cde8f9] mx-0.5 h-12 w-34">
+                <span class="mr-1 text-m">🔍</span>
+                <span class="text-[#164863] font-medium">สแกนคิวอาร์โค้ด</span>
+            </a>
+
+            <!--สร้างคูปอง -->
             <a href="{% url 'CouponDesign_Store' %}" class="flex items-center bg-[#DDF2FD] px-1 py-3 rounded-lg hover:bg-[#cde8f9] mx-0.5 h-12 w-34">
                 <span class="mr-1 text-m">🎟</span>
                 <span class="text-[#164863] font-medium">สร้างคูปอง</span>
             </a>
+
             <a href="{% url 'list_member_collect_coupons' %}" class="flex items-center bg-[#DDF2FD] px-1 py-3 rounded-lg hover:bg-[#cde8f9] mx-0.5 h-12 w-34">
                 <span class="mr-1 text-m">🕒</span>
                 <span class="text-[#164863] font-medium">ประวัติการใช้งานคูปองของลูกค้า</span>
             </a>
+
             <a href="{% url 'koupon_logout' %}" class="flex items-center bg-[#DDF2FD] px-1 py-3 rounded-lg hover:bg-[#cde8f9] mx-0.5 h-12 w-34">
                 <span class="mr-1 text-m">🚪</span>
                 <span class="text-[#164863] font-medium">Logout</span>
@@ -58,7 +68,7 @@
             </a>
 
             <!-- แลกคูปอง -->
-            <a href="#" class="flex items-center bg-[#DDF2FD] px-1 py-3 rounded-lg hover:bg-[#cde8f9] mx-0.5 h-12 w-34">
+            <a href="{% url 'completed_coupons' %}" class="flex items-center bg-[#DDF2FD] px-1 py-3 rounded-lg hover:bg-[#cde8f9] mx-0.5 h-12 w-34">
                 <span class="mr-1 text-m">🎟️</span>
                 <span class="text-[#164863] font-medium">แลกคูปอง</span>
             </a>

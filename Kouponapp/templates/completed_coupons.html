@@ -1,0 +1,61 @@
+{% extends "nav.html" %}
+
+{% block title %}
+    {% load custom_filters %}
+<body class="bg-gray-100 min-h-screen">
+    <!-- หัวข้อ -->
+    <section class="mt-6 px-6">
+        <div class="flex justify-center items-center mt-4">
+            <div class="flex border border-[#164863] rounded-full overflow-hidden">
+                <a href="{% url 'completed_coupons' %}" class="px-6 py-2 bg-[#164863] text-white font-medium m-2 rounded-full focus:outline-none">
+                    คูปองที่สะสมครบแล้ว
+                </a>
+                <a href="{% url 'pending_coupons' %}" class="px-6 py-2 bg-white text-[#164863] font-medium m-2 rounded-full focus:outline-none">
+                    คูปองที่ยังอยู่ระหว่างสะสม
+                </a>
+            </div>
+        </div>
+
+        <!-- รวมข้อมูลในกรอบเดียว -->
+        <div class="grid grid-cols-1 gap-3 h-[500px] overflow-y-auto place-items-center mt-4">
+            {% for display_item in display_coupons %}
+                {% with coupon=display_item.coupon %}
+                <a href="{% url 'promotion_details' store_id=coupon.promotion.store.id promotion_id=coupon.promotion.id coupon_id=coupon.id %}" class="block w-full max-w-[350px]">
+                    <div class="relative bg-white h-[150px] shadow-xl flex items-center border p-4 rounded-lg {% if not display_item.is_complete %}opacity-70{% endif %}">
+                        <!-- วงกลมซ้าย -->
+                        <div class="absolute z-10 top-1/2 left-0 transform -translate-y-1/2 -translate-x-1/2 w-14 h-14 bg-white rounded-full border-2 border-gray-100" style="clip-path: inset(0 0 0 50%);"></div>
+                        <!-- วงกลมขวา -->
+                        <div class="absolute z-10 top-1/2 right-0 transform -translate-y-1/2 translate-x-1/2 w-14 h-14 bg-white rounded-full border-2 border-gray-100" style="clip-path: inset(0 50% 0 0);"></div>
+
+                        <!-- เนื้อหาในการ์ด -->
+                        <div class="flex-shrink-0 w-16 h-16 ml-8 bg-[#DDF2FD] rounded-full flex items-center justify-center">
+                            {% if coupon.promotion.picture %}
+                                <img src="{{ coupon.promotion.picture.url }}" alt="Promotion Image" class="w-full h-full object-cover rounded-full">
+                            {% else %}
+                                <span class="text-sm font-bold text-gray-500">ไม่มีภาพ</span>
+                            {% endif %}
+                        </div>
+                        <!-- เส้นประ -->
+                        <div class="bg-dashed border-l-2 border-dashed border-gray-300 mx-4 h-full"></div>
+                        <!-- รายละเอียด -->
+                        <div class="flex-1 ml-2 mr-5">
+                            <p class="text-xl font-bold">{{ coupon.promotion.name }}</p>
+                            <p class="text-sm">{{ coupon.promotion.store.store_name }}</p>
+                            <p class="text-sm mt-2">สะสมแล้ว: {{ display_item.collected_count }}/{{ display_item.total_required }}</p>
+                            <p class="text-sm">ใช้งานได้ถึง: {{ coupon.promotion.end|date:"d M Y" }}</p>
+                            {% if not display_item.is_complete %}
+                                <p class="text-sm text-red-500">ต้องสะสมอีก {{ display_item.total_required|sub:display_item.collected_count }} ใบ</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </a>
+                {% endwith %}
+            {% empty %}
+                <div class="text-center col-span-3">
+                    <p class="text-gray-500">ยังไม่มีคูปองที่สะสม</p>
+                </div>
+            {% endfor %}
+        </div>
+    </section>
+</body>
+{% endblock %}

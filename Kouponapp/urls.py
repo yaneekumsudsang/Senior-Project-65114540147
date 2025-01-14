@@ -29,15 +29,15 @@ urlpatterns = [
     path("owner/promotions/<int:promotion_id>/<int:coupon_id>/", views.PromotionDetailsStore, name="promotion_details_store"),
     path('coupons/member/collect/', views.list_member_collect_coupons, name='list_member_collect_coupons'),
 
-
     # การใช้งานคูปอง
     path('scan/qrcode/', views.camera_feed, name='camera_feed'),
     path('detect/qrcode/', views.detect, name='detect_qrcode'),
-    #path('Collect/coupons/', views.Collect_coupons, name='Collect_coupons'),
     path('my/coupons/', views.my_coupons, name='my_coupons'),
-    path('koupon/qr/<int:store_id>/<int:promotion_id>/<int:coupon_id>/', views.Collect_coupons, name='collect_coupon'),
-    #path('coupon/scan/<int:coupon_id>/', views.update_collect_status, name='update_collect_status'),
-
+    path('koupon/qr/<int:store_id>/<int:promotion_id>/<int:coupon_id>/', views.process_coupon, name='process_coupon'),
+    path('koupon/qr/<int:store_id>/collec/<int:promotion_id>/<int:coupon_id>/', views.Collect_coupons, name='collect_coupon'),
+    path('coupons/completed/', views.Completed_coupons, name='completed_coupons'),
+    path('coupons/pending/', views.Pending_coupons, name='pending_coupons'),
+    #path('koupon/qr/<int:store_id>/usd/<int:promotion_id>/<int:coupon_id>/', views.Use_coupons, name='use_coupon'),
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
