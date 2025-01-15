@@ -40,7 +40,7 @@
 
 1. Clone โปรเจกต์:
 
-        git clone <url>
+        git clone https://github.com/yaneekumsudsang/Senior-Project-65114540147.git
 
 2. ติดตั้ง dependencies:
 
