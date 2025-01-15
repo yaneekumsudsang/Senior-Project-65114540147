@@ -455,13 +455,10 @@ def list_member_collect_coupons(request):
 
 @login_required
 def Completed_coupons(request):
-    """
-    Display only coupons that are fully collected
-    """
     scanned_qrcodes = ScannedQRCode.objects.all()
     username = request.user.username
 
-    # Get collected coupons with related promotion data
+    # ดึงข้อมูลคูปองที่สะสมครบ
     coupons = (Coupon.objects
                .filter(
                    id__in=scanned_qrcodes.values_list('scanned_text', flat=True),
@@ -470,7 +467,6 @@ def Completed_coupons(request):
                .select_related('promotion', 'promotion__store', 'member')
                .order_by('promotion'))
 
-    # Create a dictionary to track collected coupons per promotion
     promotion_counts = {}
     for coupon in coupons:
         promo_id = coupon.promotion.id
@@ -484,14 +480,13 @@ def Completed_coupons(request):
             promotion_counts[promo_id]['collected'] += 1
             promotion_counts[promo_id]['coupons'].append(coupon)
 
-    # Prepare display data for fully collected coupons
     completed_coupons = []
     for promo_data in promotion_counts.values():
-        # Include only promotions where collection is complete
         if promo_data['collected'] >= promo_data['total_required']:
             coupon = promo_data['coupons'][0]
             completed_coupons.append({
                 'coupon': coupon,
+                'promotion_id': coupon.promotion.id,  # เพิ่ม promotion_id
                 'collected_count': promo_data['collected'],
                 'total_required': promo_data['total_required'],
                 'is_complete': True
@@ -499,9 +494,8 @@ def Completed_coupons(request):
 
     context = {
         'display_coupons': completed_coupons,
-        'username': username
+        'username': username,
     }
-
     return render(request, 'completed_coupons.html', context)
 
 @login_required
@@ -554,87 +548,62 @@ def Pending_coupons(request):
 
     return render(request, 'pending_coupons.html', context)
 
+
 @login_required
-def process_coupon(request, store_id, promotion_id, coupon_id):
+def Use_coupons(request, promotion_id):
+    username = request.user.username
+    member = request.user.member
+
     try:
-        # Get required objects
-        store = get_object_or_404(Store, pk=store_id)
-        promotion = get_object_or_404(Promotion, id=promotion_id, store=store)
-        coupon = get_object_or_404(Coupon, id=coupon_id, promotion=promotion)
-        current_member = request.user.member
+        # Get the specific promotion and its coupons
+        promotion = get_object_or_404(Promotion, id=promotion_id)
+        collected_coupons = Coupon.objects.filter(
+            promotion=promotion,
+            member=member,
+            collect=True
+        ).select_related('promotion', 'promotion__store')
 
-        # Record the scan
-        ScannedQRCode.objects.create(
-            scanned_text=str(coupon.id),
-            is_url=False,
-        )
+        # Calculate collection progress
+        total_required = promotion.count
+        collected_count = collected_coupons.count()
+        is_complete = collected_count >= total_required
 
-        # Check if user is store owner
-        if current_member.is_owner and current_member == store.owner:
-            # Handle usage flow
-            if not coupon.collect:
-                messages.error(request, "คูปองนี้ยังไม่ถูกสะสม")
-                return redirect('list_member_collect_coupons')
+        display_data = {
+            'promotion': promotion,
+            'collected_count': collected_count,
+            'total_required': total_required,
+            'total_coupons': promotion.coupon_set.count(),
+            'is_complete': is_complete,
+            'coupons': collected_coupons
+        }
 
-            if coupon.used:
-                messages.error(request, "คูปองนี้ถูกใช้ไปแล้ว")
-                return redirect('list_member_collect_coupons')
+        context = {
+            'display_coupons': [display_data],  # Wrap in list to maintain template compatibility
+            'username': username,
+        }
 
-            if promotion.end < timezone.now().date():
-                messages.error(request, "คูปองนี้หมดอายุแล้ว")
-                return redirect('list_member_collect_coupons')
+        return render(request, 'use_coupons.html', context)
 
-            # Process usage
-            collected_count = Coupon.objects.filter(
-                promotion=promotion,
-                member=coupon.member,
-                collect=True
-            ).count()
+    except Promotion.DoesNotExist:
+        messages.error(request, "ไม่พบโปรโมชั่นที่ระบุ")
+        return redirect('use_coupons')
+@login_required
+def confirm_coupon_usage(request, store_id, promotion_id, coupon_id):
+    """
+    Display the confirmation page for using a coupon.
+    Only accessible if the store owns the promotion.
+    """
+    # ตรวจสอบว่าร้านค้าตรงกับโปรโมชันที่ระบุ
+    coupon = get_object_or_404(Coupon, id=coupon_id, promotion_id=promotion_id, promotion__store_id=store_id)
 
-            if collected_count < promotion.count:
-                remaining = promotion.count - collected_count
-                messages.error(
-                    request,
-                    f"ยังสะสมไม่ครบ ต้องสะสมอีก {remaining} ใบ จากทั้งหมด {promotion.count} ใบ"
-                )
-                return redirect('list_member_collect_coupons')
+    # ตรวจสอบว่าผู้ใช้งานเป็นเจ้าของร้านค้าที่โปรโมชันนี้เกี่ยวข้อง
+    if coupon.promotion.store.owner != request.user:
+        return HttpResponseForbidden("คุณไม่มีสิทธิ์ใช้งานคูปองนี้")
 
-            # Mark all related coupons as used
-            Coupon.objects.filter(
-                promotion=promotion,
-                member=coupon.member,
-                collect=True,
-                used=False
-            ).update(
-                used=True,
-                used_at=timezone.now()
-            )
+    # ส่งข้อมูลไปยังเทมเพลต
+    context = {
+        'coupon': coupon,
+        'promotion': coupon.promotion,
+    }
 
-            messages.success(request, "คูปองถูกใช้งานเรียบร้อยแล้ว!")
-            return redirect('list_member_collect_coupons')
-
-        else:
-            # Handle collection flow
-            if coupon.collect:
-                if coupon.member:
-                    messages.error(request, f"คูปองนี้ถูกสะสมไปแล้วโดย {coupon.member.user.username}")
-                else:
-                    messages.error(request, "คูปองนี้ถูกสะสมไปแล้ว")
-                return redirect('my_coupons')
-
-            if promotion.end < timezone.now().date():
-                messages.error(request, "คูปองนี้หมดอายุแล้ว")
-                return redirect('my_coupons')
-
-            # Process collection
-            coupon.collect = True
-            coupon.collected_at = timezone.now()
-            coupon.member = current_member
-            coupon.save()
-
-            messages.success(request, f"คูปองถูกสะสมเรียบร้อยแล้วโดย {request.user.username}!")
-            return redirect('my_coupons')
-
-    except Exception as e:
-        messages.error(request, f"เกิดข้อผิดพลาด: {str(e)}")
-        return redirect('home')
+    return render(request, 'confirm_coupon_usage.html', context)

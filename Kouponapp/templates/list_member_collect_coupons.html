@@ -1,14 +1,16 @@
 {% extends "nav.html" %}
 
 {% block title %}
-<div class="min-h-screen bg-gray-100 py-8">
+<div class="min-h-screen py-4">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="text-center mb-8">
-            <h1 class="text-3xl font-bold text-gray-900">คูปองทั้งหมดของร้าน</h1>
-            <p class="mt-2 text-gray-600">แสดงรายการคูปองทั้งหมดที่สร้างโดยร้านของคุณ</p>
+        <div class="flex justify-center items-center">
+            <div class="flex border border-[#164863] rounded-full overflow-hidden">
+            <h1 class="px-6 py-2 bg-[#164863] text-white font-medium m-2 rounded-full focus:outline-none">คูปองทั้งหมดของร้าน</h1>
+            </div>
         </div>
+    <p class="py-4 text-gray-600 text-center ">แสดงรายการคูปองทั้งหมดที่สร้างโดยร้านของคุณ</p>
 
-        <div class="mb-6 bg-white rounded-lg shadow p-6">
+        <div class="mb-6 bg-white rounded-lg p-6">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div class="text-center p-4 bg-blue-50 rounded-lg">
                     <p class="text-sm text-gray-600">จำนวนคูปองทั้งหมด</p>
@@ -24,7 +26,7 @@
                 </div>
             </div>
         </div>
-    <div class="h-[400px] overflow-y-auto place-items-center">
+    <div class="h-[400px] overflow-y-auto place-items-center border-1 shadow-xl">
         {% if coupons %}
         <div class="bg-white shadow-lg rounded-lg overflow-hidden">
             <div class="overflow-x-auto">
