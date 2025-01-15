@@ -68,4 +68,4 @@
 3. [ ] จัดการข้อมูลโปรโมชั่น
 
 ## 👤 ผู้พัฒนา
-yaneelumsudsang - GitHub Profile
+yaneekumsudsang - GitHub Profile
