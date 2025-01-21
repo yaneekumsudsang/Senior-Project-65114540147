@@ -36,15 +36,15 @@
 
         <!-- QR Code -->
         <div class="flex flex-col items-center justify-center">
-            <p class="mb-2">Coupon ID: {{ qr_code.coupon.id }}</p>
-            <img src="{% static qr_code.qr_image_path %}" alt="QR Code for Coupon {{ qr_code.coupon.id }}" class="w-48 h-48">
+            <p class="mb-2">Coupon ID: {{ qr_code.coupon.promotion_count }}</p>
+            <img src="{% static qr_code.collect_qr_path %}" alt="QR Code for Coupon {{ qr_code.coupon.id }}" class="w-48 h-48">
         </div>
 
         <!-- วันที่หมดอายุ -->
         <p class="text-center text-gray-400 text-sm mt-4">
             ใช้งานได้ถึง {{ promotion.end|date:"d F Y" }}
         </p>
-     <p class="text-center text-sm text-gray-600">URL: {{ qr_code.coupon.qr_code_url }}</p>
+     <p class="text-center text-sm text-gray-600">URL: {{ qr_code.coupon.collect_qr_code_url }}</p>
     </div>
 
     {% endfor %}
@@ -55,4 +55,28 @@
             บันทึกข้อมูล
         </a>
     </div>
+
+
+
+
+{% for qr_code in qr_codes %}
+    <div class="qr-code-container">
+        <div class="collect-qr">
+            <h3>QR Code for Collection</h3>
+            <p>Coupon #{{ qr_code.coupon.promotion_count }}</p>
+            <img src="{% static qr_code.collect_qr_path %}" alt="Collection QR Code">
+            <p>Scan this QR code to collect the coupon</p>
+        </div>
+
+        <div class="usage-qr">
+            <h3>QR Code for Usage</h3>
+            <p>Coupon #{{ qr_code.coupon.promotion_count }}</p>
+            <img src="{% static qr_code.usage_qr_path %}" alt="Usage QR Code">
+            <p>Scan this QR code to use the collected coupon (Store owners only)</p>
+        </div>
+    </div>
+{% endfor %}
+
+
+
 </div>

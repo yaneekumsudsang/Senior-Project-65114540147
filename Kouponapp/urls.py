@@ -16,7 +16,7 @@ urlpatterns = [
     # การแสดงโปรโมชั่น
     path("promotions/member/", views.promotions_member, name="promotions_member"),
     path("promotions/all/", views.promotions_all, name="promotions_all"),
-    path('promotion/<int:store_id>/<int:promotion_id>/<int:coupon_id>/',views.PromotionDetails,name= 'promotion_details'),
+    path('promotion/<int:store_id>/<int:promotion_id>/<int:coupon_id>/', views.PromotionDetails, name= 'promotion_details'),
 
     # คูปองที่ใช้แล้ว
     path("coupons/used/", views.UsedCoupons, name="UsedCoupons"),
@@ -36,7 +36,9 @@ urlpatterns = [
     path('koupon/qr/<int:store_id>/collec/<int:promotion_id>/<int:coupon_id>/', views.Collect_coupons,name='collect_coupon'),
     path('coupons/completed/', views.Completed_coupons, name='completed_coupons'),
     path('coupons/pending/', views.Pending_coupons, name='pending_coupons'),
-    path('coupons/use/<int:promotion_id>/', views.Use_coupons, name='use_coupons'),
+    path('verify/coupons/<int:promotion_id>/', views.verify_coupons, name='verify_coupons'),
+    path('use/coupon/<int:promotion_id>/', views.use_coupon, name='use_coupon'),
+    #path('koupon/qr/<int:store_id>/use/<int:promotion_id>/<int:coupon_id>/', views.confirm_coupon_use, name='confirm_coupon_use'),
 
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

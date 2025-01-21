@@ -1,40 +1,35 @@
+# Standard library imports
 import logging
+import os
+import io
+import base64
 from datetime import timezone
+from django.utils.timezone import now
 
+# Third-party imports
 import numpy as np
+import cv2
+from pyzbar.pyzbar import decode
+import segno
+from qr_code.qrcode.utils import QRCodeOptions
+
 # Django built-in imports
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
+from django.http import StreamingHttpResponse, HttpResponse, JsonResponse, HttpResponseForbidden
 from django.shortcuts import render, redirect, get_object_or_404
+from django.utils import timezone
 from django.views.decorators.cache import never_cache
-
-# Third-party imports
-from qr_code.qrcode.utils import QRCodeOptions
 
 # Local app imports
 from .forms import RegisterForm, LoginForm, ProfileForm, PromotionForm
-from .models import Member, Store, Promotion, Coupon
+from .models import Member, Store, Promotion, Coupon, ScannedQRCode
 
-import segno
-import os
-from django.conf import settings
-from django.shortcuts import render, get_object_or_404, redirect
-from django.contrib.auth.decorators import login_required
-import segno
-import io
-import base64
-from .models import Member, Store, Promotion, Coupon
-from .forms import PromotionForm
-import cv2
-from django.shortcuts import render
-from django.http import StreamingHttpResponse, HttpResponse
-from pyzbar.pyzbar import decode
-import numpy as np
-from .models import ScannedQRCode
-from django.utils import timezone
-from django.http import JsonResponse
+from django.core.files.base import ContentFile
+
 
 def promotions_view(request):
     data = Promotion.objects.all()[:5]
@@ -242,6 +237,7 @@ def generate_coupon_qr_data(promotion, coupon_number):
     }
     return str(qr_data)
 
+
 @login_required
 def CouponPreview(request, promotion_id):
     promotion = get_object_or_404(Promotion, id=promotion_id)
@@ -265,30 +261,97 @@ def CouponPreview(request, promotion_id):
             coupon = Coupon.objects.create(
                 promotion=promotion,
                 promotion_count=new_promotion_count,
-                collect=False
+                collect=False,
+                used=False
             )
 
-            # Generate QR URL and save it
-            qr_url = f"{base_url}/koupon/qr/{promotion.store.id}/collec/{promotion.id}/{coupon.id}/"
-            coupon.qr_code_url = qr_url
-            coupon.save()  # This will trigger the QR code generation
+            # Generate Collection QR URL
+            collect_url = f"{base_url}/koupon/qr/{promotion.store.id}/collec/{promotion.id}/{coupon.id}/"
 
-            # Add QR code info to the list for display
+            # Generate Use QR URL
+            use_url = f"{base_url}/koupon/qr/{promotion.store.id}/use/{promotion.id}/{coupon.id}/"
+
+            # Save the collection and use URLs
+            coupon.collect_qr_code_url = collect_url
+            coupon.use_qr_code_url = use_url
+
+            # Generate both QR codes
+            collect_qr = segno.make(collect_url)
+            use_qr = segno.make(use_url)
+
+            # Save QR codes to static/qr_codes
+            static_path = os.path.join(settings.BASE_DIR, 'static', 'qr_codes')
+            os.makedirs(static_path, exist_ok=True)
+
+            collect_file_path = os.path.join(static_path, f'collect_qr_{promotion.id}_{coupon.id}.png')
+            use_file_path = os.path.join(static_path, f'use_qr_{promotion.id}_{coupon.id}.png')
+
+            collect_qr.save(collect_file_path, scale=10)
+            use_qr.save(use_file_path, scale=10)
+
+            # Save QR code images to the database
+            with io.BytesIO() as collect_buffer, io.BytesIO() as use_buffer:
+                collect_qr.save(collect_buffer, kind='png', scale=10)
+                collect_buffer.seek(0)
+                coupon.collect_qr_code_image.save(f'collect_qr_{promotion.id}_{coupon.id}.png', ContentFile(collect_buffer.getvalue()), save=False)
+
+                use_qr.save(use_buffer, kind='png', scale=10)
+                use_buffer.seek(0)
+                coupon.use_qr_code_url_image.save(f'use_qr_{promotion.id}_{coupon.id}.png', ContentFile(use_buffer.getvalue()), save=False)
+
+            coupon.save()
+
+            # Add QR codes info to the list for display
             qr_codes.append({
                 'coupon': coupon,
-                'qr_image_path': f"qr_codes/qr_code_{promotion.id}_{coupon.id}.png",
+                'collect_qr_path': f"qr_codes/collect_qr_{promotion.id}_{coupon.id}.png",
+                'use_qr_path': f"qr_codes/use_qr_{promotion.id}_{coupon.id}.png",
             })
 
     # Handle existing coupons
     for coupon in existing_coupons:
-        if not coupon.qr_code_url:
-            qr_url = f"{base_url}/koupon/qr/{promotion.store.id}/collec/{promotion.id}/{coupon.id}/"
-            coupon.qr_code_url = qr_url
-            coupon.save()  # This will trigger the QR code generation
+        collect_url = f"{base_url}/koupon/qr/{promotion.store.id}/collec/{promotion.id}/{coupon.id}/"
+        use_url = f"{base_url}/koupon/qr/{promotion.store.id}/use/{promotion.id}/{coupon.id}/"
+
+        if not coupon.collect_qr_code_url:
+            coupon.collect_qr_code_url = collect_url
+        if not coupon.use_qr_code_url:
+            coupon.use_qr_code_url = use_url
+
+        # Generate both QR codes if they don't exist
+        collect_qr = segno.make(collect_url)
+        use_qr = segno.make(use_url)
+
+        static_path = os.path.join(settings.BASE_DIR, 'static', 'qr_codes')
+        os.makedirs(static_path, exist_ok=True)
+
+        collect_file_path = os.path.join(static_path, f'collect_qr_{promotion.id}_{coupon.id}.png')
+        use_file_path = os.path.join(static_path, f'use_qr_{promotion.id}_{coupon.id}.png')
+
+        if not os.path.exists(collect_file_path):
+            collect_qr.save(collect_file_path, scale=10)
+        if not os.path.exists(use_file_path):
+            use_qr.save(use_file_path, scale=10)
+
+        # Save QR code images to the database if not already saved
+        if not coupon.collect_qr_code_image:
+            with io.BytesIO() as collect_buffer:
+                collect_qr.save(collect_buffer, kind='png', scale=10)
+                collect_buffer.seek(0)
+                coupon.collect_qr_code_image.save(f'collect_qr_{promotion.id}_{coupon.id}.png', ContentFile(collect_buffer.getvalue()), save=False)
+
+        if not coupon.use_qr_code_url_image:
+            with io.BytesIO() as use_buffer:
+                use_qr.save(use_buffer, kind='png', scale=10)
+                use_buffer.seek(0)
+                coupon.use_qr_code_url_image.save(f'use_qr_{promotion.id}_{coupon.id}.png', ContentFile(use_buffer.getvalue()), save=False)
+
+        coupon.save()
 
         qr_codes.append({
             'coupon': coupon,
-            'qr_image_path': f"qr_codes/qr_code_{promotion.id}_{coupon.id}.png",
+            'collect_qr_path': f"qr_codes/collect_qr_{promotion.id}_{coupon.id}.png",
+            'use_qr_path': f"qr_codes/use_qr_{promotion.id}_{coupon.id}.png",
         })
 
     return render(request, 'CouponPreview.html', {
@@ -405,6 +468,7 @@ def my_coupons(request):
 def PromotionDetails(request, store_id, promotion_id, coupon_id):
     promotion = get_object_or_404(Promotion, id=promotion_id, store_id=store_id)
     coupon = get_object_or_404(Coupon, id=coupon_id, promotion=promotion)
+    stores = Store.objects.all()
 
     # เส้นทางรูปภาพใน static/qr_codes
     image_path = f"qr_codes/{promotion.id}.png"
@@ -413,8 +477,8 @@ def PromotionDetails(request, store_id, promotion_id, coupon_id):
         'promotion': promotion,
         'coupon': coupon,
         'image_path': image_path,
+        'stores': stores,
     })
-
 
 def PromotionDetailsStore(request, promotion_id, coupon_id):
     # ดึงข้อมูล Promotion และ Coupon ที่เกี่ยวข้อง
@@ -486,7 +550,7 @@ def Completed_coupons(request):
             coupon = promo_data['coupons'][0]
             completed_coupons.append({
                 'coupon': coupon,
-                'promotion_id': coupon.promotion.id,  # เพิ่ม promotion_id
+                'promotion_id': coupon.promotion.id,
                 'collected_count': promo_data['collected'],
                 'total_required': promo_data['total_required'],
                 'is_complete': True
@@ -548,9 +612,8 @@ def Pending_coupons(request):
 
     return render(request, 'pending_coupons.html', context)
 
-
 @login_required
-def Use_coupons(request, promotion_id):
+def verify_coupons(request, promotion_id):
     username = request.user.username
     member = request.user.member
 
@@ -574,36 +637,114 @@ def Use_coupons(request, promotion_id):
             'total_required': total_required,
             'total_coupons': promotion.coupon_set.count(),
             'is_complete': is_complete,
-            'coupons': collected_coupons
+            'coupons': collected_coupons,
         }
 
         context = {
-            'display_coupons': [display_data],  # Wrap in list to maintain template compatibility
+            'display_coupons': [display_data],
             'username': username,
         }
 
-        return render(request, 'use_coupons.html', context)
+        return render(request, 'verify_coupons.html', context)
 
     except Promotion.DoesNotExist:
         messages.error(request, "ไม่พบโปรโมชั่นที่ระบุ")
-        return redirect('use_coupons')
+        return redirect('verify_coupons')
+
 @login_required
-def confirm_coupon_usage(request, store_id, promotion_id, coupon_id):
+def use_coupon(request, promotion_id):
     """
-    Display the confirmation page for using a coupon.
-    Only accessible if the store owns the promotion.
+    Display all coupons for a specific promotion that has been fully collected
     """
-    # ตรวจสอบว่าร้านค้าตรงกับโปรโมชันที่ระบุ
-    coupon = get_object_or_404(Coupon, id=coupon_id, promotion_id=promotion_id, promotion__store_id=store_id)
+    scanned_qrcodes = ScannedQRCode.objects.all()
+    username = request.user.username
 
-    # ตรวจสอบว่าผู้ใช้งานเป็นเจ้าของร้านค้าที่โปรโมชันนี้เกี่ยวข้อง
-    if coupon.promotion.store.owner != request.user:
-        return HttpResponseForbidden("คุณไม่มีสิทธิ์ใช้งานคูปองนี้")
+    # Get collected coupons for the specific promotion
+    coupons = (Coupon.objects
+               .filter(
+                   id__in=scanned_qrcodes.values_list('scanned_text', flat=True),
+                   collect=True,
+                   promotion_id=promotion_id
+               )
+               .select_related('promotion', 'promotion__store', 'member')
+               .order_by('promotion_count'))
 
-    # ส่งข้อมูลไปยังเทมเพลต
-    context = {
-        'coupon': coupon,
-        'promotion': coupon.promotion,
-    }
+    # Get the promotion and verify it's completed
+    if coupons.exists():
+        promotion = coupons.first().promotion
+        collected_count = coupons.count()
+        is_completed = collected_count >= promotion.count
 
-    return render(request, 'confirm_coupon_usage.html', context)
+        if is_completed:
+            context = {
+                'username': username,
+                'promotion': promotion,
+                'coupons': coupons,
+                'collected_count': collected_count,
+                'total_required': promotion.count
+            }
+            return render(request, 'use_coupon.html', context)
+        else:
+            messages.error(request, 'โปรโมชั่นนี้ยังสะสมไม่ครบ')
+    else:
+        messages.error(request, 'ไม่พบคูปองสำหรับโปรโมชั่นนี้')
+
+    return redirect('completed_coupons')
+@login_required
+def confirm_coupon_use(request, store_id, promotion_id):
+    try:
+        # Get the store and verify ownership
+        store = get_object_or_404(Store, id=store_id)
+        if store.owner != request.user.member:
+            messages.error(request, "คุณไม่มีสิทธิ์ดำเนินการกับคูปองนี้")
+            return redirect('confirm_coupon_use')
+
+        # Get the promotion
+        promotion = get_object_or_404(Promotion, id=promotion_id, store=store)
+
+        # Get all collected coupons for the member
+        collected_coupons = Coupon.objects.filter(
+            promotion=promotion,
+            member__user=request.user,
+            collect=True,
+            used=False
+        )
+
+        # Count collected coupons
+        collected_count = collected_coupons.count()
+
+        # Check if member has collected enough coupons
+        if collected_count < promotion.count:
+            messages.error(
+                request,
+                f"คุณต้องสะสมคูปองให้ครบ {promotion.count} ใบก่อนใช้สิทธิ์"
+            )
+            return redirect('confirm_coupon_use')
+
+        if request.method == 'POST':
+            # Mark the required number of coupons as used
+            for coupon in collected_coupons[:promotion.count]:
+                coupon.used = True
+                coupon.used_at = now()
+                coupon.save()
+
+            messages.success(
+                request,
+                f"ยืนยันการใช้คูปองสำเร็จ สำหรับโปรโมชั่น {promotion.name}"
+            )
+            return redirect('confirm_coupon_use')
+
+        # Prepare context for the confirmation template
+        context = {
+            'promotion': promotion,
+            'store': store,
+            'collected_coupons': collected_coupons,  # All coupons for display
+            'collected_count': collected_count,
+            'required_count': promotion.count
+        }
+
+        return render(request, 'confirm_coupon_use.html', context)
+
+    except Exception as e:
+        messages.error(request, f"เกิดข้อผิดพลาด: {str(e)}")
+        return redirect('confirm_coupon_use')

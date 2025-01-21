@@ -1,0 +1,31 @@
+<h1 class="text-xl font-bold mb-4">ยืนยันการใช้คูปอง</h1>
+
+<!-- รายละเอียดโปรโมชั่น -->
+<p>โปรโมชั่น: {{ promotion.name }}</p>
+<p>จำนวนคูปองที่สะสม: {{ collected_count }}/{{ required_count }}</p>
+
+<!-- แสดงรายการคูปอง -->
+<table class="table-auto w-full border-collapse border border-gray-300">
+    <thead>
+        <tr>
+            <th class="border border-gray-300 px-4 py-2">หมายเลขคูปอง</th>
+            <th class="border border-gray-300 px-4 py-2">วันที่สะสม</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for coupon in collected_coupons %}
+        <tr>
+            <td class="border border-gray-300 px-4 py-2">{{ coupon.id }}</td>
+            <td class="border border-gray-300 px-4 py-2">{{ coupon.collected_at|date:"d F Y" }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<!-- ปุ่มยืนยัน -->
+<form method="POST">
+    {% csrf_token %}
+    <button type="submit" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-full">
+        ยืนยันการใช้คูปอง
+    </button>
+</form>

@@ -20,7 +20,7 @@
         <div class="grid grid-cols-1 gap-3 h-[500px] overflow-y-auto place-items-center mt-4">
             {% for display_item in display_coupons %}
                 {% with coupon=display_item.coupon %}
-                <a href="{% url 'use_coupons' display_item.promotion_id %}" class="block w-full max-w-[350px]">
+                <a href="{% url 'verify_coupons' display_item.promotion_id %}" class="block w-full max-w-[350px]">
                     <div class="relative bg-white h-[150px] shadow-xl flex items-center border p-4 rounded-lg {% if not display_item.is_complete %}opacity-70{% endif %}">
                         <!-- วงกลมซ้าย -->
                         <div class="absolute z-10 top-1/2 left-0 transform -translate-y-1/2 -translate-x-1/2 w-14 h-14 bg-white rounded-full border-2 border-gray-100" style="clip-path: inset(0 0 0 50%);"></div>

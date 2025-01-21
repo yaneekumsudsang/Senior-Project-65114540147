@@ -38,8 +38,9 @@
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">รายละเอียด</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">วันที่หมดอายุ</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">สถานะ</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ผู้สะสม</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ผู้สะสม/ใช้งาน</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">วันที่สะสม</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">วันที่ใช้งาน</th>
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
@@ -97,6 +98,15 @@
                                     {% endif %}
                                 </div>
                             </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm text-gray-900">
+                                    {% if coupon.used_at %}
+                                        {{ coupon.used_at|date:"d M Y H:i" }}
+                                    {% else %}
+                                         -
+                                    {% endif %}
+                                </div>
+                            </td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -111,4 +121,56 @@
     </div>
 </div>
 </div>
+
+
+
+
+<body class="bg-gray-100 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-2xl font-bold text-gray-900">ยืนยันการใช้คูปอง</h1>
+        </div>
+
+        <!-- Coupon Information Card -->
+        <div class="max-w-2xl mx-auto bg-white rounded-lg shadow-lg p-6 mb-6">
+            <div class="mb-6">
+                <h2 class="text-xl font-semibold text-gray-900 mb-4">ข้อมูลคูปอง</h2>
+                <div class="grid grid-cols-1 gap-4">
+                    <div>
+                        <p class="text-sm text-gray-600">ชื่อร้าน</p>
+                        <p class="font-medium text-gray-900">{{ promotion.store.store_name }}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-600">โปรโมชั่น</p>
+                        <p class="font-medium text-gray-900">{{ promotion.name }}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-600">ผู้ใช้คูปอง</p>
+                        <p class="font-medium text-gray-900">{{ member.user.username }}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-600">จำนวนคูปองที่สะสม</p>
+                        <p class="font-medium text-gray-900">{{ collected_count }}/{{ required_count }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Confirmation Form -->
+            <form method="POST" class="space-y-6">
+                {% csrf_token %}
+                <div class="flex justify-end space-x-4">
+                    <a href="{% url 'list_member_collect_coupons' %}"
+                       class="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors">
+                        ยกเลิก
+                    </a>
+                    <button type="submit"
+                            class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+                        ยืนยันการใช้คูปอง
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
 {% endblock %}

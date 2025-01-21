@@ -74,15 +74,13 @@
 
                         <!-- Action Button -->
                         <div class="flex justify-end">
-                            {% if promo_data.is_complete %}
+                            {% for display in display_coupons %}
+                                <a href="{% url 'use_coupon' promotion_id=display.promotion.id %}">
                                 <button class="bg-green-600 hover:bg-green-700 text-white font-medium px-6 py-2 rounded-full transition-colors duration-200">
                                     ใช้คูปอง
                                 </button>
-                            {% else %}
-                                <span class="text-gray-500 italic text-sm">
-                                    สะสมคูปองเพิ่มเติมเพื่อใช้โปรโมชั่นนี้
-                                </span>
-                            {% endif %}
+                                </a>
+                            {% endfor %}
                         </div>
                     </div>
                 </div>

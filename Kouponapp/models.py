@@ -68,11 +68,13 @@ class Coupon(models.Model):
     id = models.AutoField(primary_key=True, verbose_name="ไอดีคูปอง")
     promotion = models.ForeignKey(Promotion, on_delete=models.CASCADE, verbose_name="ไอดีโปรโมชั่น")
     promotion_count = models.PositiveIntegerField(verbose_name="ลำดับคูปอง", default=0)
-    collect = models.BooleanField(default=False, verbose_name="ตรวจสอบการสะสม")  # Changed from used to collect
-    member = models.ForeignKey(Member, on_delete=models.CASCADE, null=True, blank=True, verbose_name="สมาชิกที่สะสมคูปอง")  # Updated verbose name
-    qr_code_url = models.URLField(max_length=200, blank=True, null=True, verbose_name="URL ของ QR Code")
-    qr_code_image = models.ImageField(upload_to='qr_codes/', blank=True, null=True, verbose_name="ภาพ QR Code")
-    collected_at = models.DateTimeField(null=True, blank=True, verbose_name="เวลาที่สะสม")  # Changed from used_at
+    collect = models.BooleanField(default=False, verbose_name="ตรวจสอบการสะสม")
+    member = models.ForeignKey(Member, on_delete=models.CASCADE, null=True, blank=True, verbose_name="สมาชิกที่สะสมคูปอง")
+    collect_qr_code_url = models.URLField(max_length=200, blank=True, null=True, verbose_name="URL ของ QR Code สำหรับเก็บคูปอง")
+    use_qr_code_url = models.URLField(max_length=200, blank=True, null=True, verbose_name="URL ของ QR Code สำหรับใช้คูปอง")
+    collect_qr_code_image = models.ImageField(upload_to='qr_codes/', blank=True, null=True, verbose_name="ภาพ QR Code สำหรัลสะสมคูปอง")
+    use_qr_code_url_image = models.ImageField(upload_to='qr_codes/', blank=True, null=True, verbose_name="ภาพ QR Code สำหรับใช้คูปอง")
+    collected_at = models.DateTimeField(null=True, blank=True, verbose_name="เวลาที่สะสม")
     used = models.BooleanField(default=False, verbose_name="ตรวจสอบการใช้งาน")
     used_at = models.DateTimeField(null=True, blank=True, verbose_name="เวลาที่ใช้งาน")
 
@@ -84,11 +86,11 @@ class Coupon(models.Model):
         return f"Coupon {self.id} for Promotion {self.promotion.id}"
 
     def generate_qr_code(self):
-        if not self.qr_code_url:
+        if not self.collect_qr_code_url:
             return
 
         # Create QR code
-        qr = segno.make(self.qr_code_url)
+        qr = segno.make(self.collect_qr_code_url)
 
         # Save to static directory
         static_qr_path = os.path.join(settings.BASE_DIR, 'static', 'qr_codes')
@@ -105,8 +107,8 @@ class Coupon(models.Model):
         filename = f'qr_code_{self.promotion.id}_{self.id}.png'
 
         # Save to database field if not already set
-        if not self.qr_code_image:
-            self.qr_code_image.save(filename, ContentFile(buffer.getvalue()), save=False)
+        if not self.collect_qr_code_image:
+            self.collect_qr_code_image.save(filename, ContentFile(buffer.getvalue()), save=False)
 
         buffer.close()
 
@@ -115,7 +117,7 @@ class Coupon(models.Model):
         super().save(*args, **kwargs)
 
         # Generate QR code if URL is set but image isn't generated yet
-        if self.qr_code_url and (not self.qr_code_image or not os.path.exists(self.qr_code_image.path)):
+        if self.collect_qr_code_url and (not self.collect_qr_code_image or not os.path.exists(self.collect_qr_code_image.path)):
             self.generate_qr_code()
             # Save again to update the image field
             super().save(update_fields=['qr_code_image'] if self.id else None)

@@ -119,7 +119,7 @@ class Command(BaseCommand):
         #Coupon
         coupon_sheet = wb['Coupon']
         for row in coupon_sheet.iter_rows(min_row=2, values_only=True):
-            coupon_id, promotion_id, collect, member_id, promotion_count, qr_code_url = row
+            coupon_id, promotion_id, collect, member_id, promotion_count, collect_qr_code_url = row
 
             # ค้นหา Promotion
             promotion = Promotion.objects.filter(id=promotion_id).first()
@@ -139,7 +139,7 @@ class Command(BaseCommand):
                     username = store_owner.username if store_owner else 'unknown'
 
                     # สร้าง URL ของ QR Code
-                    qr_code_url = f"http://127.0.0.1/koupon/qr/{username}/use/{promotion.id}/{i}"
+                    collect_qr_code_url = f"http://127.0.0.1/koupon/qr/{username}/use/{promotion.id}/{i}"
 
                     # สร้างคูปอง
                     coupon = Coupon.objects.create(
@@ -147,7 +147,7 @@ class Command(BaseCommand):
                         promotion_count=i,  # promotion_count ตามลำดับ
                         collect=False,
                         member_id=None,  # หากยังไม่มีสมาชิกที่ใช้งานคูปอง
-                        qr_code_url=qr_code_url  # เพิ่ม URL QR Code
+                        collect_qr_code_url=collect_qr_code_url  # เพิ่ม URL QR Code
                     )
                     self.stdout.write(
                         f"Created coupon ID {coupon.id} for promotion {promotion.id} with promotion_count {i}")
