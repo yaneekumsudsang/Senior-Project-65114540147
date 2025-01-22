@@ -9,11 +9,11 @@
         <div class="flex justify-center items-center mt-4">
             <div class="flex border border-[#164863] rounded-full overflow-hidden">
                 <!-- ปุ่มที่ถูกเลือก -->
-                <a href="{% url 'my_coupons' %}" class="px-6 py-2 bg-[#164863] text-white font-medium m-2 rounded-full focus:outline-none">
+                <a href="{% url 'my_coupons' %}" class="px-6 py-2 bg-white text-[#164863] font-medium m-2 rounded-full focus:outline-none">
                     คูปองของฉัน
                 </a>
                 <!-- ปุ่มที่ยังไม่ได้เลือก -->
-                <a href="{% url 'coupon_used_history' %}" class="px-6 py-2 bg-white text-[#164863] font-medium m-2 rounded-full focus:outline-none">
+                <a href="{% url 'coupon_used_history' %}" class="px-6 py-2 bg-[#164863] text-white font-medium m-2 rounded-full focus:outline-none">
                     คูปองที่ใช้แล้ว
                 </a>
             </div>
@@ -32,7 +32,7 @@
                     <!-- เนื้อหาในการ์ด -->
                     <div class="flex-shrink-0 w-16 h-16 ml-8 bg-[#DDF2FD] rounded-full flex items-center justify-center">
                         {% if coupon.promotion.picture %}
-                            <img src="{{ coupon.promotion.picture.url }}" alt="Promotion Image" class="w-full h-full object-cover rounded-full">
+                            <img src="{{ coupon.promotion.picture.url }}" alt="Promotion Image" class="w-full image- h-full object-cover rounded-full" style="filter: grayscale(100%);">
                         {% else %}
                             <span class="text-sm font-bold text-gray-500">ไม่มีภาพ</span>
                         {% endif %}
@@ -41,9 +41,9 @@
                     <div class="bg-dashed border-l-2 border-dashed border-gray-300 mx-4 h-full"></div>
                     <!-- รายละเอียด -->
                     <div class="flex-1 ml-2 mr-5">
-                        <p class="text-xl font-bold">{{ coupon.promotion.name }}</p>
-                        <p class="text-sm">{{ coupon.promotion.store.store_name }}</p>
-                        <p class="text-sm mt-3">ใช้งานได้ถึง: {{ coupon.promotion.end|date:"d M Y" }}</p>
+                        <p class="text-xl text-gray-500 font-bold">{{ coupon.promotion.name }}</p>
+                        <p class="text-sm text-gray-500">{{ coupon.promotion.store.store_name }}</p>
+                        <p class="text-sm mt-3 text-gray-500 ">ใช้งานได้ถึง: {{ coupon.promotion.end|date:"d M Y" }}</p>
                     </div>
                 </div>
             {% empty %}

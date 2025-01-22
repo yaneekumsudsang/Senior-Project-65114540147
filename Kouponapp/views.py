@@ -43,10 +43,6 @@ def promotions_member(request):
     member_promotions = Promotion.objects.all()[:10]  # ดึงข้อมูลทั้งหมดจาก Promotion
     return render(request, 'member.html', {'promotions_member': member_promotions})
 
-def UsedCoupons(request):
-    promotions = Promotion.objects.all()
-    return render(request, 'UsedCoupons.html', {'promotions':promotions})
-
 def register(request):
     if request.method == 'POST':
         form = RegisterForm(request.POST)
@@ -452,6 +448,10 @@ def Collect_coupons(request, store_id, promotion_id, coupon_id):
     return redirect('my_coupons')
 
 
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, redirect
+from django.contrib import messages
+
 @login_required
 def my_coupons(request):
     """แสดงรายการคูปองที่ผู้ใช้สะสม"""
@@ -462,7 +462,8 @@ def my_coupons(request):
         # Get coupons where member matches the logged-in user's member
         coupons = Coupon.objects.filter(
             member=member,  # Filter by member
-            collect=True  # Only show collected coupons
+            collect=True,  # Only show collected coupons
+            used=False  # Exclude used coupons (used = 1)
         ).select_related('promotion', 'promotion__store')  # Optimize queries
 
         context = {
@@ -475,6 +476,7 @@ def my_coupons(request):
     except Member.DoesNotExist:
         messages.error(request, "ไม่พบข้อมูลสมาชิกในระบบ")
         return redirect('home')
+
 
 def PromotionDetails(request, store_id, promotion_id, coupon_id):
     promotion = get_object_or_404(Promotion, id=promotion_id, store_id=store_id)
@@ -676,9 +678,7 @@ def verify_coupons(request, promotion_id):
 
 @login_required
 def use_coupon(request, promotion_id):
-    """
-    Display all coupons for a specific promotion that has been fully collected
-    """
+
     scanned_qrcodes = ScannedQRCode.objects.all()
     username = request.user.username
 
@@ -778,3 +778,26 @@ def confirm_coupon_use(request, store_id, promotion_id, coupon_id):
         print(f"Debug: Error occurred: {str(e)}")
         messages.error(request, f"เกิดข้อผิดพลาด: {str(e)}")
         return redirect('promotions_store')
+
+@login_required
+def coupon_used_history(request):
+    try:
+        # Get the member object of the logged-in user
+        member = request.user.member
+
+        # Get coupons where member matches the logged-in user's member
+        coupons = Coupon.objects.filter(
+            member=member,  # Filter by member
+            used=True  # Only show collected coupons
+        ).select_related('promotion', 'promotion__store')  # Optimize queries
+
+        context = {
+            'coupons': coupons,
+            'username': request.user.username
+        }
+
+        return render(request, 'coupon_used_history.html', context)
+
+    except Member.DoesNotExist:
+        messages.error(request, "ไม่พบข้อมูลสมาชิกในระบบ")
+        return redirect('home')

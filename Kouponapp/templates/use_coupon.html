@@ -1,13 +1,14 @@
+
 {% extends "nav.html" %}
 
 {% block title %}
     {% load static %}
 <body class="bg-gray-100 min-h-screen">
-    <div class="flex flex-col items-center justify-center">
+    <div class="container mx-auto px-4 py-8">
         <!-- Header -->
-        <div class="flex justify-center items-center mt-4">
-            <div class="flex border border-[#164863] rounded-full overflow-hidden">
-                <div class="px-6 py-2 bg-[#164863] text-white font-medium m-2 rounded-full focus:outline-none">
+        <div class="flex justify-center items-center mb-6">
+            <div class="border border-[#164863] rounded-full overflow-hidden">
+                <div class="px-6 py-2 bg-[#164863] text-white font-medium m-2 rounded-full">
                     แลกคูปอง
                 </div>
             </div>
@@ -15,37 +16,62 @@
 
         <!-- Promotion Header -->
         <h3 class="text-xl font-bold text-[#164863] w-full text-center mt-6 mb-4">
-            {{ promotion.name }} 
+            {{ promotion.name }}
             ({{ collected_count }}/{{ total_required }} คูปอง)
         </h3>
 
         <!-- Coupons Grid -->
-        <div class="grid grid-cols-1 gap-3 h-[500px] w-3/4 overflow-y-auto place-items-center mt-2">
+        <div class="grid grid-cols-1 gap-6 max-w-4xl mx-auto">
             {% for coupon in coupons %}
             <!-- Coupon Card -->
-            <div class="bg-white rounded-lg shadow-xl relative border-t-4 border-gray-200 p-6 w-1/3 mb-4">
+            <div class="bg-white rounded-lg shadow-lg overflow-hidden border-t-4 border-[#164863]">
                 <!-- Left Circle -->
                 <div class="absolute z-10 top-1/2 left-0 transform -translate-y-1/2 -translate-x-1/2 w-14 h-14 bg-white rounded-full border-2 border-gray-100" style="clip-path: inset(0 0 0 50%);"></div>
                 <!-- Right Circle -->
                 <div class="absolute z-10 top-1/2 right-0 transform -translate-y-1/2 translate-x-1/2 w-14 h-14 bg-white rounded-full border-2 border-gray-100" style="clip-path: inset(0 50% 0 0);"></div>
 
                 <!-- Header -->
-                <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-red-500 font-bold text-2xl">{{ promotion.store.store_name }}</h2>
+                <div class="p-6">
+                        <div class="flex justify-between items-center mb-4">
+                            <h2 class="text-red-500 font-bold text-2xl">{{ promotion.store.store_name }}</h2>
                     {% if promotion.discount %}
-                        <p class="text-gray-700 text-lg font-bold">ลด {{ promotion.discount|floatformat:0 }}%</p>
+                        <p class="bg-green-100 text-green-800 px-4 py-1 rounded-full text-sm font-semibold">ลด {{ promotion.discount|floatformat:0 }}%</p>
                     {% elif promotion.free %}
-                        <p class="text-gray-700 text-lg font-bold">{{ promotion.cups }} ฟรี {{ promotion.free }}</p>
+                        <p class="bg-green-100 text-green-800 px-4 py-1 rounded-full text-sm font-semibold">{{ promotion.cups }} ฟรี {{ promotion.free }}</p>
                     {% endif %}
                 </div>
 
                 <!-- Promotion Name -->
-                <p class="text-gray-700 font-semibold text-lg mb-4">{{ coupon.promotion.name }}</p>
+                <p class="text-lg font-semibold text-gray-900 mb-2">{{ coupon.promotion.name }}</p>
 
                 <!-- Details -->
-                <div class="mt-2 text-gray-600 text-sm">
+                <div class="text-gray-600 text-sm mb-4">
                     <p>{{ promotion.details }}</p>
                 </div>
+                <!-- Progress Bar -->
+                        <div class="mb-4">
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="text-sm font-medium text-gray-700">ความคืบหน้าการสะสม</span>
+                                <span class="text-sm font-medium text-gray-700">
+                                    {{ promo_data.collected_count }}/{{ promo_data.promotion.count }}
+                                </span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2.5">
+                                <div class="bg-blue-600 h-2.5 rounded-full" style="width: {% widthratio promo_data.collected_count promo_data.promotion.count 100 %}%"></div>
+                            </div>
+                        </div>
+
+                <!-- Statistics -->
+                        <div class="grid grid-cols-2 gap-4 mb-4">
+                            <div class="bg-gray-50 p-3 rounded-lg">
+                                <p class="text-sm text-gray-600">คูปองที่สะสมแล้ว</p>
+                                <p class="text-lg font-semibold text-gray-900">{{ promo_data.collected_count }}</p>
+                            </div>
+                            <div class="bg-gray-50 p-3 rounded-lg">
+                                <p class="text-sm text-gray-600">คูปองทั้งหมด</p>
+                                <p class="text-lg font-semibold text-gray-900">{{ promo_data.total_coupons }}</p>
+                            </div>
+                        </div>
 
                 <!-- Dashed Line -->
                 <div class="border-t-2 border-dashed mt-6 mb-4"></div>
@@ -57,9 +83,9 @@
                 </div>
 
                 <!-- Expiration Date -->
-                <p class="text-center text-gray-400 text-sm mt-4">
-                    ใช้งานได้ถึง {{ promotion.end|date:"d F Y" }}
-                </p>
+                        <p class="text-sm text-gray-500 mb-4">
+                            ใช้งานได้ถึง: {{ promo_data.promotion.end|date:"d F Y" }}
+                        </p>
             </div>
             {% endfor %}
         </div>

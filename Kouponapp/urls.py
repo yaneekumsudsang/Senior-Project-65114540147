@@ -19,7 +19,7 @@ urlpatterns = [
     path('promotion/<int:store_id>/<int:promotion_id>/<int:coupon_id>/', views.PromotionDetails, name= 'promotion_details'),
 
     # คูปองที่ใช้แล้ว
-    path("coupons/used/", views.UsedCoupons, name="UsedCoupons"),
+    path('coupon/used/history/', views.coupon_used_history, name='coupon_used_history'),
     path("coupons/used/store/", views.used_coupons_by_member_store, name="used_coupons_by_member_store"),
 
     # สำหรับเจ้าของร้าน
