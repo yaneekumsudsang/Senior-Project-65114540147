@@ -38,8 +38,7 @@ urlpatterns = [
     path('coupons/pending/', views.Pending_coupons, name='pending_coupons'),
     path('verify/coupons/<int:promotion_id>/', views.verify_coupons, name='verify_coupons'),
     path('use/coupon/<int:promotion_id>/', views.use_coupon, name='use_coupon'),
-    #path('koupon/qr/<int:store_id>/use/<int:promotion_id>/<int:coupon_id>/', views.confirm_coupon_use, name='confirm_coupon_use'),
-
+    path('koupon/qr/<int:store_id>/use/<int:promotion_id>/<int:coupon_id>/', views.confirm_coupon_use, name='confirm_coupon_use'),
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 

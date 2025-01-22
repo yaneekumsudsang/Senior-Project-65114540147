@@ -506,12 +506,14 @@ def list_member_collect_coupons(request):
     # Calculate statistics
     total_coupons = coupons.count()
     collected_coupons = coupons.filter(collect=True).count()
+    used_coupons = coupons.filter(used=True).count()
     available_coupons = total_coupons - collected_coupons
 
     context = {
         'coupons': coupons,
         'total_coupons': total_coupons,
         'collected_coupons': collected_coupons,
+        'used_coupons': used_coupons,
         'available_coupons': available_coupons,
     }
 
@@ -690,61 +692,68 @@ def use_coupon(request, promotion_id):
         messages.error(request, 'ไม่พบคูปองสำหรับโปรโมชั่นนี้')
 
     return redirect('completed_coupons')
+
 @login_required
-def confirm_coupon_use(request, store_id, promotion_id):
+def confirm_coupon_use(request, store_id, promotion_id, coupon_id):
     try:
-        # Get the store and verify ownership
+        # Get required objects
         store = get_object_or_404(Store, id=store_id)
-        if store.owner != request.user.member:
-            messages.error(request, "คุณไม่มีสิทธิ์ดำเนินการกับคูปองนี้")
-            return redirect('confirm_coupon_use')
-
-        # Get the promotion
         promotion = get_object_or_404(Promotion, id=promotion_id, store=store)
+        coupon = get_object_or_404(Coupon, id=coupon_id, promotion=promotion)
 
-        # Get all collected coupons for the member
+        # Debug information
+        print(f"Debug: Processing coupon {coupon_id} for promotion {promotion_id}")
+        print(f"Debug: Current used status: {coupon.used}")
+        print(f"Debug: Current collect status: {coupon.collect}")
+
+        # Get all collected coupons for this promotion by the same member
         collected_coupons = Coupon.objects.filter(
             promotion=promotion,
-            member__user=request.user,
-            collect=True,
-            used=False
+            member=coupon.member,
+            collect=True
         )
 
-        # Count collected coupons
-        collected_count = collected_coupons.count()
+        # Count unused collected coupons
+        unused_collected_count = collected_coupons.filter(used=False).count()
 
-        # Check if member has collected enough coupons
-        if collected_count < promotion.count:
-            messages.error(
-                request,
-                f"คุณต้องสะสมคูปองให้ครบ {promotion.count} ใบก่อนใช้สิทธิ์"
-            )
-            return redirect('confirm_coupon_use')
-
-        if request.method == 'POST':
-            # Mark the required number of coupons as used
-            for coupon in collected_coupons[:promotion.count]:
-                coupon.used = True
-                coupon.used_at = now()
-                coupon.save()
-
-            messages.success(
-                request,
-                f"ยืนยันการใช้คูปองสำเร็จ สำหรับโปรโมชั่น {promotion.name}"
-            )
-            return redirect('confirm_coupon_use')
-
-        # Prepare context for the confirmation template
-        context = {
-            'promotion': promotion,
-            'store': store,
-            'collected_coupons': collected_coupons,  # All coupons for display
-            'collected_count': collected_count,
-            'required_count': promotion.count
+        # Initial validations for viewing the page
+        validations = {
+            'is_expired': promotion.end < now().date(),
+            'is_collected': coupon.collect,
+            'has_enough_coupons': unused_collected_count >= promotion.count,
+            'already_used': coupon.used,
+            'is_store_owner': request.user.member == store.owner
         }
+
+        # Prepare context for template
+        context = {
+            'store': store,
+            'promotion': promotion,
+            'coupon': coupon,
+            'member': coupon.member if coupon.member else None,
+            'collected_count': unused_collected_count,
+            'required_count': promotion.count,
+            'validations': validations
+        }
+
+        # Handle POST request for confirming coupon use
+        if request.method == 'POST' and validations['is_store_owner']:
+            if not coupon.used and validations['has_enough_coupons']:
+                # Mark the required number of coupons as used
+                coupons_to_use = collected_coupons.filter(used=False)[:promotion.count]
+
+                for coup in coupons_to_use:
+                    coup.used = True
+                    coup.used_at = timezone.now()
+                    coup.save()
+                    print(f"Debug: Marked coupon {coup.id} as used")
+
+                messages.success(request, f"ใช้คูปองสำเร็จ! ใช้คูปองจำนวน {promotion.count} ใบ")
+                return redirect('promotions_store')
 
         return render(request, 'confirm_coupon_use.html', context)
 
     except Exception as e:
+        print(f"Debug: Error occurred: {str(e)}")
         messages.error(request, f"เกิดข้อผิดพลาด: {str(e)}")
-        return redirect('confirm_coupon_use')
+        return redirect('promotions_store')

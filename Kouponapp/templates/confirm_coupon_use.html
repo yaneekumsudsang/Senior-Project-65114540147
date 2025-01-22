@@ -1,31 +1,110 @@
-<h1 class="text-xl font-bold mb-4">ยืนยันการใช้คูปอง</h1>
+{% load static %}
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ยืนยันการใช้คูปอง</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header Section -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h1 class="text-2xl font-bold mb-4">ยืนยันการใช้คูปอง</h1>
+            <div class="border-b pb-4">
+                <p class="text-gray-600">ร้าน: {{ store.store_name }}</p>
+                <p class="text-gray-600">โปรโมชั่น: {{ promotion.name }}</p>
+            </div>
+        </div>
 
-<!-- รายละเอียดโปรโมชั่น -->
-<p>โปรโมชั่น: {{ promotion.name }}</p>
-<p>จำนวนคูปองที่สะสม: {{ collected_count }}/{{ required_count }}</p>
+        {% if messages %}
+        <div class="mb-6">
+            {% for message in messages %}
+            <div class="{% if message.tags == 'error' %}bg-red-100 text-red-700{% else %}bg-green-100 text-green-700{% endif %} p-4 rounded-lg">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
 
-<!-- แสดงรายการคูปอง -->
-<table class="table-auto w-full border-collapse border border-gray-300">
-    <thead>
-        <tr>
-            <th class="border border-gray-300 px-4 py-2">หมายเลขคูปอง</th>
-            <th class="border border-gray-300 px-4 py-2">วันที่สะสม</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for coupon in collected_coupons %}
-        <tr>
-            <td class="border border-gray-300 px-4 py-2">{{ coupon.id }}</td>
-            <td class="border border-gray-300 px-4 py-2">{{ coupon.collected_at|date:"d F Y" }}</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+        <!-- Validation Messages -->
+        {% if not validations.is_store_owner %}
+        <div class="bg-yellow-100 text-yellow-700 p-4 rounded-lg mb-6">
+            คุณไม่ใช่เจ้าของร้าน ไม่สามารถดำเนินการได้
+        </div>
+        {% elif validations.is_expired %}
+        <div class="bg-red-100 text-red-700 p-4 rounded-lg mb-6">
+            โปรโมชั่นนี้หมดอายุแล้ว
+        </div>
+        {% elif not validations.is_collected %}
+        <div class="bg-red-100 text-red-700 p-4 rounded-lg mb-6">
+            คูปองนี้ยังไม่ได้ถูกสะสม
+        </div>
+        {% elif validations.already_used %}
+        <div class="bg-red-100 text-red-700 p-4 rounded-lg mb-6">
+            คูปองนี้ถูกใช้ไปแล้ว
+        </div>
+        {% elif not validations.has_enough_coupons %}
+        <div class="bg-yellow-100 text-yellow-700 p-4 rounded-lg mb-6">
+            ลูกค้าต้องสะสมคูปองให้ครบ {{ required_count }} ใบก่อนใช้สิทธิ์ (ปัจจุบันมี {{ collected_count }} ใบ)
+        </div>
+        {% endif %}
 
-<!-- ปุ่มยืนยัน -->
-<form method="POST">
-    {% csrf_token %}
-    <button type="submit" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-full">
-        ยืนยันการใช้คูปอง
-    </button>
-</form>
+        {% if member and validations.is_store_owner %}
+        <!-- Customer Details -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4">ข้อมูลลูกค้า</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <p class="text-gray-600">ชื่อลูกค้า: {{ member.user.first_name }} {{ member.user.last_name }}</p>
+                    <p class="text-gray-600">ชื่อผู้ใช้: {{ member.user.username }}</p>
+                    {% if member.phone %}
+                    <p class="text-gray-600">เบอร์โทร: {{ member.phone }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Promotion Details -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4">รายละเอียดโปรโมชั่น</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <p class="text-gray-600">จำนวนคูปองที่สะสม: {{ collected_count }} / {{ required_count }}</p>
+                    {% if promotion.discount %}
+                    <p class="text-gray-600">ส่วนลด: {{ promotion.discount }}%</p>
+                    {% endif %}
+                    {% if promotion.free %}
+                    <p class="text-gray-600">แก้วฟรี: {{ promotion.free }} แก้ว</p>
+                    {% endif %}
+                    <p class="text-gray-600">วันหมดอายุ: {{ promotion.end }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Confirmation Form -->
+        {% if validations.is_store_owner %}
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-xl font-semibold mb-4">ยืนยันการใช้คูปอง</h2>
+            <form method="post" class="space-y-4">
+                {% csrf_token %}
+                <div class="flex items-center">
+                    <input type="checkbox" id="confirm" name="confirm" class="mr-2" required>
+                    <label for="confirm" class="text-gray-700">ฉันยืนยันว่าต้องการใช้คูปองนี้</label>
+                </div>
+                <div class="flex space-x-4">
+                    <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg">
+                        ยืนยันการใช้คูปอง
+                    </button>
+                    <a href="{% url 'promotions_store' %}" class="bg-gray-300 hover:bg-gray-400 text-gray-700 font-semibold py-2 px-4 rounded-lg">
+                        ยกเลิก
+                    </a>
+                </div>
+            </form>
+        </div>
+        {% endif %}
+        {% endif %}
+    </div>
+</body>
+</html>
