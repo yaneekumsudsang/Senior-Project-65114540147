@@ -518,6 +518,7 @@ def list_member_collect_coupons(request):
     # Calculate statistics
     total_coupons = coupons.count()
     collected_coupons = coupons.filter(collect=True).count()
+    is_coupon_used = coupons.filter(used=True).count()
     used_coupons = coupons.filter(used=True).count()
     available_coupons = total_coupons - collected_coupons
 
@@ -527,40 +528,35 @@ def list_member_collect_coupons(request):
         'collected_coupons': collected_coupons,
         'used_coupons': used_coupons,
         'available_coupons': available_coupons,
+        'is_coupon_used': is_coupon_used
     }
 
     return render(request, 'list_member_collect_coupons.html', context)
 
+
 @login_required
 def Completed_coupons(request):
-    """
-    Display completed coupon collections for the logged-in member only
-    """
-    # Get the current member
     current_member = request.user.member
     username = request.user.username
 
-    # Get scanned QR codes
     scanned_qrcodes = ScannedQRCode.objects.all()
 
-    # Get coupons that belong to the current member
     coupons = (Coupon.objects
                .filter(
-                   id__in=scanned_qrcodes.values_list('scanned_text', flat=True),
-                   collect=True,
-                    used=False,
-                   member=current_member  # Filter by current member
-               )
+        id__in=scanned_qrcodes.values_list('scanned_text', flat=True),
+        collect=True,
+        used=False,
+        member=current_member
+    )
                .select_related('promotion', 'promotion__store', 'member')
                .order_by('promotion'))
 
-    # Track promotion counts
     promotion_counts = {}
     for coupon in coupons:
         promo_id = coupon.promotion.id
         if promo_id not in promotion_counts:
             promotion_counts[promo_id] = {
-                'total_required': coupon.promotion.count,
+                'total_required': coupon.promotion.cups,  # Changed from count to cups
                 'collected': 1,
                 'coupons': [coupon]
             }
@@ -568,34 +564,28 @@ def Completed_coupons(request):
             promotion_counts[promo_id]['collected'] += 1
             promotion_counts[promo_id]['coupons'].append(coupon)
 
-    # Filter completed collections
-    completed_coupons = []
-    for promo_data in promotion_counts.values():
-        if promo_data['collected'] >= promo_data['total_required']:
-            coupon = promo_data['coupons'][0]
-            completed_coupons.append({
-                'coupon': coupon,
-                'promotion_id': coupon.promotion.id,
-                'collected_count': promo_data['collected'],
-                'total_required': promo_data['total_required'],
-                'is_complete': True
-            })
+    completed_coupons = [
+        {
+            'coupon': promo_data['coupons'][0],
+            'promotion_id': promo_data['coupons'][0].promotion.id,
+            'collected_count': promo_data['collected'],
+            'total_required': promo_data['total_required'],
+            'is_complete': True
+        }
+        for promo_data in promotion_counts.values()
+        if promo_data['collected'] >= promo_data['total_required']
+    ]
 
-    context = {
+    return render(request, 'completed_coupons.html', {
         'display_coupons': completed_coupons,
         'username': username,
-    }
-    return render(request, 'completed_coupons.html', context)
+    })
 
 @login_required
 def Pending_coupons(request):
-    """
-    Display coupons that are not yet fully collected
-    """
     scanned_qrcodes = ScannedQRCode.objects.all()
     username = request.user.username
 
-    # Get collected coupons with related promotion data
     coupons = (Coupon.objects
                .filter(
                    id__in=scanned_qrcodes.values_list('scanned_text', flat=True),
@@ -604,13 +594,12 @@ def Pending_coupons(request):
                .select_related('promotion', 'promotion__store', 'member')
                .order_by('promotion'))
 
-    # Create a dictionary to track collected coupons per promotion
     promotion_counts = {}
     for coupon in coupons:
         promo_id = coupon.promotion.id
         if promo_id not in promotion_counts:
             promotion_counts[promo_id] = {
-                'total_required': coupon.promotion.count,
+                'total_required': coupon.promotion.cups,  # Changed from count to cups
                 'collected': 1,
                 'coupons': [coupon]
             }
@@ -618,24 +607,21 @@ def Pending_coupons(request):
             promotion_counts[promo_id]['collected'] += 1
             promotion_counts[promo_id]['coupons'].append(coupon)
 
-    # Filter only incomplete collections
-    display_coupons = []
-    for promo_data in promotion_counts.values():
-        if promo_data['collected'] < promo_data['total_required']:  # Only include incomplete
-            coupon = promo_data['coupons'][0]
-            display_coupons.append({
-                'coupon': coupon,
-                'collected_count': promo_data['collected'],
-                'total_required': promo_data['total_required'],
-                'is_complete': False
-            })
+    display_coupons = [
+        {
+            'coupon': promo_data['coupons'][0],
+            'collected_count': promo_data['collected'],
+            'total_required': promo_data['total_required'],
+            'is_complete': False
+        }
+        for promo_data in promotion_counts.values()
+        if promo_data['collected'] < promo_data['total_required']
+    ]
 
-    context = {
+    return render(request, 'pending_coupons.html', {
         'display_coupons': display_coupons,
         'username': username
-    }
-
-    return render(request, 'pending_coupons.html', context)
+    })
 
 @login_required
 def verify_coupons(request, promotion_id):
@@ -643,7 +629,6 @@ def verify_coupons(request, promotion_id):
     member = request.user.member
 
     try:
-        # Get the specific promotion and its coupons
         promotion = get_object_or_404(Promotion, id=promotion_id)
         collected_coupons = Coupon.objects.filter(
             promotion=promotion,
@@ -651,8 +636,7 @@ def verify_coupons(request, promotion_id):
             collect=True
         ).select_related('promotion', 'promotion__store')
 
-        # Calculate collection progress
-        total_required = promotion.count
+        total_required = promotion.cups  # Changed from count to cups
         collected_count = collected_coupons.count()
         is_complete = collected_count >= total_required
 
@@ -665,12 +649,10 @@ def verify_coupons(request, promotion_id):
             'coupons': collected_coupons,
         }
 
-        context = {
+        return render(request, 'verify_coupons.html', {
             'display_coupons': [display_data],
             'username': username,
-        }
-
-        return render(request, 'verify_coupons.html', context)
+        })
 
     except Promotion.DoesNotExist:
         messages.error(request, "ไม่พบโปรโมชั่นที่ระบุ")
@@ -678,106 +660,95 @@ def verify_coupons(request, promotion_id):
 
 @login_required
 def use_coupon(request, promotion_id):
+   scanned_qrcodes = ScannedQRCode.objects.all()
+   username = request.user.username
 
-    scanned_qrcodes = ScannedQRCode.objects.all()
-    username = request.user.username
+   coupons = (Coupon.objects
+              .filter(
+                  id__in=scanned_qrcodes.values_list('scanned_text', flat=True),
+                  collect=True,
+                  promotion_id=promotion_id
+              )
+              .select_related('promotion', 'promotion__store', 'member')
+              .order_by('promotion_count'))
 
-    # Get collected coupons for the specific promotion
-    coupons = (Coupon.objects
-               .filter(
-                   id__in=scanned_qrcodes.values_list('scanned_text', flat=True),
-                   collect=True,
-                   promotion_id=promotion_id
-               )
-               .select_related('promotion', 'promotion__store', 'member')
-               .order_by('promotion_count'))
+   if coupons.exists():
+       promotion = coupons.first().promotion
+       collected_count = coupons.count()
+       is_completed = collected_count >= promotion.cups  # Changed from count to cups
 
-    # Get the promotion and verify it's completed
-    if coupons.exists():
-        promotion = coupons.first().promotion
-        collected_count = coupons.count()
-        is_completed = collected_count >= promotion.count
+       if is_completed:
+           context = {
+               'username': username,
+               'promotion': promotion,
+               'coupons': coupons,
+               'collected_count': collected_count,
+               'total_required': promotion.cups  # Changed from count to cups
+           }
+           return render(request, 'use_coupon.html', context)
+       else:
+           messages.error(request, 'โปรโมชั่นนี้ยังสะสมไม่ครบ')
+   else:
+       messages.error(request, 'ไม่พบคูปองสำหรับโปรโมชั่นนี้')
 
-        if is_completed:
-            context = {
-                'username': username,
-                'promotion': promotion,
-                'coupons': coupons,
-                'collected_count': collected_count,
-                'total_required': promotion.count
-            }
-            return render(request, 'use_coupon.html', context)
-        else:
-            messages.error(request, 'โปรโมชั่นนี้ยังสะสมไม่ครบ')
-    else:
-        messages.error(request, 'ไม่พบคูปองสำหรับโปรโมชั่นนี้')
-
-    return redirect('completed_coupons')
+   return redirect('completed_coupons')
 
 @login_required
 def confirm_coupon_use(request, store_id, promotion_id, coupon_id):
-    try:
-        # Get required objects
-        store = get_object_or_404(Store, id=store_id)
-        promotion = get_object_or_404(Promotion, id=promotion_id, store=store)
-        coupon = get_object_or_404(Coupon, id=coupon_id, promotion=promotion)
+   try:
+       store = get_object_or_404(Store, id=store_id)
+       promotion = get_object_or_404(Promotion, id=promotion_id, store=store)
+       coupon = get_object_or_404(Coupon, id=coupon_id, promotion=promotion)
 
-        # Debug information
-        print(f"Debug: Processing coupon {coupon_id} for promotion {promotion_id}")
-        print(f"Debug: Current used status: {coupon.used}")
-        print(f"Debug: Current collect status: {coupon.collect}")
+       print(f"Debug: Processing coupon {coupon_id} for promotion {promotion_id}")
+       print(f"Debug: Current used status: {coupon.used}")
+       print(f"Debug: Current collect status: {coupon.collect}")
 
-        # Get all collected coupons for this promotion by the same member
-        collected_coupons = Coupon.objects.filter(
-            promotion=promotion,
-            member=coupon.member,
-            collect=True
-        )
+       collected_coupons = Coupon.objects.filter(
+           promotion=promotion,
+           member=coupon.member,
+           collect=True
+       )
 
-        # Count unused collected coupons
-        unused_collected_count = collected_coupons.filter(used=False).count()
+       unused_collected_count = collected_coupons.filter(used=False).count()
 
-        # Initial validations for viewing the page
-        validations = {
-            'is_expired': promotion.end < now().date(),
-            'is_collected': coupon.collect,
-            'has_enough_coupons': unused_collected_count >= promotion.count,
-            'already_used': coupon.used,
-            'is_store_owner': request.user.member == store.owner
-        }
+       validations = {
+           'is_expired': promotion.end < now().date(),
+           'is_collected': coupon.collect,
+           'has_enough_coupons': unused_collected_count >= promotion.cups,  # Changed from count to cups
+           'already_used': coupon.used,
+           'is_store_owner': request.user.member == store.owner
+       }
 
-        # Prepare context for template
-        context = {
-            'store': store,
-            'promotion': promotion,
-            'coupon': coupon,
-            'member': coupon.member if coupon.member else None,
-            'collected_count': unused_collected_count,
-            'required_count': promotion.count,
-            'validations': validations
-        }
+       context = {
+           'store': store,
+           'promotion': promotion,
+           'coupon': coupon,
+           'member': coupon.member if coupon.member else None,
+           'collected_count': unused_collected_count,
+           'required_count': promotion.cups,  # Changed from count to cups
+           'validations': validations
+       }
 
-        # Handle POST request for confirming coupon use
-        if request.method == 'POST' and validations['is_store_owner']:
-            if not coupon.used and validations['has_enough_coupons']:
-                # Mark the required number of coupons as used
-                coupons_to_use = collected_coupons.filter(used=False)[:promotion.count]
+       if request.method == 'POST' and validations['is_store_owner']:
+           if not coupon.used and validations['has_enough_coupons']:
+               coupons_to_use = collected_coupons.filter(used=False)[:promotion.cups]  # Changed from count to cups
 
-                for coup in coupons_to_use:
-                    coup.used = True
-                    coup.used_at = timezone.now()
-                    coup.save()
-                    print(f"Debug: Marked coupon {coup.id} as used")
+               for coup in coupons_to_use:
+                   coup.used = True
+                   coup.used_at = timezone.now()
+                   coup.save()
+                   print(f"Debug: Marked coupon {coup.id} as used")
 
-                messages.success(request, f"ใช้คูปองสำเร็จ! ใช้คูปองจำนวน {promotion.count} ใบ")
-                return redirect('promotions_store')
+               messages.success(request, f"ใช้คูปองสำเร็จ! ใช้คูปองจำนวน {promotion.cups} ใบ")  # Changed from count to cups
+               return redirect('promotions_store')
 
-        return render(request, 'confirm_coupon_use.html', context)
+       return render(request, 'confirm_coupon_use.html', context)
 
-    except Exception as e:
-        print(f"Debug: Error occurred: {str(e)}")
-        messages.error(request, f"เกิดข้อผิดพลาด: {str(e)}")
-        return redirect('promotions_store')
+   except Exception as e:
+       print(f"Debug: Error occurred: {str(e)}")
+       messages.error(request, f"เกิดข้อผิดพลาด: {str(e)}")
+       return redirect('promotions_store')
 
 @login_required
 def coupon_used_history(request):
