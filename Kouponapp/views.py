@@ -451,19 +451,30 @@ def Collect_coupons(request, store_id, promotion_id, coupon_id):
 
     return redirect('my_coupons')
 
+
 @login_required
 def my_coupons(request):
     """แสดงรายการคูปองที่ผู้ใช้สะสม"""
-    scanned_qrcodes = ScannedQRCode.objects.all()
-    username = request.user.username
+    try:
+        # Get the member object of the logged-in user
+        member = request.user.member
 
-    # Updated to filter by collect status instead of used
-    coupons = Coupon.objects.filter(
-        id__in=scanned_qrcodes.values_list('scanned_text', flat=True),
-        collect=True
-    ).select_related('promotion', 'promotion__store', 'member')
+        # Get coupons where member matches the logged-in user's member
+        coupons = Coupon.objects.filter(
+            member=member,  # Filter by member
+            collect=True  # Only show collected coupons
+        ).select_related('promotion', 'promotion__store')  # Optimize queries
 
-    return render(request, 'my_coupons.html', {'coupons': coupons, 'username': username})
+        context = {
+            'coupons': coupons,
+            'username': request.user.username
+        }
+
+        return render(request, 'my_coupons.html', context)
+
+    except Member.DoesNotExist:
+        messages.error(request, "ไม่พบข้อมูลสมาชิกในระบบ")
+        return redirect('home')
 
 def PromotionDetails(request, store_id, promotion_id, coupon_id):
     promotion = get_object_or_404(Promotion, id=promotion_id, store_id=store_id)
@@ -521,18 +532,27 @@ def list_member_collect_coupons(request):
 
 @login_required
 def Completed_coupons(request):
-    scanned_qrcodes = ScannedQRCode.objects.all()
+    """
+    Display completed coupon collections for the logged-in member only
+    """
+    # Get the current member
+    current_member = request.user.member
     username = request.user.username
 
-    # ดึงข้อมูลคูปองที่สะสมครบ
+    # Get scanned QR codes
+    scanned_qrcodes = ScannedQRCode.objects.all()
+
+    # Get coupons that belong to the current member
     coupons = (Coupon.objects
                .filter(
                    id__in=scanned_qrcodes.values_list('scanned_text', flat=True),
-                   collect=True
+                   collect=True,
+                   member=current_member  # Filter by current member
                )
                .select_related('promotion', 'promotion__store', 'member')
                .order_by('promotion'))
 
+    # Track promotion counts
     promotion_counts = {}
     for coupon in coupons:
         promo_id = coupon.promotion.id
@@ -546,6 +566,7 @@ def Completed_coupons(request):
             promotion_counts[promo_id]['collected'] += 1
             promotion_counts[promo_id]['coupons'].append(coupon)
 
+    # Filter completed collections
     completed_coupons = []
     for promo_data in promotion_counts.values():
         if promo_data['collected'] >= promo_data['total_required']:
