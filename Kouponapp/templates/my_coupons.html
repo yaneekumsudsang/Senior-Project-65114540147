@@ -22,7 +22,7 @@
         <!-- รวมข้อมูลในกรอบเดียว -->
         <div class="grid grid-cols-1 gap-3 h-[500px] overflow-y-auto place-items-center mt-4">
             {% for coupon in coupons %}
-                <a href="{% url 'promotion_details' store_id=coupon.promotion.store.id promotion_id=coupon.promotion.id coupon_id=coupon.id %}" class="block">
+                <a href="#" class="block">
                 <div class="relative bg-[#DDF2FD] w-[350px] h-[150px] flex items-center p-4 rounded-lg">
                     <!-- วงกลมซ้าย -->
                     <div class="absolute z-10 top-1/2 left-0 transform -translate-y-1/2 -translate-x-1/2 w-14 h-14 bg-white rounded-full" style="clip-path: inset(0 0 0 50%);"></div>
