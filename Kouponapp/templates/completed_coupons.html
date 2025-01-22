@@ -21,11 +21,11 @@
             {% for display_item in display_coupons %}
                 {% with coupon=display_item.coupon %}
                 <a href="{% url 'verify_coupons' display_item.promotion_id %}" class="block w-full max-w-[350px]">
-                    <div class="relative bg-white h-[150px] shadow-xl flex items-center border p-4 rounded-lg {% if not display_item.is_complete %}opacity-70{% endif %}">
+                    <div class="relative bg-[#DDF2FD] h-[150px] flex items-center p-4 rounded-lg {% if not display_item.is_complete %}opacity-70{% endif %}">
                         <!-- วงกลมซ้าย -->
-                        <div class="absolute z-10 top-1/2 left-0 transform -translate-y-1/2 -translate-x-1/2 w-14 h-14 bg-white rounded-full border-2 border-gray-100" style="clip-path: inset(0 0 0 50%);"></div>
+                        <div class="absolute z-10 top-1/2 left-0 transform -translate-y-1/2 -translate-x-1/2 w-14 h-14 bg-white rounded-full" style="clip-path: inset(0 0 0 50%);"></div>
                         <!-- วงกลมขวา -->
-                        <div class="absolute z-10 top-1/2 right-0 transform -translate-y-1/2 translate-x-1/2 w-14 h-14 bg-white rounded-full border-2 border-gray-100" style="clip-path: inset(0 50% 0 0);"></div>
+                        <div class="absolute z-10 top-1/2 right-0 transform -translate-y-1/2 translate-x-1/2 w-14 h-14 bg-white rounded-full" style="clip-path: inset(0 50% 0 0);"></div>
 
                         <!-- เนื้อหาในการ์ด -->
                         <div class="flex-shrink-0 w-16 h-16 ml-8 bg-[#DDF2FD] rounded-full flex items-center justify-center">
@@ -36,7 +36,7 @@
                             {% endif %}
                         </div>
                         <!-- เส้นประ -->
-                        <div class="bg-dashed border-l-2 border-dashed border-gray-300 mx-4 h-full"></div>
+                        <div class="bg-dashed border-dashed border border-white mx-4 h-full"></div>
                         <!-- รายละเอียด -->
                         <div class="flex-1 ml-2 mr-5">
                             <p class="text-xl font-bold">{{ coupon.promotion.name }}</p>

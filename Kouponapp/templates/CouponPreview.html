@@ -1,26 +1,34 @@
-
 {% load static %}
-<script src="https://cdn.tailwindcss.com"></script>
-<div class="flex flex-col items-center justify-center min-h-screen bg-gray-100">
-    <h2 class="text-center text-3xl font-bold text-[#164863] mb-2 mt-6">คูปองสำหรับโปรโมชั่น: {{ promotion.name }}</h2>
-
-     <div class="grid grid-cols-1 gap-3 h-[500px] w-3/4 overflow-y-auto place-items-center mt-2">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<div class="flex flex-col items-center justify-center min-h-screen bg-[#164863]">
+<div class="flex border border-white rounded-full overflow-hidden h-14">
+    <h2 class="px-2 py-2 bg-white text-[#164863] font-medium m-2 rounded-full focus:outline-none">คูปองสำหรับโปรโมชั่น: {{ promotion.name }}</h2>
+</div>
+     <div class="grid grid-cols-1 gap-3 h-[550px] w-3/4 overflow-y-auto place-items-center mt-10 ">
     {% for qr_code in qr_codes %}
     <!-- การ์ดคูปอง -->
-    <div class="bg-white rounded-lg shadow-xl relative border-t-4 border-gray-200 p-6 w-1/3 mb-4">
+    <div class="bg-white rounded-lg shadow-xl relative p-6 w-1/3 mb-4">
         <!-- วงกลมซ้าย -->
-        <div class="absolute z-10 top-1/2 left-0 transform -translate-y-1/2 -translate-x-1/2 w-14 h-14 bg-white rounded-full border-2 border-gray-100" style="clip-path: inset(0 0 0 50%);"></div>
+        <div class="absolute z-10 top-[calc(35%-0.15rem)] left-0 transform -translate-y-1/2 -translate-x-1/2 w-14 h-14 bg-[#164863] rounded-full" style="clip-path: inset(0 0 0 50%);"></div>
         <!-- วงกลมขวา -->
-        <div class="absolute z-10 top-1/2 right-0 transform -translate-y-1/2 translate-x-1/2 w-14 h-14 bg-white rounded-full border-2 border-gray-100" style="clip-path: inset(0 50% 0 0);"></div>
+        <div class="absolute z-10 top-[calc(35%-0.15rem)] right-0 transform -translate-y-1/2 translate-x-1/2 w-14 h-14 bg-[#164863] rounded-full" style="clip-path: inset(0 50% 0 0);"></div>
 
         <!-- หัวข้อ -->
         <div class="flex justify-between items-center mb-6">
-            <h2 class="text-red-500 font-bold text-2xl">{{ promotion.store.store_name }}</h2>
+            <h2 class="text-[#164863] font-bold text-2xl">{{ promotion.store.store_name }}</h2>
+        <div class="text-sm text-gray-900">
             {% if promotion.discount %}
-                <p class="text-gray-700 text-lg font-bold">ลด {{ promotion.discount|floatformat:0 }}%</p>
+                <p class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">ลด {{ promotion.discount|floatformat:0 }}%</p>
             {% elif promotion.free %}
-                <p class="text-gray-700 text-lg font-bold">{{ promotion.cups }} ฟรี {{ promotion.free }}</p>
+                <p class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">{{ promotion.cups }} ฟรี {{ promotion.free }}</p>
             {% endif %}
+        </div>
         </div>
 
         <!-- ชื่อโปรโมชั่น -->
@@ -50,9 +58,10 @@
     {% endfor %}
             </div>
     <!-- ปุ่มบันทึกข้อมูล -->
-    <div class="mb-8 mt-6">
-        <a href="{% url 'promotions_store' %}" class="px-8 py-3 bg-[#164863] text-white rounded-full shadow hover:bg-[#DDF2FD] hover:text-[#164863]">
+    <div class="mt-10">
+        <a href="{% url 'promotions_store' %}" class="px-8 py-3 bg-white text-[#164863] rounded-full shadow hover:bg-[#DDF2FD] hover:text-[#164863]">
             บันทึกข้อมูล
         </a>
     </div>
 </div>
+</html>

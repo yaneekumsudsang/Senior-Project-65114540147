@@ -30,7 +30,6 @@ from .models import Member, Store, Promotion, Coupon, ScannedQRCode
 
 from django.core.files.base import ContentFile
 
-
 def promotions_view(request):
     data = Promotion.objects.all()[:5]
     return render(request, 'home.html', {'data':data})
@@ -549,6 +548,7 @@ def Completed_coupons(request):
                .filter(
                    id__in=scanned_qrcodes.values_list('scanned_text', flat=True),
                    collect=True,
+                    used=False,
                    member=current_member  # Filter by current member
                )
                .select_related('promotion', 'promotion__store', 'member')
