@@ -64,6 +64,10 @@ def register(request):
             )
             user.save()
 
+            # creat member
+            member = Member(user=user, phone=phone, email=email)
+            member.save()
+
             # Display success message
             messages.success(request, 'สมัครสมาชิกสำเร็จ')
             return redirect('login')  # Redirect to login page

@@ -1,27 +1,59 @@
 <!DOCTYPE html>
-<html lang="th">
+<html lang="th" xmlns="http://www.w3.org/1999/html">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>KOUPON</title>
     <script src="https://cdn.tailwindcss.com"></script>
+
     {% load static %}
+    <script>
+        function toggleMenu() {
+    const navLinks = document.getElementById('nav-links');
+    const menuButton = document.getElementById('menu-button');
+
+    navLinks.classList.toggle('hidden');
+    navLinks.classList.toggle('flex');
+
+    // Toggle between ☰ and X
+    menuButton.textContent = menuButton.textContent === '✕' ? '☰' : '✕';
+}
+    </script>
 </head>
+
 <body class="font-sans bg-white">
     <!-- Navigation Section -->
-    <nav class="flex justify-between items-center px-6 py-4 shadow">
+    <nav class="relative flex justify-between items-center px-6 py-4 shadow">
         <div class="text-center">
             <!-- Logo Section -->
+            <div class="text-center">
             <img src="https://raw.githubusercontent.com/yaneekumsudsang/logo/refs/heads/main/logo.png" alt="KP KOUPON" class="mx-auto w-14"><!-- Replace with actual logo path -->
-        </div>
+            </div>
+            </div>
 
-        <!-- Navigation Buttons -->
-        <div class="flex space-x-4">
+        <!-- Hamburger Button (Mobile) -->
+        <button id="menu-button" onclick="toggleMenu()" class="md:hidden absolute top-10 right-4 text-4xl text-[#164863]">
+    ☰
+</button>
+
+        <!-- Navigation Links -->
+        <div id="nav-links" class="
+            hidden md:flex
+            flex-col md:flex-row
+            absolute md:relative
+            top-full md:top-auto
+            left-0 md:left-auto
+            w-full md:w-auto
+            bg-white md:bg-transparent
+            shadow-lg md:shadow-none
+            z-50
+        ">
+
     {% if user.is_authenticated %}
         {% if user.member and user.member.is_owner %}
         <!-- เมนูสำหรับเจ้าของร้าน -->
-        <div class="flex flex-wrap justify-center px-6 mt-6 space-x-4">
+        <div class="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-4 p-4">
 
         <!-- โปรโมชั่น -->
             <a href="{% url 'promotions_store' %}" class="flex items-center bg-[#DDF2FD] px-1 py-3 rounded-lg hover:bg-[#cde8f9] mx-0.5 h-12 w-34">
@@ -51,9 +83,10 @@
                 <span class="text-[#164863] font-medium">Logout</span>
             </a>
         </div>
+            </div>
         {% elif user.member %}
         <!-- เมนูสำหรับสมาชิกทั่วไป -->
-        <div class="flex flex-wrap justify-center px-6 mt-6 space-x-4">
+        <div class="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-4 p-4 md:p-0">
             <!-- โปรโมชั่น -->
             <a href="{% url 'promotions_all' %}" class="flex items-center bg-[#DDF2FD] px-1 py-3 rounded-lg hover:bg-[#cde8f9] mx-0.5 h-12 w-34">
                 <span class="mr-1 text-m">🏷️</span>
@@ -119,9 +152,11 @@
         {% endif %}
     {% else %}
     <!-- สำหรับผู้ที่ยังไม่ได้ล็อกอิน -->
+        <div class="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-4 p-4 md:p-0">
     <a href="/register" class="px-4 py-2 bg-[#164863] border text-white rounded-lg hover:bg-[#DDF2FD] hover:text-[#164863]">สมัครสมาชิก</a>
     <a href="/login" class="px-4 py-2 bg-[#164863] border text-white rounded-lg hover:bg-[#DDF2FD] hover:text-[#164863]">เข้าสู่ระบบ</a>
 {% endif %}
+        </div>
         </div>
     </nav>
     {% block title %}
