@@ -37,6 +37,7 @@ urlpatterns = [
     path('coupons/completed/', views.Completed_coupons, name='completed_coupons'),
     path('coupons/pending/', views.Pending_coupons, name='pending_coupons'),
     path('verify/coupons/<int:promotion_id>/', views.verify_coupons, name='verify_coupons'),
+    path('verify/pending/coupons/<int:promotion_id>/', views.verify_pending_coupons, name='verify_pending_coupons'),
     path('use/coupon/<int:promotion_id>/', views.use_coupon, name='use_coupon'),
     path('koupon/qr/<int:store_id>/use/<int:promotion_id>/<int:coupon_id>/', views.confirm_coupon_use, name='confirm_coupon_use'),
 

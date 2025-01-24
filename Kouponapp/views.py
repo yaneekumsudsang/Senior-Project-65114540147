@@ -616,7 +616,8 @@ def Pending_coupons(request):
             'coupon': promo_data['coupons'][0],
             'collected_count': promo_data['collected'],
             'total_required': promo_data['total_required'],
-            'is_complete': False
+            'is_complete': False,
+            'promotion_id': promo_data['coupons'][0].promotion.id
         }
         for promo_data in promotion_counts.values()
         if promo_data['collected'] < promo_data['total_required']
@@ -660,7 +661,41 @@ def verify_coupons(request, promotion_id):
 
     except Promotion.DoesNotExist:
         messages.error(request, "ไม่พบโปรโมชั่นที่ระบุ")
-        return redirect('verify_coupons')
+        return redirect('my_coupons')
+
+@login_required
+def verify_pending_coupons(request, promotion_id):
+    username = request.user.username
+    member = request.user.member
+
+    try:
+        promotion = get_object_or_404(Promotion, id=promotion_id)
+        collect_coupons = Coupon.objects.filter(
+            promotion=promotion,
+            member=member,
+            collect=True
+        ).select_related('promotion', 'promotion__store')
+
+        total_required = promotion.cups
+        collected_count = collect_coupons.count()
+        remaining_count = total_required - collected_count
+
+        display_data = {
+            'promotion': promotion,
+            'collected_count': collected_count,
+            'total_required': total_required,
+            'remaining_count': remaining_count,
+            'coupons': collect_coupons,
+        }
+
+        return render(request, 'verify_pending_coupons.html', {
+            'display_coupons': [display_data],
+            'username': username,
+        })
+
+    except Promotion.DoesNotExist:
+        messages.error(request, "ไม่มีโปรโมชั่นเพิ่มเติม")
+        return redirect('my_coupons')
 
 @login_required
 def use_coupon(request, promotion_id):
