@@ -6,7 +6,8 @@
 
     <title>KOUPON</title>
     <script src="https://cdn.tailwindcss.com"></script>
-
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.1/chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
     {% load static %}
     <script>
         function toggleMenu() {
@@ -118,7 +119,7 @@
             </a>
 
             <!-- ประวัติการใช้งานคูปอง -->
-            <a href="{% url 'coupon_used_history' %}" class="flex items-center bg-[#DDF2FD] px-1 py-3 rounded-lg hover:bg-[#cde8f9] mx-0.5 h-12 w-34">
+            <a href="{% url 'list_customer_use_coupons' %}" class="flex items-center bg-[#DDF2FD] px-1 py-3 rounded-lg hover:bg-[#cde8f9] mx-0.5 h-12 w-34">
                 <span class="mr-1 text-m">🕒</span>
                 <span class="text-[#164863] font-medium">ประวัติการใช้งานคูปอง</span>
             </a>

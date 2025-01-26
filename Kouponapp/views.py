@@ -29,6 +29,7 @@ from .forms import RegisterForm, LoginForm, ProfileForm, PromotionForm
 from .models import Member, Store, Promotion, Coupon, ScannedQRCode
 
 from django.core.files.base import ContentFile
+from django.db.models import Count
 
 def promotions_view(request):
     data = Promotion.objects.all()[:5]
@@ -39,8 +40,26 @@ def promotions_all(request):
     return render(request, 'promotions_all.html', {'all_promotions': all_promotions})
 
 def promotions_member(request):
-    member_promotions = Promotion.objects.all()[:10]  # ดึงข้อมูลทั้งหมดจาก Promotion
-    return render(request, 'member.html', {'promotions_member': member_promotions})
+    # ดึงข้อมูลโปรโมชั่นสำหรับสมาชิก
+    member_promotions = Promotion.objects.all()[:10]
+
+    # ดึงข้อมูลคูปองที่ถูกใช้และนับจำนวนคูปองที่ถูกใช้ในแต่ละร้านค้า (เฉพาะผู้ใช้ที่เข้าสู่ระบบ)
+    used_coupons_by_store = Coupon.objects.filter(
+        used=True,  # คูปองที่ถูกใช้แล้ว
+        member=request.user.member  # คูปองที่ถูกใช้โดยผู้ใช้ที่เข้าสู่ระบบ
+    ).values(
+        'promotion__store__store_name'  # ชื่อร้านค้า
+    ).annotate(
+        total_used=Count('id')  # นับจำนวนคูปองที่ถูกใช้
+    )
+
+    # สร้าง dictionary เพื่อเก็บข้อมูลร้านค้าและจำนวนคูปองที่ถูกใช้
+    store_data = {item['promotion__store__store_name']: item['total_used'] for item in used_coupons_by_store}
+
+    return render(request, 'member.html', {
+        'promotions_member': member_promotions,
+        'store_data': store_data  # ส่งข้อมูลร้านค้าและจำนวนคูปองที่ถูกใช้ไปยังเทมเพลต
+    })
 
 def register(request):
     if request.method == 'POST':
@@ -165,11 +184,28 @@ def promotions_store(request):
     if store:
         # ดึงโปรโมชันที่เชื่อมโยงกับร้านของเจ้าของ
         promotions = Promotion.objects.filter(store=store)
+
+        # ดึงข้อมูลคูปองที่ถูกใช้และนับจำนวนคูปองที่ถูกใช้ในแต่ละโปรโมชั่น (เฉพาะร้านของเจ้าของ)
+        used_coupons_by_promotion = Coupon.objects.filter(
+            used=True,  # คูปองที่ถูกใช้แล้ว
+            promotion__store=store  # คูปองที่ถูกใช้ในร้านของเจ้าของ
+        ).values(
+            'promotion__name'  # ชื่อของโปรโมชั่น (ดึงจาก Promotion)
+        ).annotate(
+            total_used=Count('id')  # นับจำนวนคูปองที่ถูกใช้
+        )
+
+        # สร้าง dictionary เพื่อเก็บข้อมูลโปรโมชั่นและจำนวนคูปองที่ถูกใช้
+        promotion_data = {item['promotion__name']: item['total_used'] for item in used_coupons_by_promotion}
     else:
         promotions = []
+        promotion_data = {}
 
-    # ส่งข้อมูลโปรโมชันไปยังเทมเพลต
-    return render(request, 'promotions_store.html', {'promotions': promotions})
+    # ส่งข้อมูลโปรโมชันและข้อมูลกราฟไปยังเทมเพลต
+    return render(request, 'promotions_store.html', {
+        'promotions': promotions,
+        'promotion_data': promotion_data  # ส่งข้อมูลโปรโมชั่นและจำนวนคูปองที่ถูกใช้ไปยังเทมเพลต
+    })
 
 @login_required
 def used_coupons_by_member_store(request):
@@ -811,3 +847,31 @@ def coupon_used_history(request):
     except Member.DoesNotExist:
         messages.error(request, "ไม่พบข้อมูลสมาชิกในระบบ")
         return redirect('home')
+
+@login_required
+def list_customer_use_coupons(request):
+    # Get the current member/user
+    member = request.user.member
+
+    # Get all collected coupons for this member
+    coupons = Coupon.objects.filter(
+        member=member,
+        collect=True
+    ).select_related(
+        'promotion',
+        'promotion__store'
+    ).order_by('-collected_at')
+
+    # Calculate statistics
+    total_collected_coupons = coupons.count()
+    used_coupons = coupons.filter(used=True).count()
+    available_coupons = total_collected_coupons - used_coupons
+
+    context = {
+        'coupons': coupons,
+        'total_collected_coupons': total_collected_coupons,
+        'used_coupons': used_coupons,
+        'available_coupons': available_coupons
+    }
+
+    return render(request, 'list_customer_use_coupons.html', context)

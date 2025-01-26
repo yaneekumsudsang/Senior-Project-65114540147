@@ -40,6 +40,7 @@ urlpatterns = [
     path('verify/pending/coupons/<int:promotion_id>/', views.verify_pending_coupons, name='verify_pending_coupons'),
     path('use/coupon/<int:promotion_id>/', views.use_coupon, name='use_coupon'),
     path('koupon/qr/<int:store_id>/use/<int:promotion_id>/<int:coupon_id>/', views.confirm_coupon_use, name='confirm_coupon_use'),
+    path('list/customer/use/coupons', views.list_customer_use_coupons, name='list_customer_use_coupons'),
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 

@@ -16,12 +16,13 @@
         <!-- Promotion Cards -->
         <div class="grid grid-cols-1 gap-3 h-[500px] overflow-y-auto place-items-center mt-4">
             {% for promotion in all_promotions %}
-                <a href="{% url 'promotion_details' id=promotion.id %}" class="flex-shrink-0">
-            <div class="relative bg-white shadow-xl h-32 flex items-center border p-4 rounded-lg">
-                <!-- วงกลมซ้าย -->
-                <div class="absolute z-10 top-1/2 left-0 transform -translate-y-1/2 -translate-x-1/2 w-14 h-14 bg-white rounded-full border-2 border-gray-100" style="clip-path: inset(0 0 0 50%);"></div>
-                <!-- วงกลมขวา -->
-                <div class="absolute z-10 top-1/2 right-0 transform -translate-y-1/2 translate-x-1/2 w-14 h-14 bg-white rounded-full border-2 border-gray-100" style="clip-path: inset(0 50% 0 0);"></div>
+                <a href="" class="flex-shrink-0">
+            <div class="relative bg-[#DDF2FD] w-[435px] h-[150px] flex items-center p-4 rounded-lg">
+
+                <!-- วงกลมบน -->
+                <div class="absolute z-10 top-0 left-1/3 transform -translate-x-1/2 -translate-y-1/2 w-14 h-14 bg-white rounded-full" style="clip-path: inset(50% 0 0 0);"></div>
+                <!-- วงกลมล่าง -->
+                <div class="absolute z-10 bottom-0 left-1/3 transform -translate-x-1/2 translate-y-1/2 w-14 h-14 bg-white rounded-full" style="clip-path: inset(0 0 50% 0);"></div>
 
                 <!-- โลโก้ร้านค้า -->
                 <div class="flex-shrink-0 w-16 h-16 ml-8 bg-[#DDF2FD] rounded-full flex items-center justify-center">
@@ -32,8 +33,8 @@
                     {% endif %}
                 </div>
 
-                <!-- เส้นประ -->
-                <div class="bg-dashed border-l-2 border-dashed border-gray-300 mx-4 h-full"></div>
+                 <!-- เส้นประ -->
+                    <div class="bg-dashed border-dashed border-2 border-white left-1/3 ml-8 mr-4 h-full"></div>
 
                 <!-- รายละเอียด -->
                 <div class="flex-1 ml-2 mr-5">
@@ -47,7 +48,11 @@
                 </a>
             {% endfor %}
         </div>
-
     </section>
+<a href="{% url 'promotions_member' %}" class="flex justify-center">
+    <div class="w-1/12 h-10 bg-[#164863] flex justify-center mt-8 text-white font-bold p-2 rounded-full shadow hover:bg-[#DDF2FD] hover:text-[#164863] focus:outline-none focus:ring-2 focus:[#164863] focus:ring-offset-2">
+        ไปยังหน้าแรก
+    </div>
+</a>
 </body>
 {% endblock %}

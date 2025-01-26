@@ -127,6 +127,7 @@ STATIC_URL = "static/"
 STATICFILES_DIRS = [
     BASE_DIR / "static",
 ]
+
 QR_CODES_DIR = BASE_DIR / "static" / "qr_codes"
 
 STATIC_ROOT = BASE_DIR / "staticfiles"  # โฟลเดอร์สำหรับ static files ใน production
