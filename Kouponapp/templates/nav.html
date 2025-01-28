@@ -5,9 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>KOUPON</title>
+    <!-- TailwindCSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Chart.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.1/chart.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+
     {% load static %}
     <script>
         function toggleMenu() {
@@ -148,8 +152,24 @@
                 <span class="text-[#164863] font-medium">Logout</span>
             </a>
         </div>
+
             {% else %}
-        <p>กรุณาเพิ่มข้อมูลสมาชิก</p>
+            <a href="#" class="flex items-center bg-[#DDF2FD] px-1 py-3 rounded-lg hover:bg-[#cde8f9] mx-0.5 h-12 w-34">
+                <span class="mr-1 text-m">👤</span>
+                <span class="text-[#164863] font-medium">จัดการข้อมูลสมาชิก</span>
+            </a>
+            <a href="#" class="flex items-center bg-[#DDF2FD] px-1 py-3 rounded-lg hover:bg-[#cde8f9] mx-0.5 h-12 w-34">
+                <span class="mr-1 text-m">👤</span>
+                <span class="text-[#164863] font-medium">จัดการข้อมูลร้านค้า</span>
+            </a>
+            <a href="#" class="flex items-center bg-[#DDF2FD] px-1 py-3 rounded-lg hover:bg-[#cde8f9] mx-0.5 h-12 w-34">
+                <span class="mr-1 text-m">👤</span>
+                <span class="text-[#164863] font-medium">จัดการข้อมูลสมาชิก</span>
+            </a>
+            <a href="{% url 'koupon_logout' %}" class="flex items-center bg-[#DDF2FD] px-1 py-3 rounded-lg hover:bg-[#cde8f9] mx-0.5 h-12 w-34">
+                <span class="mr-1 text-m">🚪</span>
+                <span class="text-[#164863] font-medium">Logout</span>
+            </a>
         {% endif %}
     {% else %}
     <!-- สำหรับผู้ที่ยังไม่ได้ล็อกอิน -->
@@ -157,7 +177,6 @@
     <a href="/register" class="px-4 py-2 bg-[#164863] border text-white rounded-lg hover:bg-[#DDF2FD] hover:text-[#164863]">สมัครสมาชิก</a>
     <a href="/login" class="px-4 py-2 bg-[#164863] border text-white rounded-lg hover:bg-[#DDF2FD] hover:text-[#164863]">เข้าสู่ระบบ</a>
 {% endif %}
-        </div>
         </div>
     </nav>
     {% block title %}

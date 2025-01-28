@@ -10,13 +10,15 @@ urlpatterns = [
     path("login/", views.user_login, name="login"),
     path("logout/", views.koupon_logout, name="koupon_logout"),
 
+    path("dashboard/", views.dashboard, name="dashboard"),
+
     # โปรไฟล์สมาชิก
     path("profile/", views.profile_view, name="profile"),
 
     # การแสดงโปรโมชั่น
     path("promotions/member/", views.promotions_member, name="promotions_member"),
     path("promotions/all/", views.promotions_all, name="promotions_all"),
-    path('promotion/<int:store_id>/<int:promotion_id>/<int:coupon_id>/', views.PromotionDetails, name= 'promotion_details'),
+    path('promotion/details/member/<int:store_id>/<int:promotion_id>/<int:coupon_id>/', views.PromotionDetailsMember, name= "PromotionDetailsMember"),
 
     # คูปองที่ใช้แล้ว
     path('coupon/used/history/', views.coupon_used_history, name='coupon_used_history'),

@@ -25,7 +25,7 @@
 
                 <div class="p-6">
                     <div class="flex justify-between items-center mb-4">
-                        <h2 class="text-red-500 font-bold text-2xl">{{ promotion.store.store_name }}</h2>
+                        <h2 class="bg-[#164863] text-white px-4 py-1 rounded-full font-bold text-2xl">{{ promotion.store.store_name }}</h2>
                         {% if promotion.discount %}
                             <p class="bg-green-100 text-green-800 px-4 py-1 rounded-full text-sm font-semibold">ลด {{ promotion.discount|floatformat:0 }}%</p>
                         {% elif promotion.free %}
@@ -33,16 +33,16 @@
                         {% endif %}
                     </div>
 
-                    <p class="text-lg font-semibold text-gray-900 mb-2">{{ coupon.promotion.name }}</p>
+                    <p class="text-lg font-semibold text-[#164863] mb-2">{{ coupon.promotion.name }}</p>
 
-                    <div class="text-gray-600 text-sm mb-4">
+                    <div class="text-[#164863] text-sm mb-4">
                         <p>{{ promotion.details }}</p>
                     </div>
 
                     <div class="border-t-2 border-dashed mt-6 mb-4"></div>
 
                     <div class="flex flex-col items-center justify-center">
-                        <p class="mb-2">คิวอาร์โค้ดสำหรับแลกคูปอง</p>
+                        <p class="mb-2 text-[#164863] ">คิวอาร์โค้ดสำหรับแลกคูปอง</p>
                         <img src="{% static coupon.use_qr_code_url_image %}" alt="QR Code for Coupon {{ coupon.coupon.use_qr_code_url }}" class="w-48 h-48">
                     </div>
 

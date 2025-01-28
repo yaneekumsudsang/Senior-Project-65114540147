@@ -17,7 +17,7 @@ from qr_code.qrcode.utils import QRCodeOptions
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.models import User
 from django.http import StreamingHttpResponse, HttpResponse, JsonResponse, HttpResponseForbidden
 from django.shortcuts import render, redirect, get_object_or_404
@@ -30,6 +30,16 @@ from .models import Member, Store, Promotion, Coupon, ScannedQRCode
 
 from django.core.files.base import ContentFile
 from django.db.models import Count
+from django.db.models import Count, Sum, Q
+from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
+from django.db.models import Count, Sum, Q
+from django.utils import timezone
+from datetime import timedelta
+from .models import Member, Store, Promotion, Coupon, ScannedQRCode
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, redirect
+from django.contrib import messages
 
 def promotions_view(request):
     data = Promotion.objects.all()[:5]
@@ -84,7 +94,7 @@ def register(request):
             user.save()
 
             # creat member
-            member = Member(user=user, phone=phone, email=email)
+            member = Member(user=user, phone=phone)
             member.save()
 
             # Display success message
@@ -119,16 +129,19 @@ def user_login(request):
                 print(f'User {username} authenticated successfully')
                 login(request, user)  # Log in the user
 
+                if user.is_superuser:
+                    return redirect('dashboard')
+
                 # ตรวจสอบว่า user เป็นเจ้าของร้าน
                 if user.member.is_owner:
                     # ถ้าเป็นเจ้าของร้าน, redirect ไปยังหน้า 'owner/promotions'
                     return redirect('promotions_store')  # หน้าโปรโมชั่นของเจ้าของร้าน
                 else:
                     # ถ้าไม่ใช่เจ้าของร้าน, redirect ไปยังหน้าโปรไฟล์หรือตามต้องการ
-                    return redirect('home')  # หรือหน้าอื่นที่ต้องการ
+                    return redirect('promotions_member')  # หรือหน้าอื่นที่ต้องการ
 
                 messages.success(request, 'เข้าสู่ระบบสำเร็จ')
-                return redirect('promotions_member')  # Redirect to the home page
+                return redirect('home')  # Redirect to the home page
 
             else:
                 logger.warning(f'Failed login attempt for username: {username}')
@@ -486,11 +499,6 @@ def Collect_coupons(request, store_id, promotion_id, coupon_id):
 
     return redirect('my_coupons')
 
-
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import render, redirect
-from django.contrib import messages
-
 @login_required
 def my_coupons(request):
     """แสดงรายการคูปองที่ผู้ใช้สะสม"""
@@ -502,8 +510,11 @@ def my_coupons(request):
         coupons = Coupon.objects.filter(
             member=member,  # Filter by member
             collect=True,  # Only show collected coupons
-            used=False  # Exclude used coupons (used = 1)
-        ).select_related('promotion', 'promotion__store')  # Optimize queries
+            used=False  # Exclude used coupons
+        ).select_related(
+            'promotion',
+            'promotion__store'
+        ).order_by('-collected_at')  # Optional: order by collection date
 
         context = {
             'coupons': coupons,
@@ -516,19 +527,14 @@ def my_coupons(request):
         messages.error(request, "ไม่พบข้อมูลสมาชิกในระบบ")
         return redirect('home')
 
-
-def PromotionDetails(request, store_id, promotion_id, coupon_id):
+def PromotionDetailsMember(request, store_id, promotion_id, coupon_id):
     promotion = get_object_or_404(Promotion, id=promotion_id, store_id=store_id)
     coupon = get_object_or_404(Coupon, id=coupon_id, promotion=promotion)
     stores = Store.objects.all()
 
-    # เส้นทางรูปภาพใน static/qr_codes
-    image_path = f"qr_codes/{promotion.id}.png"
-
-    return render(request, 'PromotionDetails.html', {
+    return render(request, 'PromotionDetailsMember.html', {
         'promotion': promotion,
         'coupon': coupon,
-        'image_path': image_path,
         'stores': stores,
     })
 
@@ -875,3 +881,80 @@ def list_customer_use_coupons(request):
     }
 
     return render(request, 'list_customer_use_coupons.html', context)
+
+def is_superuser(user):
+    return user.is_superuser
+
+@user_passes_test(is_superuser, login_url='dashboard/')
+def dashboard(request):
+    try:
+        # Try to get the Member instance for the logged-in user
+        member = Member.objects.get(user=request.user)
+        is_owner = member.is_owner
+    except Member.DoesNotExist:
+        # If no Member exists for the user, treat them as a non-owner
+        member = None
+        is_owner = False
+
+    if is_owner and member:
+        # Get stores owned by the member
+        stores = Store.objects.filter(owner=member)
+        store_ids = stores.values_list('id', flat=True)
+
+        # Dashboard statistics for store owners
+        context = {
+            'total_promotions': Promotion.objects.filter(store__in=store_ids).count(),
+            'active_promotions': Promotion.objects.filter(
+                store__in=store_ids,
+                start__lte=timezone.now().date(),
+                end__gte=timezone.now().date()
+            ).count(),
+            'total_coupons': Coupon.objects.filter(promotion__store__in=store_ids).count(),
+            'collected_coupons': Coupon.objects.filter(
+                promotion__store__in=store_ids,
+                collect=True
+            ).count(),
+            'used_coupons': Coupon.objects.filter(
+                promotion__store__in=store_ids,
+                used=True
+            ).count(),
+            'recent_activities': Coupon.objects.filter(
+                promotion__store__in=store_ids
+            ).filter(
+                Q(collected_at__isnull=False) | Q(used_at__isnull=False)
+            ).order_by('-collected_at', '-used_at')[:5],
+            'active_promotions_list': Promotion.objects.filter(
+                store__in=store_ids,
+                start__lte=timezone.now().date(),
+                end__gte=timezone.now().date()
+            ).order_by('end')[:5],
+            'stores': stores,
+            'is_owner': is_owner
+        }
+    else:
+        # Dashboard statistics for non-owners or users without a Member object
+        context = {
+            'total_coupons': Coupon.objects.filter(member=member).count() if member else 0,
+            'active_coupons': Coupon.objects.filter(
+                member=member,
+                collect=True,
+                used=False,
+                promotion__end__gte=timezone.now().date()
+            ).count() if member else 0,
+            'used_coupons': Coupon.objects.filter(
+                member=member,
+                used=True
+            ).count() if member else 0,
+            'recent_activities': Coupon.objects.filter(
+                member=member
+            ).filter(
+                Q(collected_at__isnull=False) | Q(used_at__isnull=False)
+            ).order_by('-collected_at', '-used_at')[:5] if member else [],
+            'available_promotions': Promotion.objects.filter(
+                start__lte=timezone.now().date(),
+                end__gte=timezone.now().date()
+            ).order_by('end')[:5],
+            'is_owner': is_owner
+        }
+
+    return render(request, 'admin/page1.html', context)

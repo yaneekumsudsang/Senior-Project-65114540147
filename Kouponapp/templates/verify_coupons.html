@@ -14,13 +14,18 @@
 
         <!-- Coupon Grid -->
         <div class="flex justify-center max-w-md mx-auto">
+
             {% for promo_data in display_coupons %}
                 <!-- Coupon Card -->
-                <div class="bg-white max-h-1/2 rounded-lg shadow-lg overflow-hidden border-t-4 border-[#164863]">
+                <div class="bg-[#DDF2FD] rounded-3xl w-[1/3] h-1/4 max-w-md p-6 relative">
+                <!-- Decorative circles -->
+        <div class="absolute top-2/4 -left-7 w-14 h-14 bg-white rounded-full" style="clip-path: inset(0 0 0 50%);"></div>
+        <div class="absolute top-2/4 -right-7 w-14 h-14 bg-white rounded-full" style="clip-path: inset(0 50% 0 0);"></div>
+
                     <!-- Store Header -->
-                    <div class="p-6">
-                        <div class="flex justify-between items-center mb-4">
-                            <h2 class="text-red-500 font-bold text-2xl">
+                    <div class="p-4 h-1/4">
+                        <div class="flex justify-between items-center mb-8 ">
+                            <h2 class="bg-[#164863] text-white px-4 py-1 rounded-full font-bold text-2xl">
                                 {{ promo_data.promotion.store.store_name }}
                             </h2>
                             {% if promo_data.promotion.discount %}
@@ -35,10 +40,10 @@
                         </div>
 
                         <!-- Promotion Name and Details -->
-                        <h3 class="text-lg font-semibold text-gray-900 mb-2">
+                        <h3 class="text-lg font-semibold text-[#164863] mb-2">
                             {{ promo_data.promotion.name }}
                         </h3>
-                        <p class="text-gray-600 text-sm mb-4">
+                        <p class="text-[#164863] text-sm mb-8">
                             {{ promo_data.promotion.details }}
                         </p>
 
@@ -51,37 +56,29 @@
                                 </span>
                             </div>
                             <div class="w-full bg-gray-200 rounded-full h-2.5">
-                                <div class="bg-blue-600 h-2.5 rounded-full" style="width: {% widthratio promo_data.collected_count promo_data.promotion.count 100 %}%"></div>
+                                <div class="bg-[#164863] h-2.5 rounded-full" style="width: {% widthratio promo_data.collected_count promo_data.promotion.count 100 %}%"></div>
                             </div>
                         </div>
 
+                    <!-- เส้นประ -->
+                    <div class="border-t-4 border-dashed border-white w-full mt-8 mb-8"></div>
+
                         <!-- Statistics -->
-                        <div class="grid grid-cols-2 gap-4 mb-4">
-                            <div class="bg-gray-50 p-3 rounded-lg">
-                                <p class="text-sm text-gray-600">คูปองที่สะสมแล้ว</p>
-                                <p class="text-lg font-semibold text-gray-900">{{ promo_data.collected_count }}</p>
+                        <div class="grid grid-cols-2 gap-4 mb-4 text-center">
+                            <div class="bg-yellow-50 p-3 rounded-lg">
+                                <p class="text-sm text-yellow-600">คูปองที่สะสมแล้ว</p>
+                                <p class="text-lg font-semibold text-yellow-900">{{ promo_data.collected_count }}</p>
                             </div>
-                            <div class="bg-gray-50 p-3 rounded-lg">
-                                <p class="text-sm text-gray-600">คูปองทั้งหมด</p>
-                                <p class="text-lg font-semibold text-gray-900">{{ promo_data.total_coupons }}</p>
+                            <div class="bg-green-50 p-3 rounded-lg text-center">
+                                <p class="text-sm text-green-600">คูปองทั้งหมด</p>
+                                <p class="text-lg font-semibold text-green-900">{{ promo_data.total_coupons }}</p>
                             </div>
                         </div>
 
                         <!-- Expiration Date -->
-                        <p class="text-sm text-gray-500 mb-4">
+                        <p class="text-sm text-gray-500 absolute bottom-4 right-4">
                             ใช้งานได้ถึง: {{ promo_data.promotion.end|date:"d F Y" }}
                         </p>
-
-                        <!-- Action Button -->
-                        <div class="flex justify-end">
-                            {% for display in display_coupons %}
-                                <a href="{% url 'use_coupon' promotion_id=display.promotion.id %}">
-                                <button class="bg-green-600 hover:bg-green-700 text-white font-medium px-6 py-2 rounded-full transition-colors duration-200">
-                                    ใช้คูปอง
-                                </button>
-                                </a>
-                            {% endfor %}
-                        </div>
                     </div>
                 </div>
             {% empty %}
@@ -91,6 +88,17 @@
                 </div>
             {% endfor %}
         </div>
+
+    <!-- Action Button -->
+                        <div class="flex justify-center mt-12">
+                            {% for display in display_coupons %}
+                                <a href="{% url 'use_coupon' promotion_id=display.promotion.id %}">
+                                <button class="px-6 py-2 bg-[#164863] text-white font-medium m-2 rounded-full hover:bg-[#DDF2FD] hover:text-[#164863]">
+                                    ใช้คูปอง
+                                </button>
+                                </a>
+                            {% endfor %}
+                        </div>
     </div>
 </body>
 {% endblock %}

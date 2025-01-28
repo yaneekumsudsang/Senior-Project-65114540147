@@ -18,7 +18,7 @@
                 {% for promotion in promotions %}
                     {% for coupon in promotion.coupon_set.all %}
                         <a href="{% url 'promotion_details_store' promotion_id=promotion.id coupon_id=coupon.id %}" class="flex-shrink-0 w-full max-w-[350px]">
-                            <div class="relative bg-[#DDF2FD] w-[350px] h-[150px] flex items-center p-4 rounded-lg">
+                            <div class="relative bg-[#DDF2FD] w-[350px] h-[150px] flex items-center p-4 rounded-3xl">
 
                                 <!-- วงกลมบน -->
                 <div class="absolute z-10 top-0 left-1/3 transform -translate-x-1/2 -translate-y-1/2 w-14 h-14 bg-white rounded-full" style="clip-path: inset(50% 0 0 0);"></div>
@@ -55,7 +55,7 @@
         </div>
     </section>
 <div class="w-full flex justify-center p-2">
-    <div class="w-1/4 h-1/4 flex justify-center">
+    <div class="w-1/2 h-1/2 md:w-1/4 md:h-1/4 flex justify-center">
         {% if promotion_data %}
             <canvas id="promotionCouponChart" width="400" height="300"></canvas>
             <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
