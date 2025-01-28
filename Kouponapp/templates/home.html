@@ -5,7 +5,7 @@
 <!-- Promotion Section -->
 <section class="mt-8 px-6">
     <div class="flex justify-between items-center">
-        <h2 class="text-2xl font-bold text-[#164863]">โปรโมชั่น</h2>
+        <h2 class="text-2xl font-bold text-[#164863]">โปรโมชั่นที่น่าสนใจ</h2>
         {% if not user.is_authenticated %}
             <!-- ถ้าไม่ได้ล็อกอินให้ Redirect ไปหน้าล็อกอิน -->
             <a href="{% url 'login' %}?next={% url 'promotions_member' %}" class="text-sm text-gray-500">
