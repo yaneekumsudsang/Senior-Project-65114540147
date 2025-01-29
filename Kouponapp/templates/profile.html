@@ -35,8 +35,12 @@
                     <input type="file" id="profile_img" name="profile_img" class="hidden" />
                 </label>
             </div>
-
-        <div class="bg-[rgba(221,242,253,0.5)] p-8 rounded-lg shadow-lg w-full max-w-md border">
+<!-- ปุ่มเปิด Modal -->
+<div class="flex justify-center mt-4">
+    <button id="requestOwnershipBtn" class="bg-[#DDF2FD] hover:bg-[#164863] text-[#164863] hover:text-[#DDF2FD] font-bold py-2 px-4 rounded-2xl">
+        ขอเป็นเจ้าของร้าน
+    </button>
+</div>
             <!-- ฟอร์มแก้ไขข้อมูลส่วนตัว -->
             <div class="form-group">
                 <label for="first_name" class="block text-sm font-medium text-gray-700">ชื่อ</label>
@@ -55,7 +59,6 @@
                 <label for="phone" class="block text-sm font-medium text-gray-700">เบอร์โทรศัพท์</label>
                 {{ form.phone }}
             </div>
-        </div>
 
             <!-- ปุ่มบันทึกข้อมูล -->
             <button type="submit" class="px-6 py-2 mt-4 bg-[#164863] border text-white rounded-lg hover:bg-[#DDF2FD] hover:text-[#164863]">บันทึกข้อมูล</button>
@@ -63,16 +66,9 @@
         </div>
     </section>
 
-<!-- ปุ่มเปิด Modal -->
-<div class="flex justify-center mt-4">
-    <button id="requestOwnershipBtn" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-        ขอเป็นเจ้าของร้าน
-    </button>
-</div>
-
 <!-- Modal -->
-<div id="ownershipModal" class="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50 hidden">
-    <div class="bg-white p-6 rounded-lg shadow-lg w-96">
+<div id="ownershipModal" class="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50">
+    <div class="bg-white p-6 rounded-2xl shadow-lg w-96">
         <h2 class="text-lg font-semibold mb-4">ขอเป็นเจ้าของร้าน</h2>
         <form id="storeRequestForm" method="POST" action="{% url 'request_store' %}">
             {% csrf_token %}
@@ -80,10 +76,10 @@
             <input type="text" name="store_name" id="shopName" class="w-full border rounded p-2 mt-1" placeholder="กรอกชื่อร้านของคุณ" required>
 
             <div class="flex justify-end mt-4">
-                <button type="button" id="closeModal" class="mr-2 bg-gray-500 hover:bg-gray-700 text-white py-2 px-4 rounded">
+                <button type="button" id="closeModal" class="mr-2 bg-gray-300 hover:bg-gray-500 text-white py-2 px-4 rounded">
                     ยกเลิก
                 </button>
-                <button type="submit" id="confirmRequest" class="bg-green-500 hover:bg-green-700 text-white py-2 px-4 rounded">
+                <button type="submit" id="confirmRequest" class="bg-[#164863] text-[#DDF2FD] hover:bg-[#DDF2FD] hover:text-[#164863] py-2 px-4 rounded">
                     ยืนยัน
                 </button>
             </div>
@@ -116,6 +112,5 @@
         this.submit();
     });
 </script>
-
 
 {% endblock %}

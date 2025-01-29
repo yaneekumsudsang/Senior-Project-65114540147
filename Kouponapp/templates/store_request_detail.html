@@ -1,14 +1,20 @@
 {% extends "nav.html" %}
 {% block title %}
-<div class="container mx-auto p-8 max-w-4xl">
-    <!-- Header Section -->
-    <h1 class="text-3xl font-bold mb-6 text-gray-800 border-b pb-3">รายละเอียดคำขอ</h1>
+<div class="container mx-auto p-8 max-w-2xl">
+<div class="flex justify-center items-center mt-4 mb-10">
+            <div class="flex border border-[#164863] rounded-full overflow-hidden">
+                <div class="px-6 py-2 bg-[#164863] text-white font-medium m-2 rounded-full focus:outline-none">
+                    รายละเอียดคำขอ
+                </div>
+            </div>
+        </div>
 
     <!-- Details Card -->
-    <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+<div class="flex justify-center">
+    <div class="bg-white rounded-lg shadow-lg p-6 mb-6 w-2/3 flex justify-center">
         <div class="space-y-4">
             <!-- Store Name -->
-            <div class="flex items-center">
+            <div class="flex items-center ">
                 <span class="text-gray-600 font-semibold w-32">ชื่อร้าน:</span>
                 <span class="text-gray-800">{{ store_request.shop_name }}</span>
             </div>
@@ -42,15 +48,24 @@
             </div>
         </div>
     </div>
+</div>
+
+<div class="mt-8 flex justify-between items-center">
+    <!-- Back Button -->
+    <a href="javascript:history.back()"
+       class="inline-flex items-center px-4 py-2 bg-[#DDF2FD] hover:bg-[#cde8f9] text-[#164863] text-sm font-medium rounded-lg transition duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-chevron-left"><circle cx="12" cy="12" r="10"/><path d="m14 16-4-4 4-4"/></svg>
+        <span class="ml-2">ย้อนกลับ</span>
+    </a>
 
     <!-- Action Button -->
     {% if store_request.status == "pending" %}
-    <div class="mt-6">
-        <a href="{% url 'approve_store_request' store_request.id %}"
-           class="inline-block bg-green-500 hover:bg-green-600 text-white font-semibold px-6 py-3 rounded-lg transition duration-200 ease-in-out transform hover:scale-105">
-            อนุมัติคำขอ
-        </a>
-    </div>
+    <a href="{% url 'approve_store_request' store_request.id %}"
+       class="inline-flex items-center px-4 py-2 bg-green-500 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-check-big"><path d="M21.801 10A10 10 0 1 1 17 3.335"/><path d="m9 11 3 3L22 4"/></svg>
+       <span class="ml-2">อนุมัติคำขอ</span>
+    </a>
     {% endif %}
+</div>
 </div>
 {% endblock %}
