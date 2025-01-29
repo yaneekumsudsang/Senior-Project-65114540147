@@ -10,8 +10,6 @@ urlpatterns = [
     path("login/", views.user_login, name="login"),
     path("logout/", views.koupon_logout, name="koupon_logout"),
 
-    path("dashboard/", views.dashboard, name="dashboard"),
-
     # โปรไฟล์สมาชิก
     path("profile/", views.profile_view, name="profile"),
 
@@ -43,6 +41,10 @@ urlpatterns = [
     path('use/coupon/<int:promotion_id>/', views.use_coupon, name='use_coupon'),
     path('koupon/qr/<int:store_id>/use/<int:promotion_id>/<int:coupon_id>/', views.confirm_coupon_use, name='confirm_coupon_use'),
     path('list/customer/use/coupons', views.list_customer_use_coupons, name='list_customer_use_coupons'),
+    path('request-store/', views.request_store_ownership, name='request_store'),
+    path('admin-store-requests/', views.admin_store_requests, name='admin_store_requests'),
+    path('store-requests/<int:request_id>/', views.store_request_detail, name='store_request_detail'),
+    path('store-requests/<int:request_id>/approve/', views.approve_store_request, name='approve_store_request'),
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 

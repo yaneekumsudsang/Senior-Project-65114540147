@@ -26,7 +26,7 @@ from django.views.decorators.cache import never_cache
 
 # Local app imports
 from .forms import RegisterForm, LoginForm, ProfileForm, PromotionForm
-from .models import Member, Store, Promotion, Coupon, ScannedQRCode
+from .models import Member, Store, Promotion, Coupon, ScannedQRCode, StoreOwnerRequest
 
 from django.core.files.base import ContentFile
 from django.db.models import Count
@@ -40,6 +40,7 @@ from .models import Member, Store, Promotion, Coupon, ScannedQRCode
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
 from django.contrib import messages
+from .models import StoreOwnerRequest, Store
 
 def promotions_view(request):
     data = Promotion.objects.all()[:5]
@@ -130,7 +131,7 @@ def user_login(request):
                 login(request, user)  # Log in the user
 
                 if user.is_superuser:
-                    return redirect('dashboard')
+                    return redirect('admin_store_requests')
 
                 # ตรวจสอบว่า user เป็นเจ้าของร้าน
                 if user.member.is_owner:
@@ -157,7 +158,6 @@ def user_login(request):
     logger.info('Rendering login form')
     return render(request, 'login.html', {'form': form})
 
-@never_cache
 def koupon_logout(request):
     logout(request)
     return redirect('home')
@@ -180,6 +180,17 @@ def profile_view(request):
     else:
         # โหลดข้อมูลจาก User และ Member ลงในฟอร์ม
         form = ProfileForm(instance=request.user, member=member)
+
+        # เพิ่มการเช็คสถานะคำขอ
+        pending_request = StoreOwnerRequest.objects.filter(
+            user=request.user,
+            status='pending'
+        ).exists()
+
+        context = {
+            'user': request.user,
+            'pending_request': pending_request,
+        }
 
     return render(request, 'profile.html', {'form': form})
 
@@ -882,79 +893,95 @@ def list_customer_use_coupons(request):
 
     return render(request, 'list_customer_use_coupons.html', context)
 
-def is_superuser(user):
-    return user.is_superuser
+# ฟังก์ชันขอเป็นเจ้าของร้าน
+@login_required
+def request_store_ownership(request):
+    if request.method == 'POST':
+        shop_name = request.POST.get('store_name')
+        if not shop_name:
+            messages.error(request, "กรุณากรอกชื่อร้าน")
+            return redirect('request_store')
 
-@user_passes_test(is_superuser, login_url='dashboard/')
-def dashboard(request):
-    try:
-        # Try to get the Member instance for the logged-in user
-        member = Member.objects.get(user=request.user)
-        is_owner = member.is_owner
-    except Member.DoesNotExist:
-        # If no Member exists for the user, treat them as a non-owner
-        member = None
-        is_owner = False
+        # ตรวจสอบว่าผู้ใช้มีคำขอที่ยังไม่อนุมัติหรือไม่
+        existing_request = StoreOwnerRequest.objects.filter(user=request.user, status="pending").exists()
+        if existing_request:
+            messages.warning(request, "คุณได้ส่งคำขอไปแล้ว กรุณารอการตรวจสอบ")
+            return redirect('request_store')
 
-    if is_owner and member:
-        # Get stores owned by the member
-        stores = Store.objects.filter(owner=member)
-        store_ids = stores.values_list('id', flat=True)
+        # สร้างคำขอใหม่
+        StoreOwnerRequest.objects.create(user=request.user, shop_name=shop_name)
+        messages.success(request, "ส่งคำขอสำเร็จ! รอแอดมินตรวจสอบ")
+        return redirect('request_store')
 
-        # Dashboard statistics for store owners
-        context = {
-            'total_promotions': Promotion.objects.filter(store__in=store_ids).count(),
-            'active_promotions': Promotion.objects.filter(
-                store__in=store_ids,
-                start__lte=timezone.now().date(),
-                end__gte=timezone.now().date()
-            ).count(),
-            'total_coupons': Coupon.objects.filter(promotion__store__in=store_ids).count(),
-            'collected_coupons': Coupon.objects.filter(
-                promotion__store__in=store_ids,
-                collect=True
-            ).count(),
-            'used_coupons': Coupon.objects.filter(
-                promotion__store__in=store_ids,
-                used=True
-            ).count(),
-            'recent_activities': Coupon.objects.filter(
-                promotion__store__in=store_ids
-            ).filter(
-                Q(collected_at__isnull=False) | Q(used_at__isnull=False)
-            ).order_by('-collected_at', '-used_at')[:5],
-            'active_promotions_list': Promotion.objects.filter(
-                store__in=store_ids,
-                start__lte=timezone.now().date(),
-                end__gte=timezone.now().date()
-            ).order_by('end')[:5],
-            'stores': stores,
-            'is_owner': is_owner
-        }
-    else:
-        # Dashboard statistics for non-owners or users without a Member object
-        context = {
-            'total_coupons': Coupon.objects.filter(member=member).count() if member else 0,
-            'active_coupons': Coupon.objects.filter(
-                member=member,
-                collect=True,
-                used=False,
-                promotion__end__gte=timezone.now().date()
-            ).count() if member else 0,
-            'used_coupons': Coupon.objects.filter(
-                member=member,
-                used=True
-            ).count() if member else 0,
-            'recent_activities': Coupon.objects.filter(
-                member=member
-            ).filter(
-                Q(collected_at__isnull=False) | Q(used_at__isnull=False)
-            ).order_by('-collected_at', '-used_at')[:5] if member else [],
-            'available_promotions': Promotion.objects.filter(
-                start__lte=timezone.now().date(),
-                end__gte=timezone.now().date()
-            ).order_by('end')[:5],
-            'is_owner': is_owner
-        }
+    return render(request, 'profile.html')
 
-    return render(request, 'admin/page1.html', context)
+# ฟังก์ชันสำหรับแอดมินดูคำขอ
+@login_required
+def admin_store_requests(request):
+    if not request.user.is_staff:
+        messages.error(request, "คุณไม่มีสิทธิ์เข้าถึงหน้านี้")
+        return redirect('home')
+
+    requests = StoreOwnerRequest.objects.filter(status="pending")
+    return render(request, 'admin_store_requests.html', {'requests': requests})
+
+# ฟังก์ชันดูรายละเอียดคำขอ
+@login_required
+def store_request_detail(request, request_id):
+    if not request.user.is_staff:
+        messages.error(request, "คุณไม่มีสิทธิ์เข้าถึงหน้านี้")
+        return redirect('home')
+
+    shop_request = get_object_or_404(StoreOwnerRequest, id=request_id)
+    return render(request, 'store_request_detail.html', {'store_request': shop_request})
+
+# ฟังก์ชันอนุมัติคำขอและสร้างร้านค้า
+from django.shortcuts import get_object_or_404, redirect
+from django.contrib import messages
+from django.utils.timezone import now
+from django.contrib.auth.decorators import login_required
+from .models import StoreOwnerRequest, Store, Member
+
+@login_required
+def approve_store_request(request, request_id):
+    if not request.user.is_staff:
+        messages.error(request, "คุณไม่มีสิทธิ์เข้าถึงหน้านี้")
+        return redirect('admin_store_requests')
+
+    shop_request = get_object_or_404(StoreOwnerRequest, id=request_id)
+
+    # ค้นหา Member ที่เกี่ยวข้องกับ User
+    member, created = Member.objects.get_or_create(user=shop_request.user)
+    print(f"Member ที่พบ: {member}, created: {created}")  # Debug
+
+    # ตรวจสอบว่าร้านนี้เคยถูกสร้างไปแล้วหรือไม่
+    existing_store = Store.objects.filter(store_name=shop_request.shop_name, owner=member).exists()
+    if existing_store:
+        messages.warning(request, f"ร้าน {shop_request.shop_name} ถูกสร้างไปแล้ว")
+        return redirect('admin_store_requests')
+
+    # สร้างร้านใหม่
+    new_store = Store.objects.create(store_name=shop_request.shop_name, owner=member)
+
+    # อัปเดตสถานะคำขอเป็น "อนุมัติแล้ว"
+    shop_request.status = "approved"
+    shop_request.approved_at = now()
+    shop_request.approved_by = request.user  # ระบุว่าใครอนุมัติ
+    shop_request.save()
+
+    # อัปเดต `is_owner` เป็น True ใน `Member`
+    member.is_owner = True
+    member.save()
+
+    messages.success(request, f"อนุมัติคำขอ และสร้างร้าน {new_store.store_name} สำเร็จ! ผู้ใช้ {shop_request.user.username} เป็นเจ้าของร้านแล้ว")
+    return redirect('admin_store_requests')
+
+
+# ฟังก์ชันดูประวัติคำขอที่อนุมัติแล้ว
+def approved_store_owners(request):
+    approved_requests = StoreOwnerRequest.objects.filter(status='approved').select_related('user', 'approved_by')
+
+    context = {
+        'approved_requests': approved_requests
+    }
+    return render(request, 'approved_owners_list.html', context)

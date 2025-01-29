@@ -1,0 +1,56 @@
+{% extends "nav.html" %}
+{% block title %}
+<div class="container mx-auto p-8 max-w-4xl">
+    <!-- Header Section -->
+    <h1 class="text-3xl font-bold mb-6 text-gray-800 border-b pb-3">รายละเอียดคำขอ</h1>
+
+    <!-- Details Card -->
+    <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+        <div class="space-y-4">
+            <!-- Store Name -->
+            <div class="flex items-center">
+                <span class="text-gray-600 font-semibold w-32">ชื่อร้าน:</span>
+                <span class="text-gray-800">{{ store_request.shop_name }}</span>
+            </div>
+
+            <!-- Requester -->
+            <div class="flex items-center">
+                <span class="text-gray-600 font-semibold w-32">ผู้ขอ:</span>
+                <span class="text-gray-800">{{ store_request.user.username }}</span>
+            </div>
+
+            <!-- Status -->
+            <div class="flex items-center">
+                <span class="text-gray-600 font-semibold w-32">สถานะ:</span>
+                <span class="px-3 py-1 rounded-full text-sm
+                    {% if store_request.status == 'pending' %}
+                        bg-yellow-100 text-yellow-800
+                    {% elif store_request.status == 'approved' %}
+                        bg-green-100 text-green-800
+                    {% else %}
+                        bg-red-100 text-red-800
+                    {% endif %}
+                ">
+                    {{ store_request.get_status_display }}
+                </span>
+            </div>
+
+            <!-- Request Date -->
+            <div class="flex items-center">
+                <span class="text-gray-600 font-semibold w-32">วันที่ส่งคำขอ:</span>
+                <span class="text-gray-800">{{ store_request.requested_at }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Action Button -->
+    {% if store_request.status == "pending" %}
+    <div class="mt-6">
+        <a href="{% url 'approve_store_request' store_request.id %}"
+           class="inline-block bg-green-500 hover:bg-green-600 text-white font-semibold px-6 py-3 rounded-lg transition duration-200 ease-in-out transform hover:scale-105">
+            อนุมัติคำขอ
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

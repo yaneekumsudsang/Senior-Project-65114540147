@@ -14,7 +14,6 @@ class Member(models.Model):
     is_owner = models.BooleanField(default=False, verbose_name="เป็นเจ้าของร้าน")  # ใช้ BooleanField แทนค่า 1/0
     phone = models.CharField(max_length=10, blank=True, null=True, verbose_name="เบอร์โทรศัพท์")
     profile_img = models.ImageField(upload_to='profiles/', blank=True, null=True, verbose_name="รูปโปรไฟล์")
-    shop_logo = models.ImageField(upload_to='shop_logos/', blank=True, null=True, verbose_name="โลโก้ร้าน")
 
     class Meta:
         verbose_name_plural = 'สมาชิก'
@@ -129,3 +128,25 @@ class ScannedQRCode(models.Model):
 
     def __str__(self):
         return f"{self.scanned_text} - {self.timestamp}"
+
+class StoreOwnerRequest(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    shop_name = models.CharField(max_length=255, null=True, blank=True, verbose_name="ชื่อร้าน")
+    requested_at = models.DateTimeField(auto_now_add=True)
+    status = models.CharField(
+        max_length=20,
+        choices=[
+            ('pending', 'รอการอนุมัติ'),
+            ('approved', 'อนุมัติแล้ว'),
+            ('rejected', 'ปฏิเสธ')
+        ],
+        default='pending'
+    )
+    approved_at = models.DateTimeField(null=True, blank=True)
+    approved_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='approved_requests'
+    )

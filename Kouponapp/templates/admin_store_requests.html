@@ -1,0 +1,92 @@
+{% extends "nav.html" %}
+{% block title %}
+<div class="container mx-auto p-6">
+<div class="flex justify-center items-center mt-4">
+            <div class="flex border border-[#164863] rounded-full overflow-hidden">
+                <!-- ปุ่มที่ถูกเลือก -->
+                <div class="px-6 py-2 bg-[#164863] text-white font-medium m-2 rounded-full focus:outline-none">
+                    รายการคำขอเป็นเจ้าของร้าน
+                </div>
+            </div>
+        </div>
+
+        <!-- Table Card -->
+        <div class="bg-white rounded-b-xl shadow-md overflow-hidden mt-10">
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead>
+                        <tr class="bg-gray-50 border-b border-gray-200">
+                            <th class="px-8 py-4 text-left text-sm font-semibold text-gray-600 uppercase tracking-wider">ชื่อร้าน</th>
+                            <th class="px-8 py-4 text-left text-sm font-semibold text-gray-600 uppercase tracking-wider">ผู้ขอ</th>
+                            <th class="px-8 py-4 text-left text-sm font-semibold text-gray-600 uppercase tracking-wider">สถานะ</th>
+                            <th class="px-8 py-4 text-left text-sm font-semibold text-gray-600 uppercase tracking-wider">ดำเนินการ</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200">
+                        {% for request in requests %}
+                        <tr class="hover:bg-gray-50 transition duration-150">
+                            <td class="px-8 py-5">
+                                <div class="flex items-center">
+                                    <div class="ml-4">
+                                        <div class="text-sm font-medium text-gray-900">{{ request.shop_name }}</div>
+                                        <div class="text-sm text-gray-500">ID: {{ request.id }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-8 py-5">
+                                <div class="flex items-center">
+                                    <div class="text-sm font-medium text-gray-900">{{ request.user.username }}</div>
+                                    <div class="text-sm text-gray-500 ml-2">{{ request.user.email }}</div>
+                                </div>
+                            </td>
+                            <td class="px-8 py-5">
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium
+                                    {% if request.status == 'pending' %}
+                                        bg-yellow-100 text-yellow-800
+                                    {% elif request.status == 'approved' %}
+                                        bg-green-100 text-green-800
+                                    {% else %}
+                                        bg-red-100 text-red-800
+                                    {% endif %}">
+                                    {{ request.get_status_display }}
+                                </span>
+                            </td>
+                            <td class="px-8 py-5">
+                                <div class="flex space-x-2">
+                                    <a href="{% url 'store_request_detail' request.id %}"
+                                       class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                        <span class="mr-2">ดู</span>
+                                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                        </svg>
+                                    </a>
+                                    <a href="{% url 'approve_store_request' request.id %}"
+                                       class="inline-flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                                        <span class="mr-2">อนุมัติ</span>
+                                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                        </svg>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="px-8 py-12 text-center">
+                                <div class="flex flex-col items-center">
+                                    <svg class="h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>
+                                    </svg>
+                                    <h3 class="mt-2 text-sm font-medium text-gray-900">ไม่มีคำขอในขณะนี้</h3>
+                                    <p class="mt-1 text-sm text-gray-500">เริ่มต้นด้วยการสร้างคำขอใหม่</p>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock %}

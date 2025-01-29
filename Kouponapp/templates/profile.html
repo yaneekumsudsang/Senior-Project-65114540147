@@ -62,4 +62,60 @@
         </form>
         </div>
     </section>
+
+<!-- ปุ่มเปิด Modal -->
+<div class="flex justify-center mt-4">
+    <button id="requestOwnershipBtn" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+        ขอเป็นเจ้าของร้าน
+    </button>
+</div>
+
+<!-- Modal -->
+<div id="ownershipModal" class="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50 hidden">
+    <div class="bg-white p-6 rounded-lg shadow-lg w-96">
+        <h2 class="text-lg font-semibold mb-4">ขอเป็นเจ้าของร้าน</h2>
+        <form id="storeRequestForm" method="POST" action="{% url 'request_store' %}">
+            {% csrf_token %}
+            <label class="block text-sm font-medium">ชื่อร้าน</label>
+            <input type="text" name="store_name" id="shopName" class="w-full border rounded p-2 mt-1" placeholder="กรอกชื่อร้านของคุณ" required>
+
+            <div class="flex justify-end mt-4">
+                <button type="button" id="closeModal" class="mr-2 bg-gray-500 hover:bg-gray-700 text-white py-2 px-4 rounded">
+                    ยกเลิก
+                </button>
+                <button type="submit" id="confirmRequest" class="bg-green-500 hover:bg-green-700 text-white py-2 px-4 rounded">
+                    ยืนยัน
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    document.getElementById("requestOwnershipBtn").addEventListener("click", function() {
+        document.getElementById("ownershipModal").classList.remove("hidden");
+    });
+
+    document.getElementById("closeModal").addEventListener("click", function() {
+        document.getElementById("ownershipModal").classList.add("hidden");
+    });
+
+    document.getElementById("storeRequestForm").addEventListener("submit", function(event) {
+        event.preventDefault();  // ป้องกันการส่งฟอร์มทันที
+
+        let shopName = document.getElementById("shopName").value.trim();
+        if (shopName === "") {
+            alert("กรุณากรอกชื่อร้าน");
+            return;
+        }
+
+        alert("ส่งคำขอสำเร็จ! รอแอดมินตรวจสอบ");  // แจ้งเตือนเมื่อส่งสำเร็จ
+        document.getElementById("ownershipModal").classList.add("hidden");
+
+        // ส่งฟอร์มไป backend หลังจากแสดง alert
+        this.submit();
+    });
+</script>
+
+
 {% endblock %}
