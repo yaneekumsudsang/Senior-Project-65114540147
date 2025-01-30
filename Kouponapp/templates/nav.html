@@ -61,7 +61,7 @@
         <div class="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-4 p-4">
 
         <!-- โปรโมชั่น -->
-            <a href="{% url 'promotions_store' %}" class="flex items-center bg-[#DDF2FD] px-1 py-3 rounded-lg hover:bg-[#cde8f9] mx-0.5 h-12 w-34 mr-5 md:mr-1">
+            <a href="{% url 'promotions_store' %}" class="flex items-center bg-[#DDF2FD] px-1 py-3 rounded-lg hover:bg-[#cde8f9] mx-0.5 h-12 w-34">
                     <span class="mr-5 md:mr-1 mt-6 text-m text-[#164863]">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-tags"><path d="m15 5 6.3 6.3a2.4 2.4 0 0 1 0 3.4L17 19"/><path d="M9.586 5.586A2 2 0 0 0 8.172 5H3a1 1 0 0 0-1 1v5.172a2 2 0 0 0 .586 1.414L8.29 18.29a2.426 2.426 0 0 0 3.42 0l3.58-3.58a2.426 2.426 0 0 0 0-3.42z"/><circle cx="6.5" cy="9.5" r=".5" fill="currentColor"/></svg>️</span>
                     </span>
@@ -150,28 +150,33 @@
             </a>
 
             <!-- เติมเงิน -->
+            <!---
             <a href="#" class="flex items-center bg-[#DDF2FD] px-1 py-3 rounded-lg hover:bg-[#cde8f9] mx-0.5 h-12 w-34">
                 <span class="mr-5 md:mr-1 text-m text-[#164863]">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-credit-card"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/></svg>
                 </span>
                 <span class="text-[#164863] font-medium">เติมเงิน</span>
             </a>
+            -->
 
             <!-- ชำระเงิน -->
+            <!--
             <a href="#" class="flex items-center bg-[#DDF2FD] px-1 py-3 rounded-lg hover:bg-[#cde8f9] mx-0.5 h-12 w-34">
                 <span class="mr-5 md:mr-1 text-m text-[#164863]">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-hand-coins"><path d="M11 15h2a2 2 0 1 0 0-4h-3c-.6 0-1.1.2-1.4.6L3 17"/><path d="m7 21 1.6-1.4c.3-.4.8-.6 1.4-.6h4c1.1 0 2.1-.4 2.8-1.2l4.6-4.4a2 2 0 0 0-2.75-2.91l-4.2 3.9"/><path d="m2 16 6 6"/><circle cx="16" cy="9" r="2.9"/><circle cx="6" cy="5" r="3"/></svg>
                 </span>
                 <span class="text-[#164863] font-medium">ชำระเงิน</span>
             </a>
-
+            -->
             <!-- โอนเงิน -->
+            <!--
             <a href="#" class="flex items-center bg-[#DDF2FD] px-1 py-3 rounded-lg hover:bg-[#cde8f9] mx-0.5 h-12 w-34">
                 <span class="mr-5 md:mr-1 text-m text-[#164863]">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right-left"><path d="m16 3 4 4-4 4"/><path d="M20 7H4"/><path d="m8 21-4-4 4-4"/><path d="M4 17h16"/></svg>
                 </span>
                 <span class="text-[#164863] font-medium">โอนเงิน</span>
             </a>
+            !--->
 
             <!-- Logout -->
             <a href="{% url 'koupon_logout' %}" class="flex items-center bg-[#DDF2FD] px-1 py-3 rounded-lg hover:bg-[#cde8f9] mx-0.5 h-12 w-34">
@@ -183,36 +188,28 @@
         </div>
 
             {% else %}
-
-            <a href="{% url 'admin_store_requests' %}" class="flex items-center bg-[#DDF2FD] px-1 py-3 rounded-lg hover:bg-[#cde8f9] mx-0.5 h-12 w-34">
+            <div class="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-4 p-4 md:p-0">
+            <a href="{% url 'admin_store_requests' %}" class="flex items-center bg-[#DDF2FD] px-2 py-3 rounded-lg hover:bg-[#cde8f9] mx-0.5 h-12 w-34">
                 <span class="mr-5 md:mr-1 text-m text-[#164863]">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-store"><path d="m2 7 4.41-4.41A2 2 0 0 1 7.83 2h8.34a2 2 0 0 1 1.42.59L22 7"/><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><path d="M15 22v-4a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4"/><path d="M2 7h20"/><path d="M22 7v3a2 2 0 0 1-2 2a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 16 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 12 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 8 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 4 12a2 2 0 0 1-2-2V7"/></svg>
                 </span>
-                    <span class="text-[#164863] font-medium">คำขอเป็นเจ้าของร้าน</span>
+                    <span class="text-[#164863] font-medium">จัดการข้อมูลร้านค้า</span>
             </a>
 
-            <!-- ประวัติการใช้งานคูปอง -->
-            <!--
-            <a href="#" class="flex items-center bg-[#DDF2FD] px-1 py-3 rounded-lg hover:bg-[#cde8f9] mx-0.5 h-12 w-34">
-                <span class="mr-5 md:mr-1 text-m text-[#164863]">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clock-4"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                </span>
-                <span class="text-[#164863] font-medium">ประวัติการอนุมัติเป็นเจ้าของร้าน</span>
-            </a>
-            <a href="#" class="flex items-center bg-[#DDF2FD] px-1 py-3 rounded-lg hover:bg-[#cde8f9] mx-0.5 h-12 w-34">
+            <a href="#" class="flex items-center bg-[#DDF2FD] px-2 py-3 rounded-lg hover:bg-[#cde8f9] mx-0.5 h-12 w-34">
                 <span class="mr-5 md:mr-1 text-m text-[#164863]">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-users"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
                 </span>
                 <span class="text-[#164863] font-medium">จัดการข้อมูลสมาชิก</span>
             </a>
-            <a href="#" class="flex items-center bg-[#DDF2FD] px-1 py-3 rounded-lg hover:bg-[#cde8f9] mx-0.5 h-12 w-34">
+            <a href="#" class="flex items-center bg-[#DDF2FD] px-2 py-3 rounded-lg hover:bg-[#cde8f9] mx-0.5 h-12 w-34">
                 <span class="mr-5 md:mr-1 text-m text-[#164863]">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-tickets"><path d="m4.5 8 10.58-5.06a1 1 0 0 1 1.342.488L18.5 8"/><path d="M6 10V8"/><path d="M6 14v1"/><path d="M6 19v2"/><rect x="2" y="8" width="20" height="13" rx="2"/></svg>
                 </span>
                 <span class="text-[#164863] font-medium">จัดการข้อมูลคูปอง</span>
             </a>
-            !--->
-            <a href="{% url 'koupon_logout' %}" class="flex items-center bg-[#DDF2FD] px-1 py-3 rounded-lg hover:bg-[#cde8f9] mx-0.5 h-12 w-34">
+
+            <a href="{% url 'koupon_logout' %}" class="flex items-center bg-[#DDF2FD] px-2 py-3 rounded-lg hover:bg-[#cde8f9] mx-0.5 h-12 w-34">
                 <span class="mr-5 md:mr-1 text-m text-[#164863]">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-log-out"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
                 </span>
@@ -220,6 +217,7 @@
             </a>
         {% endif %}
     {% else %}
+    </div>
     <!-- สำหรับผู้ที่ยังไม่ได้ล็อกอิน -->
         <div class="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-4 p-4 md:p-0">
     <a href="/register" class="px-4 py-2 bg-[#164863] border text-white rounded-lg hover:bg-[#DDF2FD] hover:text-[#164863]">สมัครสมาชิก</a>

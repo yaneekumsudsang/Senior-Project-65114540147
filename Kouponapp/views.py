@@ -3,8 +3,7 @@ import logging
 import os
 import io
 import base64
-from datetime import timezone
-from django.utils.timezone import now
+from datetime import timezone, timedelta
 
 # Third-party imports
 import numpy as np
@@ -19,28 +18,16 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.models import User
+from django.core.files.base import ContentFile
+from django.db.models import Count, Sum, Q
 from django.http import StreamingHttpResponse, HttpResponse, JsonResponse, HttpResponseForbidden
 from django.shortcuts import render, redirect, get_object_or_404
-from django.utils import timezone
+from django.utils.timezone import now
 from django.views.decorators.cache import never_cache
 
 # Local app imports
 from .forms import RegisterForm, LoginForm, ProfileForm, PromotionForm
 from .models import Member, Store, Promotion, Coupon, ScannedQRCode, StoreOwnerRequest
-
-from django.core.files.base import ContentFile
-from django.db.models import Count
-from django.db.models import Count, Sum, Q
-from django.shortcuts import render
-from django.contrib.auth.decorators import login_required
-from django.db.models import Count, Sum, Q
-from django.utils import timezone
-from datetime import timedelta
-from .models import Member, Store, Promotion, Coupon, ScannedQRCode
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import render, redirect
-from django.contrib import messages
-from .models import StoreOwnerRequest, Store
 
 def promotions_view(request):
     data = Promotion.objects.all()[:5]
@@ -296,7 +283,6 @@ def generate_coupon_qr_data(promotion, coupon_number):
     }
     return str(qr_data)
 
-
 @login_required
 def CouponPreview(request, promotion_id):
     promotion = get_object_or_404(Promotion, id=promotion_id)
@@ -467,7 +453,7 @@ def detect(request):
     return render(request, 'scan_qrcode.html', context={'cam_status': status})
 
 @login_required
-def Collect_coupons(request, store_id, promotion_id, coupon_id):
+def Collect_coupons(request, store_id, promotion_id, coupon_id, timezone):
     """ฟังก์ชันสำหรับการสแกน QR Code และเก็บคูปอง"""
     try:
         current_member = Member.objects.get(user=request.user)
@@ -936,12 +922,6 @@ def store_request_detail(request, request_id):
     return render(request, 'store_request_detail.html', {'store_request': shop_request})
 
 # ฟังก์ชันอนุมัติคำขอและสร้างร้านค้า
-from django.shortcuts import get_object_or_404, redirect
-from django.contrib import messages
-from django.utils.timezone import now
-from django.contrib.auth.decorators import login_required
-from .models import StoreOwnerRequest, Store, Member
-
 @login_required
 def approve_store_request(request, request_id):
     if not request.user.is_staff:
@@ -976,8 +956,6 @@ def approve_store_request(request, request_id):
     messages.success(request, f"อนุมัติคำขอ และสร้างร้าน {new_store.store_name} สำเร็จ! ผู้ใช้ {shop_request.user.username} เป็นเจ้าของร้านแล้ว")
     return redirect('admin_store_requests')
 
-
-# ฟังก์ชันดูประวัติคำขอที่อนุมัติแล้ว
 def approved_store_owners(request):
     approved_requests = StoreOwnerRequest.objects.filter(status='approved').select_related('user', 'approved_by')
 
@@ -985,3 +963,44 @@ def approved_store_owners(request):
         'approved_requests': approved_requests
     }
     return render(request, 'approved_owners_list.html', context)
+
+
+@login_required
+@user_passes_test(lambda u: u.is_staff)
+def admin_store_management(request):
+    # Get all stores with related data
+    stores = Store.objects.select_related(
+        'owner',
+        'owner__user'
+    ).prefetch_related(
+        'promotions'
+    ).all()
+
+    # Calculate statistics
+    total_stores = stores.count()
+    total_promotions = Promotion.objects.count()
+    total_coupons = Coupon.objects.count()
+
+    # Add total_coupons to each store
+    for store in stores:
+        store.total_coupons = Coupon.objects.filter(promotion__store=store).count()
+
+    context = {
+        'stores': stores,
+        'total_stores': total_stores,
+        'total_promotions': total_promotions,
+        'total_coupons': total_coupons,
+    }
+
+    return render(request, 'admin_store_management.html', context)
+
+
+@login_required
+@user_passes_test(lambda u: u.is_staff)
+def delete_store(request, store_id):
+    if request.method == 'POST':
+        store = get_object_or_404(Store, id=store_id)
+        store.delete()
+        messages.success(request, f'ลบร้านค้า {store.store_name} เรียบร้อยแล้ว')
+        return redirect('admin_store_management')
+    return redirect('admin_store_management')

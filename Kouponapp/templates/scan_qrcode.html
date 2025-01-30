@@ -9,28 +9,38 @@
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
-<body class="bg-gray-100 min-h-screen flex flex-col items-center justify-center">
+<body class="bg-[#164863] min-h-screen flex flex-col items-center justify-center">
+<div class="flex flex-col items-center justify-center min-h-screen bg-[#164863]">
+<div class="flex border border-white rounded-full overflow-hidden h-16 mb-10">
+    <h2 class="px-2 py-2 bg-white text-[#164863] font-medium m-2 rounded-full focus:outline-none text-xl">สแกน QR Code</h2>
+</div>
 
     <!-- กล่องแสดง QR Code Reader -->
-    <div class="bg-white rounded-xl shadow-lg p-4 w-full max-w-sm text-center">
-        <h2 class="text-xl font-semibold text-gray-700 mb-4">สแกน QR Code</h2>
-        <div id="reader" class="h-64 w-full rounded-lg border-dashed border-2 border-gray-300">
+<div class="bg-white rounded-xl shadow-lg p-4 w-full max-w-sm text-center">
+    <div class="relative h-62 w-full">
         <!-- กล้อง -->
-        <div id="reader" class="h-64 w-full rounded-lg border-dashed border-2 border-gray-300"></div>
-        </div>
-        <p id="error-message" class="text-red-500 text-sm mt-4 hidden">ไม่สามารถเปิดกล้องได้ โปรดตรวจสอบสิทธิ์การใช้งานกล้อง</p>
+        <div id="reader" class="h-full w-full rounded-lg p-4"></div>
+
+        <!-- Corner markers -->
+        <div class="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-[#164863]"></div>
+        <div class="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-[#164863]"></div>
+        <div class="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 border-[#164863]"></div>
+        <div class="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-[#164863]"></div>
+    </div>
+    <p id="error-message" class="text-red-500 text-sm mt-4 hidden">ไม่สามารถเปิดกล้องได้ โปรดตรวจสอบสิทธิ์การใช้งานกล้อง</p>
 
     <!-- แสดงผลลัพธ์ -->
     <div class="mt-6 bg-white rounded-lg shadow-md w-full max-w-lg p-6 text-center">
-        <p id="scan-result" class="text-lg text-gray-600 bg-gray-100 p-2 rounded-md"> กำลังรอการสแกน QR Code... </p>
+        <p id="scan-result" class="text-lg text-[#164863] bg-[#DDF2FD] p-2 rounded-md"> กำลังรอการสแกน QR Code... </p>
     </div>
     </div>
     <!-- ปุ่มปิด -->
-    <button onclick="closeScanner()" class="mt-6 bg-white text-[#164863] w-12 h-12 rounded-full flex items-center justify-center shadow-md hover:bg-[#164863] hover:text-white transition">
+    <button onclick="closeScanner()" class="mt-10 bg-white text-[#164863] w-12 h-12 rounded-full flex items-center justify-center shadow-md hover:bg-[#DDF2FD] hover:text-[#164863] transition">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
         </svg>
     </button>
+    </div>
 
     <!-- JavaScript -->
     <script>
@@ -74,5 +84,6 @@
             errorMessageElement.textContent = "ไม่สามารถเปิดกล้องได้: " + err;
         });
     </script>
+</div>
 </body>
 </html>

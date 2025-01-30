@@ -35,12 +35,7 @@
                     <input type="file" id="profile_img" name="profile_img" class="hidden" />
                 </label>
             </div>
-<!-- ปุ่มเปิด Modal -->
-<div class="flex justify-center mt-4">
-    <button id="requestOwnershipBtn" class="bg-[#DDF2FD] hover:bg-[#164863] text-[#164863] hover:text-[#DDF2FD] font-bold py-2 px-4 rounded-2xl">
-        ขอเป็นเจ้าของร้าน
-    </button>
-</div>
+
             <!-- ฟอร์มแก้ไขข้อมูลส่วนตัว -->
             <div class="form-group">
                 <label for="first_name" class="block text-sm font-medium text-gray-700">ชื่อ</label>
@@ -65,6 +60,13 @@
         </form>
         </div>
     </section>
+
+    <!-- ปุ่มเปิด Modal -->
+<div class="flex justify-center mt-4">
+    <button id="requestOwnershipBtn" class="bg-[#DDF2FD] hover:bg-[#164863] text-[#164863] hover:text-[#DDF2FD] font-bold py-2 px-4 rounded-2xl">
+        ขอเป็นเจ้าของร้าน
+    </button>
+</div>
 
 <!-- Modal -->
 <div id="ownershipModal" class="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50">
@@ -97,7 +99,7 @@
     });
 
     document.getElementById("storeRequestForm").addEventListener("submit", function(event) {
-        event.preventDefault();  // ป้องกันการส่งฟอร์มทันที
+        event.preventDefault();
 
         let shopName = document.getElementById("shopName").value.trim();
         if (shopName === "") {

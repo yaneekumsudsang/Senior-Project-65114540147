@@ -45,6 +45,8 @@ urlpatterns = [
     path('admin-store-requests/', views.admin_store_requests, name='admin_store_requests'),
     path('store-requests/<int:request_id>/', views.store_request_detail, name='store_request_detail'),
     path('store-requests/<int:request_id>/approve/', views.approve_store_request, name='approve_store_request'),
+    path('admin/stores/', views.admin_store_management, name='admin_store_management'),
+    path('admin/stores/<int:store_id>/delete/', views.delete_store, name='delete_store'),
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
