@@ -1,0 +1,104 @@
+{% extends "nav.html" %}
+
+{% block title %}
+<div class="max-h-screen py-4">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="mb-4">
+            <a href="{% url 'admin_store_management' %}" class="text-gray-600 hover:text-gray-900">
+                <- กลับไปหน้ารายการร้านค้า
+            </a>
+        </div>
+        
+        <div class="flex justify-center items-center">
+            <div class="flex border border-[#164863] rounded-full overflow-hidden">
+                <h1 class="px-6 py-2 bg-[#164863] text-white font-medium m-2 rounded-full focus:outline-none">
+                    รายละเอียดร้าน {{ store.store_name }}
+                </h1>
+            </div>
+        </div>
+
+        <!-- ข้อมูลพื้นฐานร้านค้า -->
+        <div class="mt-6 bg-white rounded-lg p-6 shadow-lg">
+            <h2 class="text-xl font-semibold mb-4">ข้อมูลร้านค้า</h2>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <p class="text-gray-600">รหัสร้าน:</p>
+                    <p class="font-medium">{{ store.id }}</p>
+                </div>
+                <div>
+                    <p class="text-gray-600">ชื่อร้าน:</p>
+                    <p class="font-medium">{{ store.store_name }}</p>
+                </div>
+                <div>
+                    <p class="text-gray-600">เจ้าของร้าน:</p>
+                    <p class="font-medium">{{ store.owner.user.first_name }} {{ store.owner.user.last_name }}</p>
+                </div>
+                <div>
+                    <p class="text-gray-600">เบอร์โทรศัพท์:</p>
+                    <p class="font-medium">{{ store.owner.phone|default:"-" }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- สถิติร้านค้า -->
+        <div class="mt-6 grid grid-cols-3 gap-4">
+            <div class="bg-white p-6 rounded-lg shadow-lg text-center">
+                <p class="text-gray-600">จำนวนโปรโมชั่นทั้งหมด</p>
+                <p class="text-2xl font-bold text-blue-600">{{ stats.total_promotions }}</p>
+            </div>
+            <div class="bg-white p-6 rounded-lg shadow-lg text-center">
+                <p class="text-gray-600">โปรโมชั่นที่ยังใช้งานได้</p>
+                <p class="text-2xl font-bold text-green-600">{{ stats.active_promotions }}</p>
+            </div>
+            <div class="bg-white p-6 rounded-lg shadow-lg text-center">
+                <p class="text-gray-600">จำนวนคูปองทั้งหมด</p>
+                <p class="text-2xl font-bold text-yellow-600">{{ stats.total_coupons }}</p>
+            </div>
+        </div>
+
+        <!-- รายการโปรโมชั่น -->
+        <div class="mt-6 bg-white rounded-lg p-6 shadow-lg">
+            <h2 class="text-xl font-semibold mb-4">รายการโปรโมชั่น</h2>
+            {% if store.promotions.exists %}
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ชื่อโปรโมชั่น</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">รายละเอียด</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">วันที่เริ่ม</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">วันที่สิ้นสุด</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">จำนวนคูปอง</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200">
+                            {% for promotion in store.promotions.all %}
+                            <tr>
+                                <td class="px-6 py-4">{{ promotion.name }}</td>
+                                <td class="px-6 py-4">
+                                    {% if promotion.discount %}
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                        ส่วนลด {{ promotion.discount }}%
+                                    </span>
+                                    {% endif %}
+                                    {% if promotion.free %}
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 ml-2">
+                                        ฟรี {{ promotion.free }} แก้ว
+                                    </span>
+                                    {% endif %}
+                                </td>
+                                <td class="px-6 py-4">{{ promotion.start|date:"d M Y" }}</td>
+                                <td class="px-6 py-4">{{ promotion.end|date:"d M Y" }}</td>
+                                <td class="px-6 py-4">{{ promotion.coupons.count }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="text-center text-gray-500">ไม่มีโปรโมชั่น</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

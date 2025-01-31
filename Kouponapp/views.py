@@ -28,6 +28,8 @@ from django.views.decorators.cache import never_cache
 # Local app imports
 from .forms import RegisterForm, LoginForm, ProfileForm, PromotionForm
 from .models import Member, Store, Promotion, Coupon, ScannedQRCode, StoreOwnerRequest
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.utils import timezone
 
 def promotions_view(request):
     data = Promotion.objects.all()[:5]
@@ -965,42 +967,101 @@ def approved_store_owners(request):
     return render(request, 'approved_owners_list.html', context)
 
 
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.shortcuts import render
+from django.db.models import Count, Q, Sum
+from .models import Store, Promotion, Coupon
+
+
 @login_required
 @user_passes_test(lambda u: u.is_staff)
 def admin_store_management(request):
-    # Get all stores with related data
+    # ดึงข้อมูลร้านค้าที่เจ้าของมี is_owner = True
     stores = Store.objects.select_related(
         'owner',
         'owner__user'
     ).prefetch_related(
-        'promotions'
-    ).all()
+        'promotions',
+        'promotions__coupons'
+    ).filter(
+        owner__is_owner=True
+    )
 
-    # Calculate statistics
+    # นับจำนวนร้านค้าทั้งหมด
     total_stores = stores.count()
-    total_promotions = Promotion.objects.count()
-    total_coupons = Coupon.objects.count()
 
-    # Add total_coupons to each store
-    for store in stores:
-        store.total_coupons = Coupon.objects.filter(promotion__store=store).count()
+    # นับจำนวนโปรโมชันทั้งหมดเฉพาะจากร้านที่ is_owner = True
+    total_promotions = Promotion.objects.filter(
+        store__owner__is_owner=True
+    ).count()
+
+    # นับจำนวนคูปองทั้งหมดเฉพาะจากร้านที่ is_owner = True
+    total_coupons = Coupon.objects.filter(
+        promotion__store__owner__is_owner=True
+    ).count()
+
+    # คำนวณสถิติคูปองสำหรับแต่ละร้าน
+    stores = stores.annotate(
+        total_coupons=Count('promotions__coupons'),
+        uncollected_coupons=Count(
+            'promotions__coupons',
+            filter=Q(promotions__coupons__collect=False)
+        ),
+        collected_coupons=Count(
+            'promotions__coupons',
+            filter=Q(promotions__coupons__collect=True, promotions__coupons__used=False)
+        ),
+        used_coupons=Count(
+            'promotions__coupons',
+            filter=Q(promotions__coupons__used=True)
+        )
+    )
 
     context = {
         'stores': stores,
         'total_stores': total_stores,
         'total_promotions': total_promotions,
         'total_coupons': total_coupons,
+        'page_title': 'Store Management',
     }
 
     return render(request, 'admin_store_management.html', context)
-
 
 @login_required
 @user_passes_test(lambda u: u.is_staff)
 def delete_store(request, store_id):
     if request.method == 'POST':
         store = get_object_or_404(Store, id=store_id)
-        store.delete()
-        messages.success(request, f'ลบร้านค้า {store.store_name} เรียบร้อยแล้ว')
-        return redirect('admin_store_management')
+        try:
+            store_name = store.store_name
+            store.delete()
+            messages.success(request, f'ลบร้านค้า {store_name} เรียบร้อยแล้ว')
+        except Exception as e:
+            messages.error(request, f'เกิดข้อผิดพลาดในการลบร้านค้า: {str(e)}')
     return redirect('admin_store_management')
+
+
+@login_required
+@user_passes_test(lambda u: u.is_staff)
+def store_detail(request, store_id):
+    store = get_object_or_404(Store.objects.select_related(
+        'owner',
+        'owner__user'
+    ).prefetch_related(
+        'promotions',
+        'promotions__coupons'
+    ), id=store_id)
+
+    # รวมข้อมูลสถิติของร้าน
+    store_stats = {
+        'total_promotions': store.promotions.count(),
+        'total_coupons': sum(p.coupons.count() for p in store.promotions.all()),
+        'active_promotions': store.promotions.filter(end__gte=timezone.now()).count()
+    }
+
+    context = {
+        'store': store,
+        'stats': store_stats,
+    }
+
+    return render(request, 'store_detail.html', context)

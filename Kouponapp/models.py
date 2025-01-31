@@ -65,7 +65,7 @@ class Promotion(models.Model):
 
 class Coupon(models.Model):
     id = models.AutoField(primary_key=True, verbose_name="ไอดีคูปอง")
-    promotion = models.ForeignKey(Promotion, on_delete=models.CASCADE, verbose_name="ไอดีโปรโมชั่น")
+    promotion = models.ForeignKey(Promotion, on_delete=models.CASCADE, related_name='coupons', verbose_name="ไอดีโปรโมชั่น")
     promotion_count = models.PositiveIntegerField(verbose_name="ลำดับคูปอง", default=0)
     collect = models.BooleanField(default=False, verbose_name="ตรวจสอบการสะสม")
     member = models.ForeignKey(Member, on_delete=models.CASCADE, null=True, blank=True, verbose_name="สมาชิกที่สะสมคูปอง")
