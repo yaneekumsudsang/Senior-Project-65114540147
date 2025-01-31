@@ -1,0 +1,184 @@
+
+<!-- member_detail.html -->
+{% extends "nav.html" %}
+
+{% block title %}
+<div class="max-h-screen py-4">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="mb-4">
+            <a href="{% url 'admin_member_management' %}" class="text-gray-600 hover:text-gray-900">
+                <- กลับไปหน้ารายการสมาชิก
+            </a>
+        </div>
+
+        <div class="flex justify-center items-center">
+            <div class="flex border border-[#164863] rounded-full overflow-hidden">
+                <h1 class="px-6 py-2 bg-[#164863] text-white font-medium m-2 rounded-full focus:outline-none">
+                    ข้อมูลสมาชิก {{ member.user.first_name }} {{ member.user.last_name }}
+                </h1>
+            </div>
+        </div>
+
+        <!-- ข้อมูลพื้นฐานสมาชิก -->
+        <div class="mt-6 bg-white rounded-lg p-6 shadow-lg">
+            <h2 class="text-xl font-semibold mb-4">ข้อมูลส่วนตัว</h2>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <p class="text-gray-600">รหัสสมาชิก:</p>
+                    <p class="font-medium">{{ member.id }}</p>
+                </div>
+                <div>
+                    <p class="text-gray-600">ชื่อ-นามสกุล:</p>
+                    <p class="font-medium">{{ member.user.first_name }} {{ member.user.last_name }}</p>
+                </div>
+                <div>
+                    <p class="text-gray-600">อีเมล:</p>
+                    <p class="font-medium">{{ member.user.email }}</p>
+                </div>
+                <div>
+                    <p class="text-gray-600">เบอร์โทรศัพท์:</p>
+                    <p class="font-medium">{{ member.phone|default:"-" }}</p>
+                </div>
+                <div>
+                    <p class="text-gray-600">สถานะ:</p>
+                    <p class="font-medium">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {% if member.is_owner %}bg-green-100 text-green-800{% else %}bg-gray-100 text-gray-800{% endif %}">
+                            {{ member.is_owner|yesno:"เจ้าของร้าน,สมาชิกทั่วไป" }}
+                        </span>
+                    </p>
+                </div>
+                <div>
+                    <p class="text-gray-600">วันที่สมัคร:</p>
+                    <p class="font-medium">{{ member.user.date_joined|date:"d M Y" }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- สถิติสมาชิก -->
+        <div class="mt-6 grid grid-cols-4 gap-4">
+            <div class="bg-white p-6 rounded-lg shadow-lg text-center">
+                <p class="text-gray-600">จำนวนร้านค้า</p>
+                <p class="text-2xl font-bold text-blue-600">{{ stats.total_stores }}</p>
+            </div>
+            <div class="bg-white p-6 rounded-lg shadow-lg text-center">
+                <p class="text-gray-600">จำนวนโปรโมชั่น</p>
+                <p class="text-2xl font-bold text-green-600">{{ stats.total_promotions }}</p>
+            </div>
+            <div class="bg-white p-6 rounded-lg shadow-lg text-center">
+                <p class="text-gray-600">คูปองที่สะสม</p>
+                <p class="text-2xl font-bold text-yellow-600">{{ stats.total_collected_coupons }}</p>
+            </div>
+            <div class="bg-white p-6 rounded-lg shadow-lg text-center">
+                <p class="text-gray-600">คูปองที่ใช้แล้ว</p>
+                <p class="text-2xl font-bold text-red-600">{{ stats.total_used_coupons }}</p>
+            </div>
+        </div>
+
+        <!-- รายการร้านค้า (แสดงเฉพาะกรณีเป็นเจ้าของร้าน) -->
+        {% if member.is_owner %}
+        <div class="mt-6 bg-white rounded-lg p-6 shadow-lg">
+            <h2 class="text-xl font-semibold mb-4">รายการร้านค้า</h2>
+            {% if member.store_set.exists %}
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">รหัสร้าน</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ชื่อร้าน</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">จำนวนโปรโมชั่น</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">จำนวนคูปอง</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">การจัดการ</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200">
+                        {% for store in member.store_set.all %}
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ store.id }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm font-medium text-gray-900">{{ store.store_name }}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-center">
+                                <div class="text-sm text-gray-900">{{ store.promotions.count }}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-center">
+                                <div class="text-sm text-gray-900">
+                                    {{ store.promotions.all|join:", "|default:"0" }}
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                <a href="{% url 'store_detail' store.id %}" class="text-indigo-600 hover:text-indigo-900">ดูข้อมูล</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-center text-gray-500">ไม่มีร้านค้า</p>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <!-- ประวัติการสะสมคูปอง -->
+        <div class="mt-6 bg-white rounded-lg p-6 shadow-lg">
+            <h2 class="text-xl font-semibold mb-4">ประวัติการสะสมคูปอง</h2>
+            {% if member.user.collection_set.exists %}
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">รหัสคูปอง</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">โปรโมชั่น</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ร้านค้า</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">วันที่สะสม</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">วันที่ใช้งาน</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">สถานะ</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200">
+                        {% for collection in member.user.collection_set.all %}
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ collection.coupon.id }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm font-medium text-gray-900">{{ collection.coupon.promotion.name }}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm text-gray-900">{{ collection.coupon.promotion.store.store_name }}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm text-gray-900">{{ collection.collected_date|date:"d M Y" }}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm text-gray-900">{{ collection.used_date|date:"d M Y"|default:"-" }}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {% if collection.used %}bg-red-100 text-red-800{% elif collection.collect %}bg-green-100 text-green-800{% else %}bg-gray-100 text-gray-800{% endif %}">
+                                    {% if collection.used %}
+                                        ใช้งานแล้ว
+                                    {% elif collection.collect %}
+                                        สะสมแล้ว
+                                    {% else %}
+                                        ยังไม่ได้สะสม
+                                    {% endif %}
+                                </span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-center text-gray-500">ไม่มีประวัติการสะสมคูปอง</p>
+            {% endif %}
+        </div>
+
+        <!-- ปุ่มลบสมาชิก -->
+        {% if member.id %}
+<form action="{% url 'delete_member' member.id %}" method="POST" class="inline" onsubmit="return confirm('คุณแน่ใจหรือไม่ที่จะลบสมาชิกนี้?');">
+    {% csrf_token %}
+    <button type="submit" class="text-red-600 hover:text-red-900 ml-2">ลบ</button>
+</form>
+{% endif %}
+    </div>
+</div>
+{% endblock %}

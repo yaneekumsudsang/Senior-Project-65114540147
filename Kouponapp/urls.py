@@ -48,6 +48,9 @@ urlpatterns = [
     path('admin-stores/', views.admin_store_management, name='admin_store_management'),
     path('admin-stores/<int:store_id>/delete/', views.delete_store, name='delete_store'),
     path('admin-stores/<int:store_id>/', views.store_detail, name='store_detail'),
+    path('admin-members/', views.admin_member_management, name='admin_member_management'),
+    path('admin-members/<int:member_id>/', views.member_detail, name='member_detail'),
+    path('admin-members/<int:member_id>/delete/', views.delete_member, name='delete_member'),
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 

@@ -30,6 +30,11 @@ from .forms import RegisterForm, LoginForm, ProfileForm, PromotionForm
 from .models import Member, Store, Promotion, Coupon, ScannedQRCode, StoreOwnerRequest
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.utils import timezone
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.db.models import Count, Q
+from django.contrib import messages
+from django.utils import timezone
 
 def promotions_view(request):
     data = Promotion.objects.all()[:5]
@@ -1065,3 +1070,88 @@ def store_detail(request, store_id):
     }
 
     return render(request, 'store_detail.html', context)
+
+@login_required
+@user_passes_test(lambda u: u.is_staff)
+def admin_member_management(request):
+    # ดึงข้อมูลสมาชิกพร้อมร้านค้า (ถ้าเป็นเจ้าของร้าน)
+    members = Member.objects.select_related('user').prefetch_related(
+        'stores',  # ตรวจสอบให้แน่ใจว่า `related_name='stores'` ถูกต้องใน models.py
+        'stores__promotions',
+        'stores__promotions__coupons'
+    )
+
+    # กรองเฉพาะเจ้าของร้าน
+    owners = members.filter(is_owner=True)
+    non_owners = members.filter(is_owner=False)
+
+    total_owners = owners.count()
+    total_non_owners = non_owners.count()
+    total_members = total_owners + total_non_owners
+
+    # คำนวณสถิติสำหรับแต่ละสมาชิก
+    members = members.annotate(
+        store_count=Count('stores'),
+        total_promotions=Count('stores__promotions'),
+        total_coupons=Count('stores__promotions__coupons'),
+        active_promotions=Count(
+            'stores__promotions',
+            filter=Q(stores__promotions__end__gte=timezone.now())
+        )
+    )
+
+    context = {
+        'members': members,
+        'total_members': total_members,
+        'total_owners': total_owners,
+        'total_non_owners': total_non_owners,
+        'page_title': 'Member Management',
+    }
+
+    return render(request, 'admin_member_management.html', context)
+
+
+@login_required
+@user_passes_test(lambda u: u.is_staff)
+def member_detail(request, member_id):
+    member = get_object_or_404(Member.objects.select_related(
+        'user'
+    ).prefetch_related(
+        'stores',
+        'stores__promotions',
+        'stores__promotions__coupons'
+    ), id=member_id)
+
+    # รวมข้อมูลสถิติของสมาชิก
+    member_stats = {
+        'total_stores': member.stores.count(),
+        'total_promotions': sum(s.promotions.count() for s in member.stores.all()),
+        'total_coupons': sum(
+            p.coupons.count()
+            for s in member.stores.all()
+            for p in s.promotions.all()
+        ),
+        'active_promotions': member.stores.filter(
+            promotions__end__gte=timezone.now()
+        ).distinct().count()
+    }
+
+    context = {
+        'member': member,
+        'stats': member_stats,
+    }
+
+    return render(request, 'member_detail.html', context)
+
+@login_required
+@user_passes_test(lambda u: u.is_staff)
+def delete_member(request, member_id):
+    if request.method == 'POST':
+        member = get_object_or_404(Member, id=member_id)
+        try:
+            user_name = f"{member.user.first_name} {member.user.last_name}"
+            member.user.delete()  # This will cascade delete the UserProfile
+            messages.success(request, f'ลบสมาชิก {user_name} เรียบร้อยแล้ว')
+        except Exception as e:
+            messages.error(request, f'เกิดข้อผิดพลาดในการลบสมาชิก: {str(e)}')
+    return redirect('admin_member_management')
