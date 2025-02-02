@@ -16,7 +16,7 @@
         <div class="flex space-x-4 overflow-x-auto mt-4 ml-10 mr-10 p-8 no-scrollbar">
             {% if promotions %}
                 {% for promotion in promotions %}
-                    {% for coupon in promotion.coupon_set.all %}
+                    {% for coupon in promotion.coupons.all %}
                         <a href="{% url 'promotion_details_store' promotion_id=promotion.id coupon_id=coupon.id %}" class="flex-shrink-0 w-full max-w-[350px]">
                             <div class="relative bg-[#DDF2FD] w-[350px] h-[150px] flex items-center p-4 rounded-3xl">
 
@@ -52,6 +52,7 @@
             {% else %}
                 <p class="text-center text-gray-500">ยังไม่มีโปรโมชั่นสำหรับร้านของคุณ</p>
             {% endif %}
+
         </div>
     </section>
 <div class="w-full flex justify-center p-2">

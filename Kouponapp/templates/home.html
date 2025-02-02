@@ -5,10 +5,14 @@
 <!-- Promotion Section -->
 <section class="mt-8 px-6">
     <div class="flex justify-between items-center">
-        <h2 class="text-2xl font-bold text-[#164863]">โปรโมชั่นที่น่าสนใจ</h2>
+            <div class="flex border border-[#164863] rounded-full overflow-hidden">
+                <h1 class="px-6 py-2 bg-[#164863] text-white font-medium m-2 rounded-full focus:outline-none">
+                    โปรโมชั่นที่น่าสนใจ
+                </h1>
+            </div>
         {% if not user.is_authenticated %}
             <!-- ถ้าไม่ได้ล็อกอินให้ Redirect ไปหน้าล็อกอิน -->
-            <a href="{% url 'login' %}?next={% url 'promotions_member' %}" class="text-sm text-gray-500">
+            <a href="{% url 'login' %}?next={% url 'promotions_member' %}" class="text-sm text-gray-500 ">
                 ดูทั้งหมด
             </a>
         {% else %}

@@ -193,7 +193,7 @@ def promotions_store(request):
     # ตรวจสอบว่า user เป็นเจ้าของร้าน (is_owner=True)
     if not request.user.member.is_owner:
         # ถ้าไม่ใช่เจ้าของร้าน ให้ redirect ไปยังหน้าอื่น
-        return redirect('promotions_store')  # หรือไปยังหน้าอื่นที่คุณต้องการ
+        return redirect('home')  # หรือไปยังหน้าอื่นที่คุณต้องการ
 
     # ดึงข้อมูลร้านที่เจ้าของมี
     store = Store.objects.filter(owner=request.user.member).first()
@@ -1076,7 +1076,7 @@ def store_detail(request, store_id):
 def admin_member_management(request):
     # ดึงข้อมูลสมาชิกพร้อมร้านค้า (ถ้าเป็นเจ้าของร้าน)
     members = Member.objects.select_related('user').prefetch_related(
-        'stores',  # ตรวจสอบให้แน่ใจว่า `related_name='stores'` ถูกต้องใน models.py
+        'stores',
         'stores__promotions',
         'stores__promotions__coupons'
     )
@@ -1109,7 +1109,6 @@ def admin_member_management(request):
     }
 
     return render(request, 'admin_member_management.html', context)
-
 
 @login_required
 @user_passes_test(lambda u: u.is_staff)
