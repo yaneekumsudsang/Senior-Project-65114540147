@@ -1,0 +1,12 @@
+{% extends "nav.html" %}
+{% block title %}
+<div class="container mx-auto p-6">
+    <h1 class="text-xl font-bold text-red-600">ยืนยันการลบคูปอง</h1>
+    <p class="mt-4">คุณแน่ใจหรือไม่ว่าต้องการลบ <strong>{{ object.promotion.name }} - คูปองที่ {{ object.promotion_count }}</strong>?</p>
+    <form method="post" class="mt-6">
+        {% csrf_token %}
+        <button type="submit" class="px-4 py-2 bg-red-500 text-white rounded-lg">ยืนยันลบ</button>
+        <a href="{% url 'admin_coupon_management' %}" class="ml-4 text-gray-600">ยกเลิก</a>
+    </form>
+</div>
+{% endblock %}

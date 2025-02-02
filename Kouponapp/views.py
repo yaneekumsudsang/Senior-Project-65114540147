@@ -1154,3 +1154,51 @@ def delete_member(request, member_id):
         except Exception as e:
             messages.error(request, f'เกิดข้อผิดพลาดในการลบสมาชิก: {str(e)}')
     return redirect('admin_member_management')
+
+@login_required
+@user_passes_test(lambda u: u.is_staff)
+def admin_coupon_management(request):
+    """ แสดงแดชบอร์ด + รายการคูปองทั้งหมด """
+
+    # คำนวณสถิติ
+    total_coupons = Coupon.objects.count()  # คูปองทั้งหมด
+    used_coupons = Coupon.objects.filter(used=True).count()  # คูปองที่ถูกใช้แล้ว
+    unused_coupons = Coupon.objects.filter(used=False).count()  # คูปองที่ยังไม่ได้ใช้
+    total_promotions = Promotion.objects.count()  # โปรโมชั่นทั้งหมด
+
+    # รายการคูปอง
+    coupons = Coupon.objects.select_related('promotion', 'member').order_by('-collected_at')
+
+    context = {
+        'coupons': coupons,
+        'total_coupons': total_coupons,
+        'used_coupons': used_coupons,
+        'unused_coupons': unused_coupons,
+        'total_promotions': total_promotions,
+        'page_title': 'จัดการคูปอง',
+    }
+    return render(request, 'admin_coupon_management.html', context)
+
+@login_required
+@user_passes_test(lambda u: u.is_staff)
+def coupon_detail(request, coupon_id):
+    """ ดูรายละเอียดคูปอง """
+    coupon = get_object_or_404(Coupon.objects.select_related('promotion', 'member'), id=coupon_id)
+
+    context = {
+        'coupon': coupon,
+        'page_title': 'รายละเอียดคูปอง',
+    }
+    return render(request, 'coupon_detail.html', context)
+
+@login_required
+@user_passes_test(lambda u: u.is_staff)
+def delete_coupon(request, coupon_id):
+    """ ลบคูปอง """
+    coupon = get_object_or_404(Coupon, id=coupon_id)
+    if request.method == 'POST':
+        coupon.delete()
+        messages.success(request, 'ลบคูปองเรียบร้อยแล้ว!')
+        return redirect('admin_coupon_management')
+
+    return render(request, 'confirm_delete.html', {'object': coupon, 'page_title': 'ยืนยันการลบคูปอง'})

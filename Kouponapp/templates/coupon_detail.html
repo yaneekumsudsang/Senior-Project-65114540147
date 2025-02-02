@@ -1,0 +1,34 @@
+{% extends "nav.html" %}
+{% block title %}
+<div class="container mx-auto p-6">
+    <h1 class="text-2xl font-bold mb-4">รายละเอียดคูปอง</h1>
+
+    <div class="bg-white shadow-lg rounded-lg p-6">
+        <p class="text-gray-600"><strong>ชื่อโปรโมชั่น:</strong> {{ coupon.promotion.name }}</p>
+        <p class="text-gray-600"><strong>ลำดับคูปอง:</strong> {{ coupon.promotion_count }}</p>
+        <p class="text-gray-600"><strong>สมาชิกที่สะสม:</strong> {{ coupon.member.user.username|default:"-" }}</p>
+        <p class="text-gray-600"><strong>สะสมเมื่อ:</strong> {{ coupon.collected_at|date:"d M Y H:i" }}</p>
+        <p class="text-gray-600"><strong>สถานะ:</strong>
+            {% if coupon.used %}
+                <span class="text-green-500">ใช้แล้ว</span>
+            {% else %}
+                <span class="text-red-500">ยังไม่ได้ใช้</span>
+            {% endif %}
+        </p>
+
+        {% if coupon.collect_qr_code_image %}
+            <p class="text-gray-600 mt-4"><strong>QR Code สะสมคูปอง:</strong></p>
+            <img src="{{ coupon.collect_qr_code_image.url }}" alt="QR Code" class="w-48 h-48">
+        {% endif %}
+
+        {% if coupon.use_qr_code_url_image %}
+            <p class="text-gray-600 mt-4"><strong>QR Code ใช้คูปอง:</strong></p>
+            <img src="{{ coupon.use_qr_code_url_image.url }}" alt="QR Code" class="w-48 h-48">
+        {% endif %}
+
+        <div class="mt-6">
+            <a href="{% url 'admin_coupon_management' %}" class="text-blue-500 hover:underline">กลับไปที่รายการคูปอง</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
