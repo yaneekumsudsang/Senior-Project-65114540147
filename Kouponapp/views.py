@@ -56,6 +56,17 @@ def promotions_all(request):
     all_promotions = Promotion.objects.all()  # ดึงข้อมูลโปรโมชั่นทั้งหมด
     return render(request, 'promotions_all.html', {'all_promotions': all_promotions})
 
+def promotions_all_details(request, store_id, promotion_id):
+    promotion = get_object_or_404(Promotion, id=promotion_id, store_id=store_id)
+    coupons = Coupon.objects.filter(promotion=promotion)
+    stores = Store.objects.all()
+
+    return render(request, 'PromotionsAllDetails.html', {
+        'promotion': promotion,
+        'coupons': coupons,
+        'stores': stores,
+    })
+
 def promotions_member(request):
     # ดึงข้อมูลโปรโมชั่นสำหรับสมาชิก
     member_promotions = Promotion.objects.all()[:10]
@@ -1192,8 +1203,8 @@ def admin_coupon_management(request):
     unused_coupons = Coupon.objects.filter(used=False).count()  # คูปองที่ยังไม่ได้ใช้
     total_promotions = Promotion.objects.count()  # โปรโมชั่นทั้งหมด
 
-    # รายการคูปอง
-    coupons = Coupon.objects.select_related('promotion', 'member').order_by('-collected_at')
+    # รายการคูปอง (ดึงข้อมูลร้านค้าผ่าน Promotion)
+    coupons = Coupon.objects.select_related('promotion__store', 'member').order_by('-collected_at')
 
     context = {
         'coupons': coupons,

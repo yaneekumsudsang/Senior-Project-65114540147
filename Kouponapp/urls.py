@@ -16,6 +16,7 @@ urlpatterns = [
     # การแสดงโปรโมชั่น
     path("promotions/member/", views.promotions_member, name="promotions_member"),
     path("promotions/all/", views.promotions_all, name="promotions_all"),
+    path('promotions/all/details/<int:store_id>/promotion/<int:promotion_id>/', views.promotions_all_details, name='promotions_all_details'),
     path('promotion/details/member/<int:store_id>/<int:promotion_id>/<int:coupon_id>/', views.PromotionDetailsMember, name= "PromotionDetailsMember"),
 
     # คูปองที่ใช้แล้ว

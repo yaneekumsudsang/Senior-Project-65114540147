@@ -1,17 +1,54 @@
 {% extends "nav.html" %}
 {% block title %}
-  <h2>แก้ไขชื่อสมาชิก</h2>
-  <form method="post">
-    {% csrf_token %}
-    <div class="mb-3">
-      <label for="id_first_name" class="form-label">ชื่อ</label>
-      {{ form.first_name }}
+<div class="container mx-auto p-8 max-w-2xl">
+  <div class="flex justify-center items-center mt-4 mb-10">
+    <div class="flex border border-[#164863] rounded-full overflow-hidden">
+      <div class="px-6 py-2 bg-[#164863] text-white font-medium m-2 rounded-full focus:outline-none">
+        แก้ไขชื่อสมาชิก
+      </div>
     </div>
-    <div class="mb-3">
-      <label for="id_last_name" class="form-label">นามสกุล</label>
-      {{ form.last_name }}
+  </div>
+
+  <!-- Form Card -->
+  <div class="flex justify-center mb-6">
+<div class="bg-white rounded-lg shadow-lg p-6 mb-6 w-2/3 flex justify-center h-auto min-h-[250px]">
+      <form method="post" class="space-y-4 w-full">
+        {% csrf_token %}
+
+        <!-- Name Fields in One Line -->
+        <div class="flex items-center space-x-16">
+          <label for="id_first_name" class="text-gray-600 font-semibold w-24 ml-4">ชื่อ</label>
+          <div class="flex-1 w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">{{ form.first_name }}</div>
+        </div>
+
+        <div class="flex items-center space-x-14">
+          <label for="id_last_name" class="text-gray-600 font-semibold w-24 ml-4">นามสกุล</label>
+          <div class="flex-1 w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">{{ form.last_name }}</div>
+        </div>
+
+        <div class="mt-14 mb-4 flex justify-between items-center">
+          <!-- Back Button -->
+          <a href="javascript:history.back()"
+             class="inline-flex items-center px-4 py-2 bg-[#DDF2FD] hover:bg-[#164863] text-[#164863] hover:text-[#DDF2FD] text-sm font-medium rounded-lg transition duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-chevron-left">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="m14 16-4-4 4-4"/>
+            </svg>
+            <span class="ml-2">ย้อนกลับ</span>
+          </a>
+
+          <!-- Submit Button -->
+          <button type="submit"
+                  class="px-6 py-2 bg-green-500 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 flex items-center space-x-2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-check">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="m9 12 2 2 4-4"/>
+            </svg>
+            <span>บันทึกการเปลี่ยนแปลง</span>
+          </button>
+        </div>
+      </form>
     </div>
-    <button type="submit" class="btn btn-primary">บันทึกการเปลี่ยนแปลง</button>
-  </form>
-  <a href="{% url 'member_detail' member.id %}" class="btn btn-secondary mt-3">กลับ</a>
+  </div>
+</div>
 {% endblock %}

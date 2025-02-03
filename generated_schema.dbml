@@ -63,12 +63,35 @@ Table promotion {
   cups integer
   free integer
   name varchar
+  details text
+  count integer
 }
 
 Table coupon {
   id integer
   promotion_id integer [note: 'foreign key to promotion']
-  member_id_id integer [note: 'foreign key to member']
+  promotion_count integer
+  member_id integer [note: 'foreign key to member']
+  collect_qr_code_url varchar
+  use_qr_code_url varchar
+  collected_at timestamp
+  used_at timestamp
+}
+
+Table scannedqrcode {
+  id integer
+  scanned_text text
+  timestamp timestamp
+}
+
+Table storeownerrequest {
+  id integer
+  user_id integer [note: 'foreign key to user']
+  shop_name varchar
+  requested_at timestamp
+  status varchar
+  approved_at timestamp
+  approved_by_id integer [note: 'foreign key to user']
 }
 
 Ref: logentry.user_id > user.id // many-to-one
@@ -78,4 +101,6 @@ Ref: member.user_id > user.id // many-to-one
 Ref: store.owner_id > member.id // many-to-one
 Ref: promotion.store_id > store.id // many-to-one
 Ref: coupon.promotion_id > promotion.id // many-to-one
-Ref: coupon.member_id_id > member.id // many-to-one
+Ref: coupon.member_id > member.id // many-to-one
+Ref: storeownerrequest.user_id > user.id // many-to-one
+Ref: storeownerrequest.approved_by_id > user.id // many-to-one

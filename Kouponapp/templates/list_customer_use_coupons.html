@@ -5,29 +5,28 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-center items-center">
             <div class="flex border border-[#164863] rounded-full overflow-hidden">
-            <h1 class="px-6 py-2 bg-[#164863] text-white font-medium m-2 rounded-full focus:outline-none">คูปองที่สะสม</h1>
+            <h1 class="px-6 py-2 bg-[#164863] text-white font-medium m-2 rounded-full focus:outline-none">ประวัติการใช้งานคูปองของคุณ</h1>
             </div>
         </div>
-        <p class="py-4 text-gray-600 text-center">แสดงรายการคูปองที่คุณสะสม</p>
 
-        <div class="mb-6 bg-white rounded-lg p-6">
+        <div class="mb-6 bg-white rounded-lg p-6 shadow-md">
     <div class="flex flex-row flex-wrap gap-3">
-        <div class="text-center p-4 bg-blue-50 rounded-lg flex-1 min-w-[200px]">
+        <div class="text-center p-4 bg-blue-50 rounded-lg flex-1 min-w-[200px] shadow">
             <p class="text-sm text-gray-600">คูปองทั้งหมด</p>
             <p class="text-2xl font-bold text-blue-600">{{ total_collected_coupons }}</p>
         </div>
-        <div class="text-center p-4 bg-green-50 rounded-lg flex-1 min-w-[200px]">
+        <div class="text-center p-4 bg-green-50 rounded-lg flex-1 min-w-[200px] shadow">
             <p class="text-sm text-gray-600">คูปองที่ยังไม่ถูกใช้</p>
             <p class="text-2xl font-bold text-green-600">{{ available_coupons }}</p>
         </div>
-        <div class="text-center p-4 bg-red-50 rounded-lg flex-1 min-w-[200px]">
+        <div class="text-center p-4 bg-red-50 rounded-lg flex-1 min-w-[200px] shadow">
             <p class="text-sm text-gray-600">คูปองที่ถูกใช้งานแล้ว</p>
             <p class="text-2xl font-bold text-red-600">{{ used_coupons }}</p>
         </div>
     </div>
 </div>
 
-        <div class="h-[400px] overflow-y-auto place-items-center border-1 shadow-xl">
+        <div class="h-[450px] overflow-y-auto place-items-center border-1 shadow-xl">
             {% if coupons %}
             <div class="bg-white shadow-lg rounded-lg overflow-hidden">
                 <div class="overflow-x-auto">

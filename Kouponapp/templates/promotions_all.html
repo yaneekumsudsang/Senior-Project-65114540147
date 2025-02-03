@@ -16,7 +16,7 @@
         <!-- Promotion Cards -->
         <div class="grid grid-cols-1 gap-3 h-[500px] overflow-y-auto place-items-center mt-4">
             {% for promotion in all_promotions %}
-                <a href="" class="flex-shrink-0">
+                <a href="{% url 'promotions_all_details' store_id=promotion.store.id promotion_id=promotion.id %}" class="flex-shrink-0">
             <div class="relative bg-[#DDF2FD] w-[435px] h-[150px] flex items-center p-4 rounded-3xl">
 
                 <!-- วงกลมบน -->

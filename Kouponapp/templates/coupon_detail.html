@@ -1,8 +1,21 @@
 {% extends "nav.html" %}
-{% block title %}
-<div class="container mx-auto p-6">
-    <h1 class="text-2xl font-bold mb-4">รายละเอียดคูปอง</h1>
 
+{% block title %}
+<div class="max-h-screen py-4">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <a href="javascript:history.back()"
+       class="inline-flex items-center px-4 py-2 bg-[#DDF2FD] hover:bg-[#164863] text-[#164863] hover:text-[#DDF2FD] text-sm font-medium rounded-lg transition duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-chevron-left"><circle cx="12" cy="12" r="10"/><path d="m14 16-4-4 4-4"/></svg>
+        <span class="ml-2">ย้อนกลับ</span>
+    </a>
+
+        <div class="flex justify-center items-center">
+            <div class="flex border border-[#164863] rounded-full overflow-hidden">
+                <h1 class="px-6 py-2 bg-[#164863] text-white font-medium m-2 rounded-full focus:outline-none">
+                    รายละเอียดคูปอง
+                </h1>
+            </div>
+        </div>
     <div class="bg-white shadow-lg rounded-lg p-6">
         <p class="text-gray-600"><strong>ชื่อโปรโมชั่น:</strong> {{ coupon.promotion.name }}</p>
         <p class="text-gray-600"><strong>ลำดับคูปอง:</strong> {{ coupon.promotion_count }}</p>
@@ -25,10 +38,6 @@
             <p class="text-gray-600 mt-4"><strong>QR Code ใช้คูปอง:</strong></p>
             <img src="{{ coupon.use_qr_code_url_image.url }}" alt="QR Code" class="w-48 h-48">
         {% endif %}
-
-        <div class="mt-6">
-            <a href="{% url 'admin_coupon_management' %}" class="text-blue-500 hover:underline">กลับไปที่รายการคูปอง</a>
-        </div>
     </div>
 </div>
 {% endblock %}
