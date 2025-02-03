@@ -18,7 +18,7 @@
 
         <!-- แสดงสถิติคูปอง -->
         <div class="mb-6 bg-white rounded-lg p-6 shadow-md">
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="grid grid-cols-4 md:grid-cols-4 lg:grid-cols-4 gap-4">
                 <div class="text-center p-4 bg-blue-50 rounded-lg shadow">
                     <p class="text-sm text-gray-600">คูปองทั้งหมด</p>
                     <p class="text-2xl font-bold text-blue-600">{{ total_coupons }}</p>
@@ -50,7 +50,7 @@
         {% endif %}
 
         <!-- รายการคูปอง -->
-        <div class="h-[400px] overflow-y-auto border-1 shadow-xl rounded-lg bg-white">
+        <div class="h-[350px] overflow-y-auto border-1 shadow-xl rounded-lg bg-white">
             {% if coupons %}
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-200">

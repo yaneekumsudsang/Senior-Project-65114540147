@@ -4,6 +4,7 @@ from .models import Promotion, Store, Coupon
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.core.exceptions import ValidationError
 
+
 class RegisterForm(forms.Form):
     username = forms.CharField(label="ชื่อผู้ใช้", max_length=150, widget=forms.TextInput(attrs={
         'placeholder': 'ชื่อผู้ใช้',
@@ -172,3 +173,12 @@ class CouponForm(forms.ModelForm):
     class Meta:
         model = Coupon
         fields = ['promotion', 'promotion_count', 'collect', 'collect_qr_code_url']
+
+class MemberUpdateForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ['first_name', 'last_name']
+        widgets = {
+            'first_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'last_name': forms.TextInput(attrs={'class': 'form-control'}),
+        }

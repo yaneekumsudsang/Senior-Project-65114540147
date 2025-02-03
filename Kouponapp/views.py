@@ -19,7 +19,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.models import User
 from django.core.files.base import ContentFile
-from django.db.models import Count, Sum, Q
+from django.db.models import Count, Sum, Q, F
 from django.http import StreamingHttpResponse, HttpResponse, JsonResponse, HttpResponseForbidden
 from django.shortcuts import render, redirect, get_object_or_404
 from django.utils.timezone import now
@@ -35,6 +35,18 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.db.models import Count, Q
 from django.contrib import messages
 from django.utils import timezone
+from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
+from django.contrib import messages
+from .models import Member
+from .forms import MemberUpdateForm
+
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.db.models import Count, Q, Case, When, BooleanField, F
+from django.utils import timezone
+from django.shortcuts import render
+from .models import Member, User
 
 def promotions_view(request):
     data = Promotion.objects.all()[:5]
@@ -1074,37 +1086,28 @@ def store_detail(request, store_id):
 @login_required
 @user_passes_test(lambda u: u.is_staff)
 def admin_member_management(request):
-    # ดึงข้อมูลสมาชิกพร้อมร้านค้า (ถ้าเป็นเจ้าของร้าน)
-    members = Member.objects.select_related('user').prefetch_related(
-        'stores',
-        'stores__promotions',
-        'stores__promotions__coupons'
+    # ดึงข้อมูลสมาชิกทั้งหมด
+    members = Member.objects.select_related('user').annotate(
+        is_admin=Case(
+            When(user__is_staff=True, then=True),
+            default=False,
+            output_field=BooleanField()
+        ),
+        date_joined=F('user__date_joined')  # วันที่สมัคร
     )
 
-    # กรองเฉพาะเจ้าของร้าน
-    owners = members.filter(is_owner=True)
-    non_owners = members.filter(is_owner=False)
-
-    total_owners = owners.count()
-    total_non_owners = non_owners.count()
-    total_members = total_owners + total_non_owners
-
-    # คำนวณสถิติสำหรับแต่ละสมาชิก
-    members = members.annotate(
-        store_count=Count('stores'),
-        total_promotions=Count('stores__promotions'),
-        total_coupons=Count('stores__promotions__coupons'),
-        active_promotions=Count(
-            'stores__promotions',
-            filter=Q(stores__promotions__end__gte=timezone.now())
-        )
-    )
+    # คำนวณจำนวนสมาชิก
+    total_members = members.count()
+    total_owners = members.filter(is_owner=True).count()
+    total_non_owners = total_members - total_owners
+    total_admins = User.objects.filter(is_staff=True).count()
 
     context = {
         'members': members,
         'total_members': total_members,
         'total_owners': total_owners,
         'total_non_owners': total_non_owners,
+        'total_admins': total_admins,
         'page_title': 'Member Management',
     }
 
@@ -1144,6 +1147,30 @@ def member_detail(request, member_id):
 
 @login_required
 @user_passes_test(lambda u: u.is_staff)
+def update_member_name(request, member_id):
+    member = get_object_or_404(Member.objects.select_related('user'), id=member_id)
+    user = member.user
+
+    if request.method == 'POST':
+        form = MemberUpdateForm(request.POST, instance=user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'อัปเดตชื่อสมาชิกเรียบร้อยแล้ว!')
+            return redirect('member_detail', member_id=member.id)
+        else:
+            messages.error(request, 'เกิดข้อผิดพลาดในการอัปเดตชื่อสมาชิก')
+
+    else:
+        form = MemberUpdateForm(instance=user)
+
+    context = {
+        'form': form,
+        'member': member,
+    }
+    return render(request, 'update_member_name.html', context)
+
+@login_required
+@user_passes_test(lambda u: u.is_staff)
 def delete_member(request, member_id):
     if request.method == 'POST':
         member = get_object_or_404(Member, id=member_id)
@@ -1158,7 +1185,6 @@ def delete_member(request, member_id):
 @login_required
 @user_passes_test(lambda u: u.is_staff)
 def admin_coupon_management(request):
-    """ แสดงแดชบอร์ด + รายการคูปองทั้งหมด """
 
     # คำนวณสถิติ
     total_coupons = Coupon.objects.count()  # คูปองทั้งหมด

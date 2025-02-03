@@ -1,0 +1,17 @@
+{% extends "nav.html" %}
+{% block title %}
+  <h2>แก้ไขชื่อสมาชิก</h2>
+  <form method="post">
+    {% csrf_token %}
+    <div class="mb-3">
+      <label for="id_first_name" class="form-label">ชื่อ</label>
+      {{ form.first_name }}
+    </div>
+    <div class="mb-3">
+      <label for="id_last_name" class="form-label">นามสกุล</label>
+      {{ form.last_name }}
+    </div>
+    <button type="submit" class="btn btn-primary">บันทึกการเปลี่ยนแปลง</button>
+  </form>
+  <a href="{% url 'member_detail' member.id %}" class="btn btn-secondary mt-3">กลับ</a>
+{% endblock %}

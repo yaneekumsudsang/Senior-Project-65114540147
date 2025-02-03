@@ -11,16 +11,16 @@
         <p class="py-4 text-gray-600 text-center">แสดงรายการร้านค้าทั้งหมดในระบบ</p>
 
         <div class="mb-6 bg-white rounded-lg p-6 shadow-md">
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <div class="text-center p-4 bg-blue-50 rounded-lg">
+            <div class="grid grid-cols-3 md:grid-cols-3 lg:grid-cols-3 gap-4">
+                <div class="text-center p-4 bg-blue-50 rounded-lg shadow">
                     <p class="text-sm text-gray-600">จำนวนร้านค้าทั้งหมด</p>
                     <p class="text-2xl font-bold text-blue-600">{{ total_stores }}</p>
                 </div>
-                <div class="text-center p-4 bg-yellow-50 rounded-lg">
+                <div class="text-center p-4 bg-yellow-50 rounded-lg shadow">
                     <p class="text-sm text-gray-600">จำนวนโปรโมชั่นทั้งหมด</p>
                     <p class="text-2xl font-bold text-yellow-600">{{ total_promotions }}</p>
                 </div>
-                <div class="text-center p-4 bg-green-50 rounded-lg">
+                <div class="text-center p-4 bg-green-50 rounded-lg shadow">
                     <p class="text-sm text-gray-600">จำนวนคูปองทั้งหมด</p>
                     <p class="text-2xl font-bold text-green-600">{{ total_coupons }}</p>
                 </div>
@@ -37,7 +37,7 @@
         </div>
         {% endif %}
 
-        <div class="h-[400px] overflow-y-auto place-items-center border-1 shadow-xl">
+        <div class="h-[350px] overflow-y-auto place-items-center border-1 shadow-xl">
             {% if stores %}
             <div class="bg-white shadow-lg rounded-lg overflow-hidden">
                 <div class="overflow-x-auto">
