@@ -3,6 +3,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from . import views
 
+
 urlpatterns = [
     # หน้าแรกและ Authentication
     path("", views.promotions_view, name="home"),

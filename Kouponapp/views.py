@@ -1,4 +1,5 @@
 # Standard library imports
+import json
 import logging
 import os
 import io
@@ -47,6 +48,14 @@ from django.db.models import Count, Q, Case, When, BooleanField, F
 from django.utils import timezone
 from django.shortcuts import render
 from .models import Member, User
+from django.utils import timezone
+from django.utils import timezone
+from django.shortcuts import redirect
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from .models import Member, Store, Promotion, Coupon, ScannedQRCode
+
+
 
 def promotions_view(request):
     data = Promotion.objects.all()[:5]
@@ -211,42 +220,61 @@ def profile_view(request):
 
     return render(request, 'profile.html', {'form': form})
 
+
 @login_required
 def promotions_store(request):
-    # ตรวจสอบว่า user เป็นเจ้าของร้าน (is_owner=True)
     if not request.user.member.is_owner:
-        # ถ้าไม่ใช่เจ้าของร้าน ให้ redirect ไปยังหน้าอื่น
-        return redirect('home')  # หรือไปยังหน้าอื่นที่คุณต้องการ
+        return redirect('home')
 
-    # ดึงข้อมูลร้านที่เจ้าของมี
     store = Store.objects.filter(owner=request.user.member).first()
 
-    # ถ้าพบร้านที่เจ้าของมี
     if store:
-        # ดึงโปรโมชันที่เชื่อมโยงกับร้านของเจ้าของ
+        # ดึงข้อมูลโปรโมชั่นทั้งหมดของร้าน
         promotions = Promotion.objects.filter(store=store)
+        promotion_stats = []
 
-        # ดึงข้อมูลคูปองที่ถูกใช้และนับจำนวนคูปองที่ถูกใช้ในแต่ละโปรโมชั่น (เฉพาะร้านของเจ้าของ)
-        used_coupons_by_promotion = Coupon.objects.filter(
-            used=True,  # คูปองที่ถูกใช้แล้ว
-            promotion__store=store  # คูปองที่ถูกใช้ในร้านของเจ้าของ
-        ).values(
-            'promotion__name'  # ชื่อของโปรโมชั่น (ดึงจาก Promotion)
-        ).annotate(
-            total_used=Count('id')  # นับจำนวนคูปองที่ถูกใช้
-        )
+        for promotion in promotions:
+            coupons = Coupon.objects.filter(promotion=promotion)
+            total_coupons = coupons.count()
 
-        # สร้าง dictionary เพื่อเก็บข้อมูลโปรโมชั่นและจำนวนคูปองที่ถูกใช้
-        promotion_data = {item['promotion__name']: item['total_used'] for item in used_coupons_by_promotion}
+            if total_coupons > 0:
+                collected_coupons = coupons.filter(collect=True).count()
+                uncollected_coupons = total_coupons - collected_coupons
+                used_coupons = coupons.filter(used=True).count()
+                unused_coupons = total_coupons - used_coupons
+
+                collected_percentage = (collected_coupons / total_coupons) * 100
+                uncollected_percentage = (uncollected_coupons / total_coupons) * 100
+                used_percentage = (used_coupons / total_coupons) * 100
+                unused_percentage = (unused_coupons / total_coupons) * 100
+
+                promotion_stats.append({
+                    'name': promotion.name,
+                    'total_coupons': total_coupons,
+                    'collected_coupons': collected_coupons,
+                    'uncollected_coupons': uncollected_coupons,
+                    'used_coupons': used_coupons,
+                    'unused_coupons': unused_coupons,
+                    'collected_percentage': collected_percentage,
+                    'uncollected_percentage': uncollected_percentage,
+                    'used_percentage': used_percentage,
+                    'unused_percentage': unused_percentage,
+                })
+
+        context = {
+            'promotions': promotions,
+            'promotion_stats': promotion_stats,
+            'promotion_stats_json': json.dumps(promotion_stats),
+            'has_data': len(promotion_stats) > 0
+        }
     else:
-        promotions = []
-        promotion_data = {}
+        context = {
+            'promotion_stats': [],
+            'promotion_stats_json': '[]',
+            'has_data': False
+        }
 
-    # ส่งข้อมูลโปรโมชันและข้อมูลกราฟไปยังเทมเพลต
-    return render(request, 'promotions_store.html', {
-        'promotions': promotions,
-        'promotion_data': promotion_data  # ส่งข้อมูลโปรโมชั่นและจำนวนคูปองที่ถูกใช้ไปยังเทมเพลต
-    })
+    return render(request, 'promotions_store.html', context)
 
 @login_required
 def used_coupons_by_member_store(request):
@@ -483,7 +511,7 @@ def detect(request):
     return render(request, 'scan_qrcode.html', context={'cam_status': status})
 
 @login_required
-def Collect_coupons(request, store_id, promotion_id, coupon_id, timezone):
+def Collect_coupons(request, store_id, promotion_id, coupon_id):
     """ฟังก์ชันสำหรับการสแกน QR Code และเก็บคูปอง"""
     try:
         current_member = Member.objects.get(user=request.user)
@@ -525,6 +553,7 @@ def Collect_coupons(request, store_id, promotion_id, coupon_id, timezone):
         messages.error(request, "ไม่พบคูปองนี้ในระบบ")
 
     return redirect('my_coupons')
+
 
 @login_required
 def my_coupons(request):
