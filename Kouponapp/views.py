@@ -148,7 +148,7 @@ def user_login(request):
                 login(request, user)  # Log in the user
 
                 if user.is_superuser:
-                    return redirect('admin_store_requests')
+                    return redirect('admin_member_management')
 
                 # ตรวจสอบว่า user เป็นเจ้าของร้าน
                 if user.member.is_owner:
@@ -1167,7 +1167,7 @@ def update_member_name(request, member_id):
         if form.is_valid():
             form.save()
             messages.success(request, 'อัปเดตชื่อสมาชิกเรียบร้อยแล้ว!')
-            return redirect('member_detail', member_id=member.id)
+            return redirect('admin_member_management')
         else:
             messages.error(request, 'เกิดข้อผิดพลาดในการอัปเดตชื่อสมาชิก')
 
