@@ -60,6 +60,10 @@ class Promotion(models.Model):
         verbose_name_plural = 'โปรโมชั่น'
         verbose_name = 'โปรโมชั่น'
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(args, kwargs)
+        self.coupon_set = None
+
     def __str__(self):
         return f"{self.name} ({self.store.store_name})"
 

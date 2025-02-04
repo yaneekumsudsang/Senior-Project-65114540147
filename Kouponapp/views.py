@@ -285,7 +285,7 @@ def used_coupons_by_member_store(request):
     return render(request, 'used_coupons_by_member_store.html', {'used_coupons': used_coupons})
 
 @login_required
-def CouponDesign_Store(request, id=None):
+def CouponDesign_Store(request, id):
     # ดึงร้านค้าของผู้ใช้งาน
     member = get_object_or_404(Member, user=request.user)
     store = get_object_or_404(Store, owner=member)
@@ -738,6 +738,7 @@ def verify_coupons(request, promotion_id):
             member=member,
             collect=True
         ).select_related('promotion', 'promotion__store')
+        print(collected_coupons.values())
 
         total_required = promotion.cups  # Changed from count to cups
         collected_count = collected_coupons.count()
@@ -985,7 +986,7 @@ def store_request_detail(request, request_id):
 def approve_store_request(request, request_id):
     if not request.user.is_staff:
         messages.error(request, "คุณไม่มีสิทธิ์เข้าถึงหน้านี้")
-        return redirect('admin_store_requests')
+        return redirect('home')
 
     shop_request = get_object_or_404(StoreOwnerRequest, id=request_id)
 

@@ -26,7 +26,7 @@ urlpatterns = [
 
     # สำหรับเจ้าของร้าน
     path("owner/promotions/", views.promotions_store, name="promotions_store"),
-    path("promotion/design/", views.CouponDesign_Store, name="CouponDesign_Store"),
+    path("promotion/design/<int:id>", views.CouponDesign_Store, name="CouponDesign_Store"),
     path("coupon/preview/<int:promotion_id>/", views.CouponPreview, name="CouponPreview"),
     path("owner/promotions/<int:promotion_id>/<int:coupon_id>/", views.PromotionDetailsStore, name= "promotion_details_store"),
     path('coupons/member/collect/', views.list_member_collect_coupons, name='list_member_collect_coupons'),
@@ -46,7 +46,7 @@ urlpatterns = [
     path('request-store/', views.request_store_ownership, name='request_store'),
     path('admin-store-requests/', views.admin_store_requests, name='admin_store_requests'),
     path('store-requests/<int:request_id>/', views.store_request_detail, name='store_request_detail'),
-    path('store-requests/<int:request_id>/approve/', views.approve_store_request, name='approve_store_request'),
+    path('approve-store-request/<int:request_id>/', views.approve_store_request, name='approve_store_request'),
     path('admin-stores/', views.admin_store_management, name='admin_store_management'),
     path('admin-stores/<int:store_id>/delete/', views.delete_store, name='delete_store'),
     path('admin-stores/<int:store_id>/', views.store_detail, name='store_detail'),
