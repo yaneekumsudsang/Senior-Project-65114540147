@@ -748,7 +748,7 @@ def verify_coupons(request, promotion_id):
             'promotion': promotion,
             'collected_count': collected_count,
             'total_required': total_required,
-            'total_coupons': promotion.coupon_set.count(),
+            'total_coupons': promotion.coupons.count(),
             'is_complete': is_complete,
             'coupons': collected_coupons,
         }
@@ -796,40 +796,51 @@ def verify_pending_coupons(request, promotion_id):
         messages.error(request, "ไม่มีโปรโมชั่นเพิ่มเติม")
         return redirect('my_coupons')
 
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from .models import Coupon, ScannedQRCode
+
 @login_required
 def use_coupon(request, promotion_id):
-   scanned_qrcodes = ScannedQRCode.objects.all()
-   username = request.user.username
+    scanned_qrcodes = ScannedQRCode.objects.all()
+    username = request.user.username
 
-   coupons = (Coupon.objects
-              .filter(
-                  id__in=scanned_qrcodes.values_list('scanned_text', flat=True),
-                  collect=True,
-                  promotion_id=promotion_id
-              )
-              .select_related('promotion', 'promotion__store', 'member')
-              .order_by('promotion_count'))
+    # ดึงคูปองที่ตรงกับ promotion_id และมี collect=True
+    coupons = (Coupon.objects
+               .filter(
+                   id__in=scanned_qrcodes.values_list('scanned_text', flat=True),
+                   collect=True,
+                   promotion_id=promotion_id
+               )
+               .select_related('promotion', 'promotion__store', 'member')
+               .order_by('promotion_count'))
 
-   if coupons.exists():
-       promotion = coupons.first().promotion
-       collected_count = coupons.count()
-       is_completed = collected_count >= promotion.cups  # Changed from count to cups
+    if coupons.exists():
+        promotion = coupons.first().promotion
+        collected_count = coupons.count()
+        is_completed = collected_count >= promotion.cups  # ใช้ cups เป็นเงื่อนไข
 
-       if is_completed:
-           context = {
-               'username': username,
-               'promotion': promotion,
-               'coupons': coupons,
-               'collected_count': collected_count,
-               'total_required': promotion.cups  # Changed from count to cups
-           }
-           return render(request, 'use_coupon.html', context)
-       else:
-           messages.error(request, 'โปรโมชั่นนี้ยังสะสมไม่ครบ')
-   else:
-       messages.error(request, 'ไม่พบคูปองสำหรับโปรโมชั่นนี้')
+        # ดึง QR Code รูปแรกของโปรโมชั่น
+        qr_code_image = coupons.first().use_qr_code_url_image.url if coupons.first().use_qr_code_url_image else None
 
-   return redirect('completed_coupons')
+        if is_completed:
+            context = {
+                'username': username,
+                'promotion': promotion,
+                'coupons': coupons,
+                'collected_count': collected_count,
+                'total_required': promotion.cups,
+                'qr_code_image': qr_code_image  # ส่งพาธ QR Code ไปยังเทมเพลต
+            }
+            return render(request, 'use_coupon.html', context)
+        else:
+            messages.error(request, 'โปรโมชั่นนี้ยังสะสมไม่ครบ')
+    else:
+        messages.error(request, 'ไม่พบคูปองสำหรับโปรโมชั่นนี้')
+
+    return redirect('completed_coupons')
+
 
 @login_required
 def confirm_coupon_use(request, store_id, promotion_id, coupon_id):

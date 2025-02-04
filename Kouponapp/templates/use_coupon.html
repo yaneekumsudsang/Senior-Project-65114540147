@@ -43,10 +43,15 @@
 
                     <div class="flex flex-col items-center justify-center">
                         <p class="mb-2 text-[#164863] ">คิวอาร์โค้ดสำหรับแลกคูปอง</p>
-                        <img src="{% static coupon.use_qr_code_url_image %}" alt="QR Code for Coupon {{ coupon.coupon.use_qr_code_url }}" class="w-48 h-48">
+                        {% if qr_code_image %}
+    <img src="{{ qr_code_image }}" alt="QR Code for Promotion {{ promotion.id }}" class="w-48 h-48">
+{% else %}
+    <p class="text-red-500">ไม่พบ QR Code สำหรับโปรโมชั่นนี้</p>
+{% endif %}
+
                     </div>
 
-                    <p class="text-sm text-gray-500 mb-4">
+                    <p class="text-sm text-gray-500 mb-4 text-end">
                         ใช้งานได้ถึง: {{ coupon.promotion.end|date:"d F Y" }}
                     </p>
                 </div>
