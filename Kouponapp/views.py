@@ -285,7 +285,7 @@ def used_coupons_by_member_store(request):
     return render(request, 'used_coupons_by_member_store.html', {'used_coupons': used_coupons})
 
 @login_required
-def CouponDesign_Store(request, id):
+def CouponDesign_Store(request, id=None):
     # ดึงร้านค้าของผู้ใช้งาน
     member = get_object_or_404(Member, user=request.user)
     store = get_object_or_404(Store, owner=member)

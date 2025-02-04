@@ -60,9 +60,9 @@ class Promotion(models.Model):
         verbose_name_plural = 'โปรโมชั่น'
         verbose_name = 'โปรโมชั่น'
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(args, kwargs)
-        self.coupon_set = None
+    #def __init__(self, *args, **kwargs):
+    #    super().__init__(args, kwargs)
+    #    self.coupon_set = None
 
     def __str__(self):
         return f"{self.name} ({self.store.store_name})"
@@ -75,8 +75,8 @@ class Coupon(models.Model):
     member = models.ForeignKey(Member, on_delete=models.CASCADE, null=True, blank=True, verbose_name="สมาชิกที่สะสมคูปอง")
     collect_qr_code_url = models.URLField(max_length=200, blank=True, null=True, verbose_name="URL ของ QR Code สำหรับเก็บคูปอง")
     use_qr_code_url = models.URLField(max_length=200, blank=True, null=True, verbose_name="URL ของ QR Code สำหรับใช้คูปอง")
-    collect_qr_code_image = models.ImageField(upload_to='qr_codes/', blank=True, null=True, verbose_name="ภาพ QR Code สำหรัลสะสมคูปอง")
-    use_qr_code_url_image = models.ImageField(upload_to='qr_codes/', blank=True, null=True, verbose_name="ภาพ QR Code สำหรับใช้คูปอง")
+    collect_qr_code_image = models.ImageField(upload_to='collect_qr_codes/', blank=True, null=True, verbose_name="ภาพ QR Code สำหรัลสะสมคูปอง")
+    use_qr_code_url_image = models.ImageField(upload_to='use_qr_codes/', blank=True, null=True, verbose_name="ภาพ QR Code สำหรับใช้คูปอง")
     collected_at = models.DateTimeField(null=True, blank=True, verbose_name="เวลาที่สะสม")
     used = models.BooleanField(default=False, verbose_name="ตรวจสอบการใช้งาน")
     used_at = models.DateTimeField(null=True, blank=True, verbose_name="เวลาที่ใช้งาน")
@@ -123,7 +123,7 @@ class Coupon(models.Model):
         if self.collect_qr_code_url and (not self.collect_qr_code_image or not os.path.exists(self.collect_qr_code_image.path)):
             self.generate_qr_code()
             # Save again to update the image field
-            super().save(update_fields=['qr_code_image'] if self.id else None)
+            super().save(update_fields=['collect_qr_code_image'] if self.id else None)
 
 class ScannedQRCode(models.Model):
     scanned_text = models.TextField()  # ข้อมูลที่ได้จากการสแกน

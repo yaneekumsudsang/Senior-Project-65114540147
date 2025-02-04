@@ -26,7 +26,7 @@ urlpatterns = [
 
     # สำหรับเจ้าของร้าน
     path("owner/promotions/", views.promotions_store, name="promotions_store"),
-    path("promotion/design/<int:id>", views.CouponDesign_Store, name="CouponDesign_Store"),
+    path("promotion/design/", views.CouponDesign_Store, name="CouponDesign_Store"),
     path("coupon/preview/<int:promotion_id>/", views.CouponPreview, name="CouponPreview"),
     path("owner/promotions/<int:promotion_id>/<int:coupon_id>/", views.PromotionDetailsStore, name= "promotion_details_store"),
     path('coupons/member/collect/', views.list_member_collect_coupons, name='list_member_collect_coupons'),
