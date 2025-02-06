@@ -18,24 +18,50 @@
             <div class="relative inline-block">
 
                 <!-- รูปโปรไฟล์ -->
-                {% if member.profile_img %}
-                    <img src="{{ member.profile_img.url }}" alt="Profile Image" class="w-48 h-48 object-cover rounded-full flex items-center justify-center border border-gray-300">
-                {% else %}
-                    <div class="w-48 h-48 bg-blue-100 text-white flex items-center justify-center rounded-full overflow-hidden relative">
-                        <span class="text-9xl font-bold">👤</span> <!-- ใช้ '?' แทนรูปโปรไฟล์เมื่อไม่มีรูป -->
-                    </div>
-                {% endif %}
-
-                <!-- ปุ่มแก้ไข -->
-                <label for="profile_img" class="absolute top-2 right-2 bg-white p-2 rounded-full shadow hover:bg-gray-100 cursor-pointer z-10">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600" viewBox="0 0 20 20" fill="currentColor">
-                        <path d="M17.414 2.586a2 2 0 010 2.828l-10 10a2 2 0 01-.707.707l-4 1a1 1 0 01-1.262-1.262l1-4a2 2 0 01.707-.707l10-10a2 2 0 012.828 0zM15.293 3.293l-10 10L4 16l2.293-.293 10-10L15.293 3.293zM16.707 1.707a4 4 0 00-5.656 0l-10 10a4 4 0 00-1.177 2.122l-1 4a3 3 0 003.707 3.707l4-1a4 4 0 002.122-1.177l10-10a4 4 0 000-5.656z" />
-                    </svg>
-                    <!-- ฟิลด์สำหรับอัปโหลดรูป -->
-                    <input type="file" id="profile_img" name="profile_img" class="hidden" />
-                </label>
+<div class="relative inline-block">
+    <div id="profile-image-container">
+        {% if member.profile_img %}
+            <img id="profile-preview" src="{{ member.profile_img.url }}" alt="Profile Image" class="w-48 h-48 object-cover rounded-full flex items-center justify-center border border-gray-300">
+        {% else %}
+            <div id="profile-preview" class="w-48 h-48 bg-[#164863] text-white flex items-center justify-center rounded-full overflow-hidden relative">
+                <span class="text-9xl font-bold">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user-round"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/></svg>
+                </span>
             </div>
+        {% endif %}
+    </div>
 
+    <!-- ปุ่มแก้ไข -->
+    <label for="profile_img" class="absolute top-2 right-2 bg-white p-2 text-[#164863] rounded-full shadow hover:bg-[#DDF2FD] cursor-pointer z-10">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user-round-pen"><path d="M2 21a8 8 0 0 1 10.821-7.487"/><path d="M21.378 16.626a1 1 0 0 0-3.004-3.004l-4.01 4.012a2 2 0 0 0-.506.854l-.837 2.87a.5.5 0 0 0 .62.62l2.87-.837a2 2 0 0 0 .854-.506z"/><circle cx="10" cy="8" r="5"/></svg>
+        <input type="file" id="profile_img" name="profile_img" class="hidden" accept="image/*" />
+    </label>
+</div>
+            <div id="popup-container" class="w-full flex justify-center items-center fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 transition-opacity duration-500 opacity-100">
+    {% if messages %}
+        {% for message in messages %}
+            <div class="bg-[#DDF2FD] border border-[#164863] text-[#164863] px-4 py-3 rounded mb-4 w-1/4 text-center shadow-lg h-32 flex flex-col justify-between items-center">
+                <div class="flex justify-center">
+                    {% if message.tags == 'warning' %}
+                        <svg xmlns="http://www.w3.org/2000/svg" width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user-round-x">
+                            <path d="M2 21a8 8 0 0 1 11.873-7"/>
+                            <circle cx="10" cy="8" r="5"/>
+                            <path d="m17 17 5 5"/>
+                            <path d="m22 17-5 5"/>
+                        </svg>
+                    {% elif message.tags == 'success' %}
+                        <svg xmlns="http://www.w3.org/2000/svg" width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user-round-check">
+                            <path d="M2 21a8 8 0 0 1 13.292-6"/>
+                            <circle cx="10" cy="8" r="5"/>
+                            <path d="m16 19 2 2 4-4"/>
+                        </svg>
+                    {% endif %}
+                </div>
+                <span class="block mt-auto mb-2">{{ message }}</span>
+            </div>
+        {% endfor %}
+    {% endif %}
+</div>
             <!-- ฟอร์มแก้ไขข้อมูลส่วนตัว -->
             <div class="form-group">
                 <label for="first_name" class="block text-sm font-medium text-gray-700">ชื่อ</label>
@@ -57,6 +83,8 @@
 
             <!-- ปุ่มบันทึกข้อมูล -->
             <button type="submit" class="px-6 py-2 mt-4 bg-[#164863] border text-white rounded-lg hover:bg-[#DDF2FD] hover:text-[#164863]">บันทึกข้อมูล</button>
+
+            </div>
         </form>
         </div>
     </section>
@@ -90,29 +118,58 @@
 </div>
 
 <script>
-    document.getElementById("requestOwnershipBtn").addEventListener("click", function() {
-        document.getElementById("ownershipModal").classList.remove("hidden");
-    });
+    // เพิ่มในส่วน <script>
+document.getElementById("requestOwnershipBtn").addEventListener("click", function() {
+    document.getElementById("ownershipModal").classList.remove("hidden");
+});
 
-    document.getElementById("closeModal").addEventListener("click", function() {
-        document.getElementById("ownershipModal").classList.add("hidden");
-    });
+document.getElementById("closeModal").addEventListener("click", function() {
+    document.getElementById("ownershipModal").classList.add("hidden");
+});
 
-    document.getElementById("storeRequestForm").addEventListener("submit", function(event) {
-        event.preventDefault();
+// ปิด Modal เมื่อคลิกพื้นหลัง
+document.addEventListener("click", function(event) {
+    const modal = document.getElementById("ownershipModal");
+    const modalContent = modal.querySelector(".bg-white");
+    const requestBtn = document.getElementById("requestOwnershipBtn");
 
-        let shopName = document.getElementById("shopName").value.trim();
-        if (shopName === "") {
-            alert("กรุณากรอกชื่อร้าน");
-            return;
+    if (event.target === modal && event.target !== modalContent && event.target !== requestBtn) {
+        modal.classList.add("hidden");
+    }
+});
+// Image preview functionality
+    document.getElementById('profile_img').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const container = document.getElementById('profile-image-container');
+                const oldPreview = document.getElementById('profile-preview');
+
+                // Create new image preview
+                const newPreview = document.createElement('img');
+                newPreview.id = 'profile-preview';
+                newPreview.src = event.target.result;
+                newPreview.alt = 'Profile Preview';
+                newPreview.className = 'w-48 h-48 object-cover rounded-full flex items-center justify-center border border-gray-300';
+
+                // Replace old preview with new one
+                oldPreview.replaceWith(newPreview);
+            };
+            reader.readAsDataURL(file);
         }
-
-        alert("ส่งคำขอสำเร็จ! รอแอดมินตรวจสอบ");  // แจ้งเตือนเมื่อส่งสำเร็จ
-        document.getElementById("ownershipModal").classList.add("hidden");
-
-        // ส่งฟอร์มไป backend หลังจากแสดง alert
-        this.submit();
+    });
+    // Add popup auto-hide functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        const popup = document.getElementById("popup-container");
+        if (popup) {
+            setTimeout(() => {
+                popup.style.opacity = "0";
+                setTimeout(() => {
+                    popup.style.display = "none";
+                }, 500);
+            }, 3000);
+        }
     });
 </script>
-
 {% endblock %}

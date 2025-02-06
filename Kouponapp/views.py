@@ -4,13 +4,12 @@ import logging
 import os
 import io
 import base64
-from datetime import timezone, timedelta
+from datetime import timezone
 
 # Third-party imports
 import numpy as np
 import cv2
 from pyzbar.pyzbar import decode
-import segno
 from qr_code.qrcode.utils import QRCodeOptions
 
 # Django built-in imports
@@ -28,34 +27,14 @@ from django.views.decorators.cache import never_cache
 
 # Local app imports
 from .forms import RegisterForm, LoginForm, ProfileForm, PromotionForm
-from .models import Member, Store, Promotion, Coupon, ScannedQRCode, StoreOwnerRequest
-from django.contrib.auth.decorators import login_required, user_passes_test
-from django.utils import timezone
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required, user_passes_test
-from django.db.models import Count, Q
-from django.contrib import messages
-from django.utils import timezone
 from django.shortcuts import render, get_object_or_404, redirect
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth.models import User
-from django.contrib import messages
-from .models import Member
 from .forms import MemberUpdateForm
 
-from django.contrib.auth.decorators import login_required, user_passes_test
 from django.db.models import Count, Q, Case, When, BooleanField, F
+from .models import *
 from django.utils import timezone
-from django.shortcuts import render
-from .models import Member, User
-from django.utils import timezone
-from django.utils import timezone
-from django.shortcuts import redirect
-from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from .models import Member, Store, Promotion, Coupon, ScannedQRCode
-
-
+from datetime import date
 
 def promotions_view(request):
     data = Promotion.objects.all()[:5]
@@ -188,38 +167,39 @@ def koupon_logout(request):
     logout(request)
     return redirect('home')
 
+@login_required
 def profile_view(request):
     try:
-        member = Member.objects.get(user=request.user)  # ดึงข้อมูลจาก Member
+        member = Member.objects.get(user=request.user)
     except Member.DoesNotExist:
-        member = None  # หากไม่พบข้อมูล Member ให้ใช้ None แทน
+        member = None
 
     if request.method == 'POST':
-        # ใช้ instance ของ User และ Member ในฟอร์ม
         form = ProfileForm(request.POST, request.FILES, instance=request.user, member=member)
         if form.is_valid():
-            form.save()  # บันทึกข้อมูลใน User และ Member
+            form.save()
+
+            # Handle profile image upload
+            if 'profile_img' in request.FILES:
+                if member is None:
+                    member = Member.objects.create(user=request.user)
+                member.profile_img = request.FILES['profile_img']
+                member.save()
+
             messages.success(request, 'แก้ไขข้อมูลสำเร็จแล้ว')
-            return redirect('profile')  # หรือหน้าโปรไฟล์
+            return redirect('profile')
         else:
             messages.error(request, 'มีข้อผิดพลาด กรุณาตรวจสอบข้อมูลอีกครั้ง')
     else:
-        # โหลดข้อมูลจาก User และ Member ลงในฟอร์ม
         form = ProfileForm(instance=request.user, member=member)
 
-        # เพิ่มการเช็คสถานะคำขอ
-        pending_request = StoreOwnerRequest.objects.filter(
-            user=request.user,
-            status='pending'
-        ).exists()
+    context = {
+        'form': form,
+        'member': member,
+        'user': request.user,
+    }
 
-        context = {
-            'user': request.user,
-            'pending_request': pending_request,
-        }
-
-    return render(request, 'profile.html', {'form': form})
-
+    return render(request, 'profile.html', context)
 
 @login_required
 def promotions_store(request):
@@ -529,7 +509,7 @@ def Collect_coupons(request, store_id, promotion_id, coupon_id):
 
         if coupon.collect:
             if coupon.member:
-                messages.error(request, f"คูปองนี้ถูกสะสมไปแล้วโดย {coupon.member.user.username}")
+                messages.error(request, f"คูปองนี้ถูกสะสมไปแล้วโดย {coupon.member.user.first_name}")
             else:
                 messages.error(request, "คูปองนี้ถูกสะสมไปแล้ว")
         elif promotion.end < timezone.now().date():
@@ -541,7 +521,7 @@ def Collect_coupons(request, store_id, promotion_id, coupon_id):
             coupon.member = current_member
             coupon.save()
 
-            messages.success(request, f"คูปองถูกสะสมเรียบร้อยแล้วโดย {request.user.username}!")
+            messages.success(request, f"คูปองถูกสะสมเรียบร้อยแล้วโดย {request.user.first_name}!")
 
     except Member.DoesNotExist:
         messages.error(request, "ไม่พบข้อมูลสมาชิกในระบบ")
@@ -953,24 +933,34 @@ def list_customer_use_coupons(request):
 # ฟังก์ชันขอเป็นเจ้าของร้าน
 @login_required
 def request_store_ownership(request):
+    try:
+        member = Member.objects.get(user=request.user)
+    except Member.DoesNotExist:
+        member = None
+
+    # Check for any existing requests (including pending, approved, or rejected)
+    existing_requests = StoreOwnerRequest.objects.filter(user=request.user).exists()
+    if existing_requests:
+        messages.warning(request, "คุณเคยส่งคำขอไปแล้ว ไม่สามารถส่งคำขอซ้ำได้")
+        form = ProfileForm(instance=request.user, member=member)
+        return render(request, 'profile.html', {'form': form, 'member': member})
+
     if request.method == 'POST':
         shop_name = request.POST.get('store_name')
         if not shop_name:
             messages.error(request, "กรุณากรอกชื่อร้าน")
-            return redirect('request_store')
+            form = ProfileForm(instance=request.user, member=member)
+            return render(request, 'profile.html', {'form': form, 'member': member})
 
-        # ตรวจสอบว่าผู้ใช้มีคำขอที่ยังไม่อนุมัติหรือไม่
-        existing_request = StoreOwnerRequest.objects.filter(user=request.user, status="pending").exists()
-        if existing_request:
-            messages.warning(request, "คุณได้ส่งคำขอไปแล้ว กรุณารอการตรวจสอบ")
-            return redirect('request_store')
-
-        # สร้างคำขอใหม่
+        # Create new request
         StoreOwnerRequest.objects.create(user=request.user, shop_name=shop_name)
         messages.success(request, "ส่งคำขอสำเร็จ! รอแอดมินตรวจสอบ")
-        return redirect('request_store')
+        form = ProfileForm(instance=request.user, member=member)
+        return render(request, 'profile.html', {'form': form, 'member': member})
 
-    return render(request, 'profile.html')
+    # If GET request, create form and render profile page
+    form = ProfileForm(instance=request.user, member=member)
+    return render(request, 'profile.html', {'form': form, 'member': member})
 
 # ฟังก์ชันสำหรับแอดมินดูคำขอ
 @login_required
@@ -1280,3 +1270,35 @@ def delete_coupon(request, coupon_id):
         return redirect('admin_coupon_management')
 
     return render(request, 'confirm_delete.html', {'object': coupon, 'page_title': 'ยืนยันการลบคูปอง'})
+
+@login_required
+def expired_coupons(request):
+    """แสดงรายการคูปองที่หมดอายุของผู้ใช้"""
+    try:
+        # Get the member object of the logged-in user
+        member = request.user.member
+
+        # Get current date for comparison
+        current_date = date.today()
+
+        # Get expired coupons where member matches the logged-in user's member
+        coupons = Coupon.objects.filter(
+            member=member,  # Filter by member
+            collect=True,  # Only show collected coupons
+            used=False,  # Exclude used coupons
+            promotion__end__lt=current_date  # Filter for expired promotions
+        ).select_related(
+            'promotion',
+            'promotion__store'
+        ).order_by('-collected_at')
+
+        context = {
+            'coupons': coupons,
+            'username': request.user.username
+        }
+
+        return render(request, 'expired_coupons.html', context)
+
+    except Member.DoesNotExist:
+        messages.error(request, "ไม่พบข้อมูลสมาชิกในระบบ")
+        return redirect('home')

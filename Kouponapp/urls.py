@@ -57,6 +57,7 @@ urlpatterns = [
     path('admin-coupons/<int:coupon_id>/', views.coupon_detail, name='coupon_detail'),
     path('admin-coupons/delete/<int:coupon_id>/', views.delete_coupon, name='delete_coupon'),
     path('admin-members/<int:member_id>/update/', views.update_member_name, name='update_member_name'),
+    path('coupons/expired/', views.expired_coupons, name='expired_coupons'),
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
