@@ -13,6 +13,7 @@ urlpatterns = [
 
     # โปรไฟล์สมาชิก
     path("profile/", views.profile_view, name="profile"),
+    path("request-store-ownership", views.request_store_ownership, name="request_store_ownership"),
 
     # การแสดงโปรโมชั่น
     path("promotions/member/", views.promotions_member, name="promotions_member"),

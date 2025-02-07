@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.models import User
-from .models import Promotion, Store, Coupon
+from .models import *
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.core.exceptions import ValidationError
 
@@ -53,9 +53,9 @@ class LoginForm(forms.Form):
 class ProfileForm(forms.ModelForm):
     phone = forms.CharField(
         max_length=10,
-        required=False,
+        required=True,  # เปลี่ยนเป็น required เพื่อให้ต้องกรอกเบอร์โทร
         widget=forms.TextInput(attrs={
-            'class': 'w-60 p-2 border border-gray-300 rounded-lg',
+            'class': 'w-60 p-2 border border-gray-300 rounded-lg bg-white',
             'placeholder': 'เบอร์โทรศัพท์'
         })
     )
@@ -76,6 +76,12 @@ class ProfileForm(forms.ModelForm):
         if member:
             self.fields['phone'].initial = member.phone  # ตั้งค่าเบอร์โทรเริ่มต้น
             self.fields['profile_img'].initial = member.profile_img  # ตั้งค่ารูปโปรไฟล์เริ่มต้น
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        if commit:
+            user.save()
+        return user
 
 class PromotionForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
@@ -181,4 +187,15 @@ class MemberUpdateForm(forms.ModelForm):
         widgets = {
             'first_name': forms.TextInput(attrs={'class': 'form-control'}),
             'last_name': forms.TextInput(attrs={'class': 'form-control'}),
+        }
+
+class StoreOwnershipRequestForm(forms.ModelForm):
+    class Meta:
+        model = StoreOwnerRequest
+        fields = ['shop_name']
+        labels = {
+            'shop_name': 'ชื่อร้าน'
+        }
+        widgets = {
+            'shop_name': forms.TextInput(attrs={'class': 'w-60 p-2 border border-gray-300 rounded-lg bg-white'})
         }

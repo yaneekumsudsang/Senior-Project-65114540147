@@ -4,8 +4,11 @@
     <!-- Profile View Section -->
     <div class="flex justify-center items-center mt-4">
         <div class="flex border border-[#164863] rounded-full overflow-hidden">
-            <a href="#" class="px-6 py-2 bg-[#164863] text-white font-medium m-2 rounded-full focus:outline-none">
+            <a href="{% url 'profile' %}" class="px-6 py-2 bg-[#164863] text-white font-medium m-2 rounded-full focus:outline-none">
                 ข้อมูลของฉัน
+            </a>
+            <a href="{% url 'request_store_ownership' %}" class="px-6 py-2 bg-white text-[#164863] font-medium m-2 rounded-full focus:outline-none">
+                ขอเป็นเจ้าของร้าน
             </a>
         </div>
     </div>
@@ -42,7 +45,7 @@
         {% for message in messages %}
             <div class="bg-[#DDF2FD] border border-[#164863] text-[#164863] px-4 py-3 rounded mb-4 w-1/4 text-center shadow-lg h-32 flex flex-col justify-between items-center">
                 <div class="flex justify-center">
-                    {% if message.tags == 'warning' %}
+                    {% if message.tags == 'error' %}
                         <svg xmlns="http://www.w3.org/2000/svg" width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user-round-x">
                             <path d="M2 21a8 8 0 0 1 11.873-7"/>
                             <circle cx="10" cy="8" r="5"/>
@@ -88,55 +91,7 @@
         </form>
         </div>
     </section>
-
-    <!-- ปุ่มเปิด Modal -->
-<div class="flex justify-center mt-4">
-    <button id="requestOwnershipBtn" class="bg-[#DDF2FD] hover:bg-[#164863] text-[#164863] hover:text-[#DDF2FD] font-bold py-2 px-4 rounded-2xl">
-        ขอเป็นเจ้าของร้าน
-    </button>
-</div>
-
-<!-- Modal -->
-<div id="ownershipModal" class="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50 hidden">
-    <div class="bg-white p-6 rounded-2xl shadow-lg w-96">
-        <h2 class="text-lg font-semibold mb-4">ขอเป็นเจ้าของร้าน</h2>
-        <form id="storeRequestForm" method="POST" action="{% url 'request_store' %}">
-            {% csrf_token %}
-            <label class="block text-sm font-medium">ชื่อร้าน</label>
-            <input type="text" name="store_name" id="shopName" class="w-full border rounded p-2 mt-1" placeholder="กรอกชื่อร้านของคุณ" required>
-
-            <div class="flex justify-end mt-4">
-                <button type="button" id="closeModal" class="mr-2 bg-gray-300 hover:bg-gray-500 text-white py-2 px-4 rounded">
-                    ยกเลิก
-                </button>
-                <button type="submit" id="confirmRequest" class="bg-[#164863] text-[#DDF2FD] hover:bg-[#DDF2FD] hover:text-[#164863] py-2 px-4 rounded">
-                    ยืนยัน
-                </button>
-            </div>
-        </form>
-    </div>
-</div>
-
 <script>
-    // เพิ่มในส่วน <script>
-document.getElementById("requestOwnershipBtn").addEventListener("click", function() {
-    document.getElementById("ownershipModal").classList.remove("hidden");
-});
-
-document.getElementById("closeModal").addEventListener("click", function() {
-    document.getElementById("ownershipModal").classList.add("hidden");
-});
-
-// ปิด Modal เมื่อคลิกพื้นหลัง
-document.addEventListener("click", function(event) {
-    const modal = document.getElementById("ownershipModal");
-    const modalContent = modal.querySelector(".bg-white");
-    const requestBtn = document.getElementById("requestOwnershipBtn");
-
-    if (event.target === modal && event.target !== modalContent && event.target !== requestBtn) {
-        modal.classList.add("hidden");
-    }
-});
 // Image preview functionality
     document.getElementById('profile_img').addEventListener('change', function(e) {
         const file = e.target.files[0];

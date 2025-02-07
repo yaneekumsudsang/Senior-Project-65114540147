@@ -28,13 +28,21 @@ from django.views.decorators.cache import never_cache
 # Local app imports
 from .forms import RegisterForm, LoginForm, ProfileForm, PromotionForm
 from django.shortcuts import render, get_object_or_404, redirect
-from .forms import MemberUpdateForm
+from .forms import MemberUpdateForm, StoreOwnershipRequestForm
 
 from django.db.models import Count, Q, Case, When, BooleanField, F
 from .models import *
 from django.utils import timezone
 from django.contrib.auth.decorators import login_required
 from datetime import date
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.shortcuts import render
+from django.db.models import Count, Q, Sum
+from .models import Store, Promotion, Coupon
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from .models import Coupon, ScannedQRCode
 
 def promotions_view(request):
     data = Promotion.objects.all()[:5]
@@ -167,6 +175,7 @@ def koupon_logout(request):
     logout(request)
     return redirect('home')
 
+
 @login_required
 def profile_view(request):
     try:
@@ -179,12 +188,19 @@ def profile_view(request):
         if form.is_valid():
             form.save()
 
-            # Handle profile image upload
+            # สร้างหรืออัพเดท Member
+            if member is None:
+                member = Member.objects.create(user=request.user)
+
+            # บันทึกเบอร์โทรศัพท์
+            if 'phone' in form.cleaned_data:
+                member.phone = form.cleaned_data['phone']
+
+            # บันทึกรูปโปรไฟล์
             if 'profile_img' in request.FILES:
-                if member is None:
-                    member = Member.objects.create(user=request.user)
                 member.profile_img = request.FILES['profile_img']
-                member.save()
+
+            member.save()
 
             messages.success(request, 'แก้ไขข้อมูลสำเร็จแล้ว')
             return redirect('profile')
@@ -197,6 +213,7 @@ def profile_view(request):
         'form': form,
         'member': member,
         'user': request.user,
+        'store_request': StoreOwnerRequest.objects.filter(user=request.user).first()
     }
 
     return render(request, 'profile.html', context)
@@ -776,11 +793,6 @@ def verify_pending_coupons(request, promotion_id):
         messages.error(request, "ไม่มีโปรโมชั่นเพิ่มเติม")
         return redirect('my_coupons')
 
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import render, redirect
-from django.contrib import messages
-from .models import Coupon, ScannedQRCode
-
 @login_required
 def use_coupon(request, promotion_id):
     scanned_qrcodes = ScannedQRCode.objects.all()
@@ -938,29 +950,26 @@ def request_store_ownership(request):
     except Member.DoesNotExist:
         member = None
 
-    # Check for any existing requests (including pending, approved, or rejected)
+    # Check for any existing requests
     existing_requests = StoreOwnerRequest.objects.filter(user=request.user).exists()
     if existing_requests:
         messages.warning(request, "คุณเคยส่งคำขอไปแล้ว ไม่สามารถส่งคำขอซ้ำได้")
-        form = ProfileForm(instance=request.user, member=member)
-        return render(request, 'profile.html', {'form': form, 'member': member})
+        return render(request, 'request_store_ownership.html', {'form': StoreOwnershipRequestForm()})
 
     if request.method == 'POST':
-        shop_name = request.POST.get('store_name')
-        if not shop_name:
-            messages.error(request, "กรุณากรอกชื่อร้าน")
-            form = ProfileForm(instance=request.user, member=member)
-            return render(request, 'profile.html', {'form': form, 'member': member})
+        form = StoreOwnershipRequestForm(request.POST)
+        if form.is_valid():
+            store_request = form.save(commit=False)
+            store_request.user = request.user
+            store_request.save()
+            messages.success(request, "ส่งคำขอสำเร็จ! รอแอดมินตรวจสอบ")
+            return redirect('profile')
+        else:
+            messages.error(request, "กรุณากรอกข้อมูลให้ถูกต้อง")
+    else:
+        form = StoreOwnershipRequestForm()
 
-        # Create new request
-        StoreOwnerRequest.objects.create(user=request.user, shop_name=shop_name)
-        messages.success(request, "ส่งคำขอสำเร็จ! รอแอดมินตรวจสอบ")
-        form = ProfileForm(instance=request.user, member=member)
-        return render(request, 'profile.html', {'form': form, 'member': member})
-
-    # If GET request, create form and render profile page
-    form = ProfileForm(instance=request.user, member=member)
-    return render(request, 'profile.html', {'form': form, 'member': member})
+    return render(request, 'request_store_ownership.html', {'form': form})
 
 # ฟังก์ชันสำหรับแอดมินดูคำขอ
 @login_required
@@ -1024,13 +1033,6 @@ def approved_store_owners(request):
         'approved_requests': approved_requests
     }
     return render(request, 'approved_owners_list.html', context)
-
-
-from django.contrib.auth.decorators import login_required, user_passes_test
-from django.shortcuts import render
-from django.db.models import Count, Q, Sum
-from .models import Store, Promotion, Coupon
-
 
 @login_required
 @user_passes_test(lambda u: u.is_staff)
