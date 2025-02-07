@@ -963,7 +963,7 @@ def request_store_ownership(request):
             store_request.user = request.user
             store_request.save()
             messages.success(request, "ส่งคำขอสำเร็จ! รอแอดมินตรวจสอบ")
-            return redirect('profile')
+            return redirect('request_store_ownership.html')
         else:
             messages.error(request, "กรุณากรอกข้อมูลให้ถูกต้อง")
     else:
@@ -1023,7 +1023,8 @@ def approve_store_request(request, request_id):
     member.is_owner = True
     member.save()
 
-    messages.success(request, f"อนุมัติคำขอ และสร้างร้าน {new_store.store_name} สำเร็จ! ผู้ใช้ {shop_request.user.username} เป็นเจ้าของร้านแล้ว")
+    messages.success(request, f"อนุมัติคำขอ และสร้างร้าน {new_store.store_name} สำเร็จ!<br>"
+                              f"ผู้ใช้ {shop_request.user.username} เป็นเจ้าของร้านแล้ว")
     return redirect('admin_store_requests')
 
 def approved_store_owners(request):

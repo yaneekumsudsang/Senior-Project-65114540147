@@ -6,26 +6,37 @@ from django.core.exceptions import ValidationError
 
 
 class RegisterForm(forms.Form):
-    username = forms.CharField(label="ชื่อผู้ใช้", max_length=150, widget=forms.TextInput(attrs={
-        'placeholder': 'ชื่อผู้ใช้',
+    username = forms.CharField(label="ชื่อผู้ใช้",
+                               max_length=150,
+                               widget=forms.TextInput(attrs={
+                                   'placeholder': 'ชื่อผู้ใช้',
     }))
-    first_name = forms.CharField(label="ชื่อ", max_length=30, widget=forms.TextInput(attrs={
-        'placeholder': 'ชื่อ',
+    first_name = forms.CharField(label="ชื่อ",
+                                 max_length=30,
+                                 widget=forms.TextInput(attrs={
+                                     'placeholder': 'ชื่อ',
     }))
-    last_name = forms.CharField(label="นามสกุล", max_length=30, widget=forms.TextInput(attrs={
-        'placeholder': 'นามสกุล',
+    last_name = forms.CharField(label="นามสกุล",
+                                max_length=30,
+                                widget=forms.TextInput(attrs={
+                                    'placeholder': 'นามสกุล',
     }))
-    phone = forms.CharField(label="เบอร์โทรศัพท์", max_length=15, widget=forms.TextInput(attrs={
-        'placeholder': 'เบอร์โทรศัพท์',
+    phone = forms.CharField(label="เบอร์โทรศัพท์",
+                            max_length=15,
+                            widget=forms.TextInput(attrs={
+                                'placeholder': 'เบอร์โทรศัพท์',
     }))
-    email = forms.EmailField(label="อีเมล", widget=forms.EmailInput(attrs={
-        'placeholder': 'อีเมล',
+    email = forms.EmailField(label="อีเมล",
+                             widget=forms.EmailInput(attrs={
+                                 'placeholder': 'อีเมล',
     }))
-    password = forms.CharField(label="รหัสผ่าน", widget=forms.PasswordInput(attrs={
-        'placeholder': 'รหัสผ่าน',
+    password = forms.CharField(label="รหัสผ่าน",
+                               widget=forms.PasswordInput(attrs={
+                                   'placeholder': 'รหัสผ่าน',
     }))
-    confirm_password = forms.CharField(label="ยืนยันรหัสผ่าน", widget=forms.PasswordInput(attrs={
-        'placeholder': 'ยืนยันรหัสผ่าน',
+    confirm_password = forms.CharField(label="ยืนยันรหัสผ่าน",
+                                       widget=forms.PasswordInput(attrs={
+                                           'placeholder': 'ยืนยันรหัสผ่าน',
     }))
 
     def clean_confirm_password(self):
@@ -55,7 +66,7 @@ class ProfileForm(forms.ModelForm):
         max_length=10,
         required=True,  # เปลี่ยนเป็น required เพื่อให้ต้องกรอกเบอร์โทร
         widget=forms.TextInput(attrs={
-            'class': 'w-60 p-2 border border-gray-300 rounded-lg bg-white',
+            'class': 'w-full p-2 border border-gray-300 rounded-lg bg-white',
             'placeholder': 'เบอร์โทรศัพท์'
         })
     )
@@ -197,5 +208,6 @@ class StoreOwnershipRequestForm(forms.ModelForm):
             'shop_name': 'ชื่อร้าน'
         }
         widgets = {
-            'shop_name': forms.TextInput(attrs={'class': 'w-60 p-2 border border-gray-300 rounded-lg bg-white'})
+            'shop_name': forms.TextInput(attrs={'class': 'w-60 p-2 border border-gray-300 rounded-lg bg-white',
+                                                'placeholder': 'กรอกชื่อร้าน'})
         }

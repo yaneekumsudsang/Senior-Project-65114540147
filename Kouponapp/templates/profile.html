@@ -21,7 +21,8 @@
             <div class="relative inline-block">
 
                 <!-- รูปโปรไฟล์ -->
-<div class="relative inline-block">
+            <div class="w-full flex justify-center">
+<div class="relative inline-block ">
     <div id="profile-image-container">
         {% if member.profile_img %}
             <img id="profile-preview" src="{{ member.profile_img.url }}" alt="Profile Image" class="w-48 h-48 object-cover rounded-full flex items-center justify-center border border-gray-300">
@@ -40,6 +41,7 @@
         <input type="file" id="profile_img" name="profile_img" class="hidden" accept="image/*" />
     </label>
 </div>
+            </div>
             <div id="popup-container" class="w-full flex justify-center items-center fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 transition-opacity duration-500 opacity-100">
     {% if messages %}
         {% for message in messages %}
@@ -65,29 +67,33 @@
         {% endfor %}
     {% endif %}
 </div>
-            <!-- ฟอร์มแก้ไขข้อมูลส่วนตัว -->
-            <div class="form-group">
+            <div class="flex justify-center items-center bg-gray-100">
+    <div class="bg-white p-6 rounded-lg shadow-lg w-96">
+        <form method="POST">
+            {% csrf_token %}
+            <div class="mb-4">
                 <label for="first_name" class="block text-sm font-medium text-gray-700">ชื่อ</label>
-                <input type="text" name="first_name" value="{{ user.first_name }}" class="w-60 p-2 border border-gray-300 rounded-lg bg-white" />
+                <input type="text" name="first_name" value="{{ user.first_name }}" class="w-full p-2 border border-gray-300 rounded-lg bg-white" />
             </div>
-            <div class="form-group">
+            <div class="mb-4">
                 <label for="last_name" class="block text-sm font-medium text-gray-700">นามสกุล</label>
-                <input type="text" name="last_name" value="{{ user.last_name }}" class="w-60 p-2 border border-gray-300 rounded-lg bg-white" />
+                <input type="text" name="last_name" value="{{ user.last_name }}" class="w-full p-2 border border-gray-300 rounded-lg bg-white" />
             </div>
-            <div class="form-group">
+            <div class="mb-4">
                 <label for="email" class="block text-sm font-medium text-gray-700">อีเมล</label>
-                <input type="email" name="email" value="{{ user.email }}" class="w-60 p-2 border border-gray-300 rounded-lg bg-white" />
+                <input type="email" name="email" value="{{ user.email }}" class="w-full p-2 border border-gray-300 rounded-lg bg-white" />
             </div>
-
-            <div class="form-group mt-4">
+            <div class="mb-4">
                 <label for="phone" class="block text-sm font-medium text-gray-700">เบอร์โทรศัพท์</label>
                 {{ form.phone }}
             </div>
+            <button type="submit" class="w-full px-6 py-2 bg-[#164863] text-white rounded-lg hover:bg-gray-800">
+                บันทึกข้อมูล
+            </button>
+        </form>
+    </div>
+</div>
 
-            <!-- ปุ่มบันทึกข้อมูล -->
-            <button type="submit" class="px-6 py-2 mt-4 bg-[#164863] border text-white rounded-lg hover:bg-[#DDF2FD] hover:text-[#164863]">บันทึกข้อมูล</button>
-
-            </div>
         </form>
         </div>
     </section>
