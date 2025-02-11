@@ -154,3 +154,4 @@ class StoreOwnerRequest(models.Model):
         blank=True,
         related_name='approved_requests'
     )
+

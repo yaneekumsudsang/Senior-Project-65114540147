@@ -44,7 +44,7 @@
                         <div class="flex-1 ml-4 mr-5">
                             <p class="text-xl font-bold">{{ coupon.promotion.name }}</p>
                             <p class="text-sm">{{ coupon.promotion.store.store_name }}</p>
-                            <p class="text-sm mt-2">สะสมแล้ว: {{ display_item.collected_count }}/{{ display_item.total_required }}</p>
+                            <p class="text-sm mt-2">สะสมแล้ว: {{ display_item.collected_count }}/{{ coupon.promotion.cups }}</p>
                             <p class="text-sm">ใช้งานได้ถึง: {{ coupon.promotion.end|date:"d M Y" }}</p>
                             {% if not display_item.is_complete %}
                                 <p class="text-sm text-red-500">ต้องสะสมอีก {{ display_item.total_required|sub:display_item.collected_count }} ใบ</p>

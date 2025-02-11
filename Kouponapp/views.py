@@ -13,8 +13,6 @@ from pyzbar.pyzbar import decode
 from qr_code.qrcode.utils import QRCodeOptions
 
 # Django built-in imports
-from django.conf import settings
-from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.models import User
@@ -33,10 +31,8 @@ from .forms import MemberUpdateForm, StoreOwnershipRequestForm
 from django.db.models import Count, Q, Case, When, BooleanField, F
 from .models import *
 from django.utils import timezone
-from django.contrib.auth.decorators import login_required
 from datetime import date
 from django.contrib.auth.decorators import login_required, user_passes_test
-from django.shortcuts import render
 from django.db.models import Count, Q, Sum
 from .models import Store, Promotion, Coupon
 from django.contrib.auth.decorators import login_required
@@ -632,7 +628,6 @@ def list_member_collect_coupons(request):
 
     return render(request, 'list_member_collect_coupons.html', context)
 
-
 @login_required
 def Completed_coupons(request):
     current_member = request.user.member
@@ -723,24 +718,32 @@ def Pending_coupons(request):
         'username': username
     })
 
+
 @login_required
 def verify_coupons(request, promotion_id):
     username = request.user.username
     member = request.user.member
 
     try:
+        # Get promotion and ensure it exists
         promotion = get_object_or_404(Promotion, id=promotion_id)
+
+        # Get collected coupons for this promotion
         collected_coupons = Coupon.objects.filter(
             promotion=promotion,
             member=member,
-            collect=True
+            collect=True,
+            used=False  # Only count unused coupons
         ).select_related('promotion', 'promotion__store')
-        print(collected_coupons.values())
 
-        total_required = promotion.cups  # Changed from count to cups
+        # Get the required number of cups from promotion
+        total_required = promotion.cups if promotion.cups else 0
         collected_count = collected_coupons.count()
-        is_complete = collected_count >= total_required
 
+        # Check if enough coupons are collected
+        is_complete = collected_count >= total_required if total_required > 0 else False
+
+        # Prepare display data
         display_data = {
             'promotion': promotion,
             'collected_count': collected_count,
@@ -750,6 +753,12 @@ def verify_coupons(request, promotion_id):
             'coupons': collected_coupons,
         }
 
+        # Add debugging information
+        print(f"Promotion: {promotion.name}")
+        print(f"Required cups: {total_required}")
+        print(f"Collected count: {collected_count}")
+        print(f"Is complete: {is_complete}")
+
         return render(request, 'verify_coupons.html', {
             'display_coupons': [display_data],
             'username': username,
@@ -757,6 +766,9 @@ def verify_coupons(request, promotion_id):
 
     except Promotion.DoesNotExist:
         messages.error(request, "ไม่พบโปรโมชั่นที่ระบุ")
+        return redirect('my_coupons')
+    except Exception as e:
+        messages.error(request, f"เกิดข้อผิดพลาด: {str(e)}")
         return redirect('my_coupons')
 
 @login_required

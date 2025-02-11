@@ -52,11 +52,11 @@
                             <div class="flex justify-between items-center mb-2">
                                 <span class="text-sm font-medium text-gray-700">ความคืบหน้าการสะสม</span>
                                 <span class="text-sm font-medium text-gray-700">
-                                    {{ promo_data.collected_count }}/{{ promo_data.promotion.count }}
+                                    {{ promo_data.collected_count }}/{{ promo_data.total_required }}
                                 </span>
                             </div>
                             <div class="w-full bg-gray-200 rounded-full h-2.5">
-                                <div class="bg-[#164863] h-2.5 rounded-full" style="width: {% widthratio promo_data.collected_count promo_data.promotion.count 100 %}%"></div>
+                                <div class="bg-[#164863] h-2.5 rounded-full" style="width: {% widthratio promo_data.collected_count promo_data.total_required 100 %}%"></div>
                             </div>
                         </div>
 
@@ -71,7 +71,7 @@
                             </div>
                             <div class="bg-green-50 p-3 rounded-lg text-center">
                                 <p class="text-sm text-green-600">คูปองทั้งหมด</p>
-                                <p class="text-lg font-semibold text-green-900">{{ promo_data.total_coupons }}</p>
+                                <p class="text-lg font-semibold text-green-900">{{ promo_data.total_required }}</p>
                             </div>
                         </div>
 

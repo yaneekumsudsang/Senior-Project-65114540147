@@ -208,6 +208,6 @@ class StoreOwnershipRequestForm(forms.ModelForm):
             'shop_name': 'ชื่อร้าน'
         }
         widgets = {
-            'shop_name': forms.TextInput(attrs={'class': 'w-60 p-2 border border-gray-300 rounded-lg bg-white',
+            'shop_name': forms.TextInput(attrs={'class': 'w-full p-2 border border-gray-300 rounded-lg bg-white',
                                                 'placeholder': 'กรอกชื่อร้าน'})
         }

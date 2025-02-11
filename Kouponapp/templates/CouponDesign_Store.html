@@ -17,21 +17,21 @@
             {% csrf_token %}
 
             <!-- อัปโหลดรูปโปรโมชั่น -->
-            <div class="relative w-full h-36 bg-gray-200 rounded-lg flex justify-center items-center shadow-md">
+            <div class="relative w-full h-36 bg-[#DDF2FD] hover:bg-[#d2eefc] rounded-lg flex justify-center items-center shadow-md">
+
                 <!-- รูปภาพพรีวิว -->
                 <img id="preview" src="#" alt="รูปภาพ" class="hidden w-full h-full object-cover rounded-lg" />
 
                 <!-- ไอคอนและข้อความ -->
-                <div id="upload-placeholder" class="absolute inset-0 flex flex-col justify-center items-center text-gray-400">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-12 h-12 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                    </svg>
-                    <span>เพิ่มรูปภาพ</span>
+                <div id="upload-placeholder" class="absolute inset-0 flex flex-col justify-center items-center text-[#164863] hover:text-[#DDF2FD]">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="70" height="70" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-image-plus"><path d="M16 5h6"/><path d="M19 2v6"/><path d="M21 11.5V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7.5"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/><circle cx="9" cy="9" r="2"/></svg>
+                    <span>คลิกเพื่อเพิ่มรูปภาพ</span>
                 </div>
 
                 <!-- Input File -->
                 <input type="file" id="picture" name="picture" accept="image/*"
                     class="absolute inset-0 opacity-0 cursor-pointer" />
+
             </div>
 
             <!-- ชื่อโปรโมชั่น -->
