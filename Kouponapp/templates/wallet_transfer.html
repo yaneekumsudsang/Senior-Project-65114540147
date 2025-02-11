@@ -1,0 +1,106 @@
+{% extends 'nav.html' %}
+
+{% block title %}
+<div class="container mx-auto mt-6 px-6">
+    <div class="flex justify-center items-center mt-2 mb-2">
+<div class="flex border border-[#164863] rounded-full overflow-hidden">
+                <h1 class="px-6 py-2 bg-[#164863] text-white font-medium m-2 rounded-full focus:outline-none">
+                    โอนเงิน
+                </h1>
+            </div>
+    </div>
+    
+    <!-- แสดงข้อความแจ้งเตือน -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="mb-4 p-4 rounded {% if message.tags == 'success' %}bg-green-100 text-green-700{% else %}bg-red-100 text-red-700{% endif %}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+    
+    <div class="bg-white rounded-lg shadow p-6">
+        <!-- แสดงยอดเงินคงเหลือ -->
+        <div class="mb-6">
+            <h2 class="text-lg mb-2">ยอดเงินคงเหลือ</h2>
+            <p class="text-2xl font-bold text-green-600">฿{{ wallet.balance|floatformat:2 }}</p>
+        </div>
+
+        <form method="post" class="space-y-6">
+            {% csrf_token %}
+            
+            <!-- เลขบัตรผู้รับ -->
+            <div class="space-y-2">
+                <label for="card_number" class="block text-gray-700 font-medium">เลขบัตรผู้รับ</label>
+                <input type="text" 
+                       id="card_number"
+                       name="card_number" 
+                       required 
+                       maxlength="10"
+                       pattern="\d{10}"
+                       class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                       placeholder="กรอกเลขบัญชี 10 หลัก"
+                       oninvalid="this.setCustomValidity('กรุณากรอกเลขบัญชี 10 หลัก')"
+                       oninput="this.setCustomValidity('')">
+                <p class="text-sm text-gray-500">กรอกเลขบัตรของผู้รับที่ต้องการโอนเงินให้</p>
+            </div>
+
+            <!-- จำนวนเงิน -->
+            <div class="space-y-2">
+                <label for="amount" class="block text-gray-700 font-medium">จำนวนเงิน</label>
+                <div class="relative">
+                    <span class="absolute left-3 top-3 text-gray-500">฿</span>
+                    <input type="number" 
+                           id="amount"
+                           name="amount" 
+                           min="0.01" 
+                           step="0.01" 
+                           required
+                           class="w-full p-3 pl-8 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                           placeholder="0.00">
+                </div>
+                <p class="text-sm text-gray-500">จำนวนเงินต้องมากกว่า 0 บาท</p>
+            </div>
+
+            <!-- รายละเอียด -->
+            <div class="space-y-2">
+                <label for="description" class="block text-gray-700 font-medium">รายละเอียด (ไม่บังคับ)</label>
+                <input type="text" 
+                       id="description"
+                       name="description" 
+                       class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                       placeholder="เช่น ค่าอาหาร, คืนเงิน, ฯลฯ"
+                       maxlength="100">
+            </div>
+
+            <!-- คำเตือนและข้อควรระวัง -->
+            <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 my-4">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <svg class="h-5 w-5 text-yellow-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                        </svg>
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-sm text-yellow-700">
+                            กรุณาตรวจสอบเลขบัตรและจำนวนเงินให้ถูกต้องก่อนการโอน เนื่องจากไม่สามารถยกเลิกรายการได้
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ปุ่มยืนยันการโอน -->
+            <div class="flex flex-col gap-4">
+                <button type="submit" 
+                        class="w-full bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors">
+                    ยืนยันการโอนเงิน
+                </button>
+                <a href="{% url 'my_wallet' %}" 
+                   class="w-full text-center py-3 px-4 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors">
+                    ยกเลิก
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

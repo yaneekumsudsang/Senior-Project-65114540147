@@ -1,0 +1,65 @@
+{% extends 'nav.html' %}
+
+{% block title %}
+<div class="container mx-auto mt-6 px-6">
+    <div class="bg-white rounded-lg shadow-lg p-6">
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-2xl font-bold">ประวัติการทำรายการ</h1>
+            <a href="{% url 'my_wallet' %}" class="text-blue-500 hover:text-blue-600">
+                กลับไปหน้ากระเป๋าเงิน
+            </a>
+        </div>
+
+        <!-- สรุปยอด -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <div class="bg-green-100 rounded-lg p-4">
+                <div class="text-gray-600">รายรับทั้งหมด</div>
+                <div class="text-2xl font-bold text-green-600">฿{{ total_credit|floatformat:2 }}</div>
+            </div>
+            <div class="bg-red-100 rounded-lg p-4">
+                <div class="text-gray-600">รายจ่ายทั้งหมด</div>
+                <div class="text-2xl font-bold text-red-600">฿{{ total_debit|floatformat:2 }}</div>
+            </div>
+        </div>
+
+        <!-- รายการธุรกรรมทั้งหมด -->
+        {% if transactions %}
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">วันที่</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">รายละเอียด</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ประเภท</th>
+                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">จำนวนเงิน</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for transaction in transactions %}
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {{ transaction.created_at|date:"d/m/Y H:i" }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {{ transaction.description }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm">
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {% if transaction.transaction_type == 'DEBIT' %}bg-red-100 text-red-800{% else %}bg-green-100 text-green-800{% endif %}">
+                                {{ transaction.get_transaction_type_display }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-right {% if transaction.transaction_type == 'DEBIT' %}text-red-600{% else %}text-green-600{% endif %}">
+                            {% if transaction.transaction_type == 'DEBIT' %}-{% else %}+{% endif %}
+                            ฿{{ transaction.amount|floatformat:2 }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-gray-500 text-center py-4">ยังไม่มีรายการธุรกรรม</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

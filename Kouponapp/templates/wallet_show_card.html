@@ -1,0 +1,21 @@
+{% extends 'nav.html' %}
+
+{% block title %}
+<div class="container mx-auto mt-6 px-6">
+    <h1 class="text-2xl font-bold mb-6">บัตรของฉัน</h1>
+    
+    <div class="bg-white rounded-lg shadow p-6">
+        <div class="bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg p-6 text-white">
+            <h2 class="text-xl mb-4">{{ user.first_name }} {{ user.last_name }}</h2>
+            <div class="text-2xl font-mono mb-4 tracking-wider">
+                {{ card_number|slice:":3" }} {{ card_number|slice:"3:4" }}
+                {{ card_number|slice:"4:9" }} {{ card_number|slice:"9:10" }}
+            </div>
+        </div>
+        
+        <div class="mt-6 text-center text-gray-600">
+            <p>ใช้เลขบัตรนี้สำหรับรับโอนเงินจากผู้อื่น</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

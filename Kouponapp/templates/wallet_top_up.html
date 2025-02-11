@@ -1,0 +1,32 @@
+{% extends 'nav.html' %}
+
+{% block title %}
+<div class="container mx-auto mt-6 px-6">
+    <div class="flex justify-center items-center mt-4 mb-2">
+<div class="flex border border-[#164863] rounded-full overflow-hidden">
+                <h1 class="px-6 py-2 bg-[#164863] text-white font-medium m-2 rounded-full focus:outline-none">
+                    เติมเงิน
+                </h1>
+            </div>
+    </div>
+    
+    <div class="bg-white rounded-lg shadow p-6">
+        <form method="post">
+            {% csrf_token %}
+            <div class="mb-4">
+                <label class="block text-gray-700 mb-2">จำนวนเงิน</label>
+                <input type="number" name="amount" min="0" step="0.01" required
+                       class="w-full p-2 border rounded">
+            </div>
+            <div class="mb-4">
+                <label class="block text-gray-700 mb-2">รายละเอียด (ไม่บังคับ)</label>
+                <input type="text" name="description"
+                       class="w-full p-2 border rounded">
+            </div>
+            <button type="submit" class="w-full bg-green-500 text-white py-2 rounded">
+                ยืนยันการเติมเงิน
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}

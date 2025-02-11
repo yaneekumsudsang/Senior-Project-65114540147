@@ -67,6 +67,13 @@ urlpatterns = [
     path("admin-coupons/delete/<int:coupon_id>/", views.delete_coupon, name="delete_coupon"),
     path("coupons/expired/", views.expired_coupons, name="expired_coupons"),
 
+    # การจัดการวอเลต
+    path('wallet/', views.my_wallet, name='my_wallet'),
+    path('wallet/top-up/', views.top_up, name='wallet_top_up'),
+    path('wallet/card/', views.show_card, name='wallet_card'),
+    path('wallet/transfer/', views.transfer, name='wallet_transfer'),
+    path('wallet/history/', views.transaction_history, name='wallet_history'),
+
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 # สำหรับการแสดง static file เมื่อ DEBUG = True

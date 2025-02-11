@@ -8,12 +8,20 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 import segno
 import os
 from django.conf import settings
+from django.db import models
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+from django.core.validators import MinValueValidator
+from decimal import Decimal
+import random
+import string
 
 class Member(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, unique=True, verbose_name="ชื่อผู้ใช้")
     is_owner = models.BooleanField(default=False, verbose_name="เป็นเจ้าของร้าน")  # ใช้ BooleanField แทนค่า 1/0
     phone = models.CharField(max_length=10, blank=True, null=True, verbose_name="เบอร์โทรศัพท์")
     profile_img = models.ImageField(upload_to='profiles/', blank=True, null=True, verbose_name="รูปโปรไฟล์")
+    card_number = models.CharField(max_length=16, unique=True, null=True, blank=True, verbose_name="เลขบัตร")
 
     class Meta:
         verbose_name_plural = 'สมาชิก'
@@ -21,6 +29,29 @@ class Member(models.Model):
 
     def __str__(self):
         return self.user.username
+
+    def generate_card_number(self):
+        """สร้างเลขบัตรแบบสุ่ม 10 หลัก"""
+        while True:
+            # สร้างเลขบัตร 10 หลัก
+            card_number = ''.join(random.choices(string.digits, k=10))
+
+            # ตรวจสอบว่าเลขบัตรซ้ำหรือไม่
+            if not Member.objects.filter(card_number=card_number).exists():
+                return card_number
+
+    def save(self, *args, **kwargs):
+        # ถ้ายังไม่มีเลขบัตร ให้สร้างใหม่
+        if not self.card_number:
+            self.card_number = self.generate_card_number()
+        super().save(*args, **kwargs)
+
+def save(self, *args, **kwargs):
+    # ถ้ายังไม่มีเลขบัตร ให้สร้างใหม่
+    if not self.card_number:
+        self.card_number = self.generate_card_number()
+    super().save(*args, **kwargs)
+
 
 class Store(models.Model):
     id = models.AutoField(primary_key=True)  # ID ของร้านค้า
@@ -155,3 +186,93 @@ class StoreOwnerRequest(models.Model):
         related_name='approved_requests'
     )
 
+class Wallet(models.Model):
+    member = models.OneToOneField(
+        'Member',
+        on_delete=models.CASCADE,
+        related_name='wallet',
+        verbose_name="เจ้าของกระเป๋าเงิน"
+    )
+    balance = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0.00,
+        validators=[MinValueValidator(Decimal('0.00'))],
+        verbose_name="ยอดเงินคงเหลือ"
+    )
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="วันที่สร้าง")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="อัพเดทล่าสุด")
+
+    class Meta:
+        verbose_name = "กระเป๋าเงิน"
+        verbose_name_plural = "กระเป๋าเงินทั้งหมด"
+
+    def __str__(self):
+        return f"กระเป๋าเงินของ {self.member.user.username}"
+
+    def deduct_balance(self, amount):
+        """
+        หักเงินจากกระเป๋าเงิน
+        """
+        if self.balance >= amount:
+            self.balance -= amount
+            self.save()
+            return True
+        return False
+
+    def add_balance(self, amount):
+        """
+        เพิ่มเงินในกระเป๋าเงิน
+        """
+        self.balance += amount
+        self.save()
+        return True
+
+class Transaction(models.Model):
+    TRANSACTION_TYPES = [
+        ('DEBIT', 'หักเงิน'),
+        ('CREDIT', 'เพิ่มเงิน'),
+    ]
+
+    wallet = models.ForeignKey(
+        Wallet,
+        on_delete=models.CASCADE,
+        related_name='transactions',
+        verbose_name="กระเป๋าเงิน"
+    )
+    amount = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        validators=[MinValueValidator(Decimal('0.01'))],
+        verbose_name="จำนวนเงิน"
+    )
+    transaction_type = models.CharField(
+        max_length=6,
+        choices=TRANSACTION_TYPES,
+        verbose_name="ประเภทธุรกรรม"
+    )
+    description = models.CharField(
+        max_length=255,
+        blank=True,
+        verbose_name="รายละเอียด"
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name="วันที่ทำรายการ"
+    )
+
+    class Meta:
+        verbose_name = "ประวัติธุรกรรม"
+        verbose_name_plural = "ประวัติธุรกรรมทั้งหมด"
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.get_transaction_type_display()} - ฿{self.amount}"
+
+@receiver(post_save, sender=Member)
+def create_wallet(sender, instance, created, **kwargs):
+    """
+    สร้างกระเป๋าเงินอัตโนมัติเมื่อสมัครสมาชิกใหม่
+    """
+    if created:
+        Wallet.objects.create(member=instance)

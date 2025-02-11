@@ -39,6 +39,14 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from .models import Coupon, ScannedQRCode
+from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from django.http import JsonResponse
+from django.db import transaction
+from decimal import Decimal
+from .models import Wallet, Transaction
+from django.utils import timezone
 
 def promotions_view(request):
     data = Promotion.objects.all()[:5]
@@ -1317,3 +1325,167 @@ def expired_coupons(request):
     except Member.DoesNotExist:
         messages.error(request, "ไม่พบข้อมูลสมาชิกในระบบ")
         return redirect('home')
+
+@login_required
+def my_wallet(request):
+    """หน้ากระเป๋าเงินของฉัน - แสดงยอดเงินและสรุปการใช้งาน"""
+    member = request.user.member
+    wallet, created = Wallet.objects.get_or_create(member=member)
+
+    # คำนวณสถิติการใช้งานวันนี้
+    today_transactions = wallet.transactions.filter(
+        created_at__date=timezone.now().date()
+    )
+    today_spent = today_transactions.filter(
+        transaction_type='DEBIT'
+    ).aggregate(Sum('amount'))['amount__sum'] or Decimal('0')
+
+    today_received = today_transactions.filter(
+        transaction_type='CREDIT'
+    ).aggregate(Sum('amount'))['amount__sum'] or Decimal('0')
+
+    # รายการล่าสุด 5 รายการ
+    recent_transactions = wallet.transactions.all()[:5]
+
+    context = {
+        'wallet': wallet,
+        'today_spent': today_spent,
+        'today_received': today_received,
+        'recent_transactions': recent_transactions,
+    }
+    return render(request, 'my_wallet.html', context)
+
+@login_required
+def top_up(request):
+    """หน้าเติมเงิน"""
+    wallet = request.user.member.wallet
+
+    if request.method == 'POST':
+        try:
+            amount = Decimal(request.POST.get('amount', '0'))
+            if amount <= 0:
+                messages.error(request, 'กรุณาระบุจำนวนเงินที่มากกว่า 0')
+                return redirect('wallet_top_up')
+
+            wallet.add_balance(amount)
+            Transaction.objects.create(
+                wallet=wallet,
+                amount=amount,
+                transaction_type='CREDIT',
+                description=request.POST.get('description', 'เติมเงิน')
+            )
+            messages.success(request, f'เติมเงินสำเร็จ {amount:,.2f} บาท')
+            return redirect('my_wallet')
+        except (ValueError, TypeError):
+            messages.error(request, 'จำนวนเงินไม่ถูกต้อง')
+
+    context = {
+        'wallet': wallet
+    }
+    return render(request, 'wallet_top_up.html', context)
+
+@login_required
+def show_card(request):
+    """หน้าแสดงเลขบัตร"""
+    member = request.user.member
+
+    context = {
+        'member': member,
+        'card_number': member.card_number,
+        'username': member.user.username,
+    }
+    return render(request, 'wallet_show_card.html', context)
+
+@login_required
+def transfer(request):
+    """หน้าโอนเงิน"""
+    wallet = request.user.member.wallet
+
+    if request.method == 'POST':
+        try:
+            recipient_card = request.POST.get('card_number')
+            amount = Decimal(request.POST.get('amount', '0'))
+            description = request.POST.get('description', 'โอนเงิน')
+
+            if amount <= 0:
+                messages.error(request, 'จำนวนเงินต้องมากกว่า 0')
+                return redirect('wallet_transfer')
+
+            try:
+                recipient = Member.objects.get(card_number=recipient_card)
+            except Member.DoesNotExist:
+                messages.error(request, 'ไม่พบเลขบัตรนี้ในระบบ')
+                return redirect('wallet_transfer')
+
+            if recipient == request.user.member:
+                messages.error(request, 'ไม่สามารถโอนเงินให้ตัวเองได้')
+                return redirect('wallet_transfer')
+
+            if wallet.balance < amount:
+                messages.error(request, 'ยอดเงินคงเหลือไม่เพียงพอ')
+                return redirect('wallet_transfer')
+
+            with transaction.atomic():
+                wallet.deduct_balance(amount)
+                recipient.wallet.add_balance(amount)
+
+                Transaction.objects.create(
+                    wallet=wallet,
+                    amount=amount,
+                    transaction_type='DEBIT',
+                    description=f'โอนเงินให้ {recipient.user.username} - {description}'
+                )
+
+                Transaction.objects.create(
+                    wallet=recipient.wallet,
+                    amount=amount,
+                    transaction_type='CREDIT',
+                    description=f'รับโอนจาก {request.user.username} - {description}'
+                )
+
+            messages.success(request, f'โอนเงินจำนวน ฿{amount:,.2f} ให้ {recipient.user.username} สำเร็จ')
+            return redirect('my_wallet')
+
+        except ValueError:
+            messages.error(request, 'จำนวนเงินไม่ถูกต้อง')
+        except Exception as e:
+            messages.error(request, 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง')
+
+    context = {
+        'wallet': wallet
+    }
+    return render(request, 'wallet_transfer.html', context)
+
+@login_required
+def transaction_history(request):
+    """หน้าประวัติการทำรายการ"""
+    wallet = request.user.member.wallet
+    transactions = wallet.transactions.all()
+
+    # คำนวณสรุปยอด
+    summary = {
+        'total_credit': transactions.filter(
+            transaction_type='CREDIT'
+        ).aggregate(Sum('amount'))['amount__sum'] or Decimal('0'),
+
+        'total_debit': transactions.filter(
+            transaction_type='DEBIT'
+        ).aggregate(Sum('amount'))['amount__sum'] or Decimal('0'),
+
+        # เพิ่มสถิติรายเดือนนี้
+        'month_credit': transactions.filter(
+            transaction_type='CREDIT',
+            created_at__month=timezone.now().month
+        ).aggregate(Sum('amount'))['amount__sum'] or Decimal('0'),
+
+        'month_debit': transactions.filter(
+            transaction_type='DEBIT',
+            created_at__month=timezone.now().month
+        ).aggregate(Sum('amount'))['amount__sum'] or Decimal('0'),
+    }
+
+    context = {
+        'transactions': transactions,
+        'summary': summary,
+    }
+    return render(request, 'wallet_history.html', context)
