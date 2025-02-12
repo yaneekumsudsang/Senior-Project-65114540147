@@ -71,6 +71,13 @@
                 <span class="font-medium">โปรโมชั่นของร้าน</span>
             </a>
 
+        <!-- ข้อมูลของฉัน -->
+            <a href="{% url 'profile_store' %}" class="flex items-center bg-[#DDF2FD] px-2 py-3 rounded-lg hover:bg-[#164863] text-[#164863] hover:text-[#DDF2FD] mx-0.5 h-12 w-34">
+                <span class="mr-5 md:mr-1 text-m">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                </span>
+                <span class="font-medium">ข้อมูลของฉัน</span>
+            </a>
             <!-- สแกนคิวอาร์โค้ด -->
             <a href="{% url 'detect_qrcode' %}" class="flex items-center bg-[#DDF2FD] px-2 py-3 rounded-lg hover:bg-[#164863] text-[#164863] hover:text-[#DDF2FD] mx-0.5 h-12 w-34">
                 <span class="mr-5 md:mr-1 text-m">
@@ -91,7 +98,22 @@
                 <span class="mr-5 md:mr-1 text-m">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clock-4"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                 </span>
-                <span class="font-medium">ประวัติการใช้งานคูปองของลูกค้า</span>
+                <span class="font-medium">ประวัติการใช้งานคูปอง</span>
+            </a>
+                <!-- กระเป๋าเงินของฉัน -->
+            <a href="{% url 'my_wallet' %}" class="flex items-center bg-[#DDF2FD] px-2 py-3 rounded-lg hover:bg-[#164863] text-[#164863] hover:text-[#DDF2FD] mx-0.5 h-12 w-34">
+                <span class="mr-5 md:mr-1 text-m">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-wallet"><path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/></svg>
+                </span>
+                <span class="font-medium">กระเป๋าเงิน</span>
+            </a>
+
+            <!-- ทำธุรกรรม -->
+            <a href="{% url 'wallet_top_up' %}" class="flex items-center bg-[#DDF2FD] px-2 py-3 rounded-lg hover:bg-[#164863] text-[#164863] hover:text-[#DDF2FD] mx-0.5 h-12 w-34">
+                <span class="mr-5 md:mr-1 text-m">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-hand-coins"><path d="M11 15h2a2 2 0 1 0 0-4h-3c-.6 0-1.1.2-1.4.6L3 17"/><path d="m7 21 1.6-1.4c.3-.4.8-.6 1.4-.6h4c1.1 0 2.1-.4 2.8-1.2l4.6-4.4a2 2 0 0 0-2.75-2.91l-4.2 3.9"/><path d="m2 16 6 6"/><circle cx="16" cy="9" r="2.9"/><circle cx="6" cy="5" r="3"/></svg>
+                </span>
+                <span class="font-medium">ทำธุรกรรม</span>
             </a>
 
             <a href="{% url 'koupon_logout' %}" class="flex items-center bg-[#DDF2FD] px-2 py-3 rounded-lg hover:bg-[#164863] text-[#164863] hover:text-[#DDF2FD] mx-0.5 h-12 w-34">
@@ -113,7 +135,7 @@
             </a>
 
             <!-- ข้อมูลของฉัน -->
-            <a href="{% url 'profile' %}" class="flex items-center bg-[#DDF2FD] px-2 py-3 rounded-lg hover:bg-[#164863] text-[#164863] hover:text-[#DDF2FD] mx-0.5 h-12 w-34">
+            <a href="{% url 'profile_member' %}" class="flex items-center bg-[#DDF2FD] px-2 py-3 rounded-lg hover:bg-[#164863] text-[#164863] hover:text-[#DDF2FD] mx-0.5 h-12 w-34">
                 <span class="mr-5 md:mr-1 text-m">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                 </span>
@@ -157,23 +179,15 @@
                 <span class="mr-5 md:mr-1 text-m">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-wallet"><path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/></svg>
                 </span>
-                <span class="font-medium">กระเป๋าเงินของฉัน</span>
+                <span class="font-medium">กระเป๋าเงิน</span>
             </a>
 
-            <!-- โอนเงิน -->
-            <a href="{% url 'wallet_transfer' %}" class="flex items-center bg-[#DDF2FD] px-2 py-3 rounded-lg hover:bg-[#164863] text-[#164863] hover:text-[#DDF2FD] mx-0.5 h-12 w-34">
-                <span class="mr-5 md:mr-1 text-m">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right-left"><path d="m16 3 4 4-4 4"/><path d="M20 7H4"/><path d="m8 21-4-4 4-4"/><path d="M4 17h16"/></svg>
-                </span>
-                <span class="font-medium">โอนเงิน</span>
-            </a>
-
-            <!-- เติมเงิน -->
+            <!-- ทำธุรกรรม -->
             <a href="{% url 'wallet_top_up' %}" class="flex items-center bg-[#DDF2FD] px-2 py-3 rounded-lg hover:bg-[#164863] text-[#164863] hover:text-[#DDF2FD] mx-0.5 h-12 w-34">
                 <span class="mr-5 md:mr-1 text-m">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-credit-card"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-hand-coins"><path d="M11 15h2a2 2 0 1 0 0-4h-3c-.6 0-1.1.2-1.4.6L3 17"/><path d="m7 21 1.6-1.4c.3-.4.8-.6 1.4-.6h4c1.1 0 2.1-.4 2.8-1.2l4.6-4.4a2 2 0 0 0-2.75-2.91l-4.2 3.9"/><path d="m2 16 6 6"/><circle cx="16" cy="9" r="2.9"/><circle cx="6" cy="5" r="3"/></svg>
                 </span>
-                <span class="font-medium">เติมเงิน</span>
+                <span class="font-medium">ทำธุรกรรม</span>
             </a>
 
             <!-- Logout -->

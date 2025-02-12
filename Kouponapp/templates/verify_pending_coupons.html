@@ -60,11 +60,9 @@
                 <!-- Remaining Coupons -->
         <div class="grid grid-cols-2 gap-4 mb-4">
                             <div class="bg-yellow-50 p-3 rounded-lg">
-                                <p class="text-sm text-gray-600 text-center">คูปองที่สะสมแล้ว</p>
-                                {% for coupon in display_item.coupons %}
-                                <p class="text-lg font-semibold text-yellow-900 text-center">{{ forloop.counter }}</p>
-                                    {% endfor %}
-                            </div>
+    <p class="text-sm text-gray-600 text-center">คูปองที่สะสมแล้ว</p>
+    <p class="text-lg font-semibold text-yellow-900 text-center">{{ display_coupons.0.collected_count }}</p>
+</div>
                             <div class="bg-red-50 p-3 rounded-lg">
                                 <p class="text-sm text-gray-600 text-center">คูปองที่ต้องสะสมเพิ่ม</p>
                                 <p class="text-lg font-semibold text-red-900 text-center">{{ display_item.remaining_count }}</p>

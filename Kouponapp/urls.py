@@ -11,7 +11,8 @@ urlpatterns = [
     path("logout/", views.koupon_logout, name="koupon_logout"),
 
     # โปรไฟล์สมาชิก
-    path("profile/", views.profile_view, name="profile"),
+    path("profile_member/", views.profile_member, name="profile_member"),
+    path("profile_store/", views.profile_store, name="profile_store"),
     path("request-store-ownership/", views.request_store_ownership, name="request_store_ownership"),
 
     # การแสดงโปรโมชั่น

@@ -1,0 +1,133 @@
+{% extends "nav.html" %}
+
+{% block title %}
+    <!-- Profile View Section -->
+    <div class="flex justify-center items-center mt-4">
+        <div class="flex border border-[#164863] rounded-full overflow-hidden">
+            <a href="{% url 'profile_store' %}" class="px-6 py-2 bg-[#164863] text-white font-medium m-2 rounded-full focus:outline-none">
+                ข้อมูลของฉัน
+            </a>
+        </div>
+    </div>
+    <section class="flex items-center justify-center">
+        <div class="bg-white ">
+
+        <!-- Display Profile Information -->
+        <form method="post" enctype="multipart/form-data" class="mt-6">
+            {% csrf_token %}
+            <div class="relative inline-block">
+
+                <!-- รูปโปรไฟล์ -->
+            <div class="w-full flex justify-center">
+<div class="relative inline-block ">
+    <div id="profile-image-container">
+        {% if member.profile_img %}
+            <img id="profile-preview" src="{{ member.profile_img.url }}" alt="Profile Image" class="w-48 h-48 object-cover rounded-full flex items-center justify-center border border-gray-300">
+        {% else %}
+            <div id="profile-preview" class="w-48 h-48 bg-[#164863] text-white flex items-center justify-center rounded-full overflow-hidden relative">
+                <span class="text-9xl font-bold">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user-round"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/></svg>
+                </span>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- ปุ่มแก้ไข -->
+    <label for="profile_img" class="absolute top-2 right-2 bg-white p-2 text-[#164863] rounded-full shadow hover:bg-[#DDF2FD] cursor-pointer z-10">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user-round-pen"><path d="M2 21a8 8 0 0 1 10.821-7.487"/><path d="M21.378 16.626a1 1 0 0 0-3.004-3.004l-4.01 4.012a2 2 0 0 0-.506.854l-.837 2.87a.5.5 0 0 0 .62.62l2.87-.837a2 2 0 0 0 .854-.506z"/><circle cx="10" cy="8" r="5"/></svg>
+        <input type="file" id="profile_img" name="profile_img" class="hidden" accept="image/*" />
+    </label>
+</div>
+            </div>
+            <div id="popup-container" class="w-full flex justify-center items-center fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 transition-opacity duration-500 opacity-100">
+    {% if messages %}
+        {% for message in messages %}
+            <div class="bg-[#DDF2FD] border border-[#164863] text-[#164863] px-4 py-3 rounded mb-4 w-1/4 text-center shadow-lg h-32 flex flex-col justify-between items-center">
+                <div class="flex justify-center">
+                    {% if message.tags == 'error' %}
+                        <svg xmlns="http://www.w3.org/2000/svg" width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user-round-x">
+                            <path d="M2 21a8 8 0 0 1 11.873-7"/>
+                            <circle cx="10" cy="8" r="5"/>
+                            <path d="m17 17 5 5"/>
+                            <path d="m22 17-5 5"/>
+                        </svg>
+                    {% elif message.tags == 'success' %}
+                        <svg xmlns="http://www.w3.org/2000/svg" width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user-round-check">
+                            <path d="M2 21a8 8 0 0 1 13.292-6"/>
+                            <circle cx="10" cy="8" r="5"/>
+                            <path d="m16 19 2 2 4-4"/>
+                        </svg>
+                    {% endif %}
+                </div>
+                <span class="block mt-auto mb-2">{{ message }}</span>
+            </div>
+        {% endfor %}
+    {% endif %}
+</div>
+            <div class="flex justify-center items-center bg-gray-100">
+    <div class="bg-white p-6 rounded-lg shadow-lg w-96">
+        <form method="POST">
+            {% csrf_token %}
+            <div class="mb-4">
+                <label for="first_name" class="block text-sm font-medium text-gray-700">ชื่อ</label>
+                <input type="text" name="first_name" value="{{ user.first_name }}" class="w-full p-2 border border-gray-300 rounded-lg bg-white" />
+            </div>
+            <div class="mb-4">
+                <label for="last_name" class="block text-sm font-medium text-gray-700">นามสกุล</label>
+                <input type="text" name="last_name" value="{{ user.last_name }}" class="w-full p-2 border border-gray-300 rounded-lg bg-white" />
+            </div>
+            <div class="mb-4">
+                <label for="email" class="block text-sm font-medium text-gray-700">อีเมล</label>
+                <input type="email" name="email" value="{{ user.email }}" class="w-full p-2 border border-gray-300 rounded-lg bg-white" />
+            </div>
+            <div class="mb-4">
+                <label for="phone" class="block text-sm font-medium text-gray-700">เบอร์โทรศัพท์</label>
+                {{ form.phone }}
+            </div>
+            <button type="submit" class="w-full px-6 py-2 bg-[#164863] text-white rounded-lg hover:bg-gray-800">
+                บันทึกข้อมูล
+            </button>
+        </form>
+    </div>
+</div>
+
+        </form>
+        </div>
+    </section>
+<script>
+// Image preview functionality
+    document.getElementById('profile_img').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const container = document.getElementById('profile-image-container');
+                const oldPreview = document.getElementById('profile-preview');
+
+                // Create new image preview
+                const newPreview = document.createElement('img');
+                newPreview.id = 'profile-preview';
+                newPreview.src = event.target.result;
+                newPreview.alt = 'Profile Preview';
+                newPreview.className = 'w-48 h-48 object-cover rounded-full flex items-center justify-center border border-gray-300';
+
+                // Replace old preview with new one
+                oldPreview.replaceWith(newPreview);
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+    // Add popup auto-hide functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        const popup = document.getElementById("popup-container");
+        if (popup) {
+            setTimeout(() => {
+                popup.style.opacity = "0";
+                setTimeout(() => {
+                    popup.style.display = "none";
+                }, 500);
+            }, 3000);
+        }
+    });
+</script>
+{% endblock %}

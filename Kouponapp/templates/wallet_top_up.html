@@ -3,10 +3,14 @@
 {% block title %}
 <div class="container mx-auto mt-6 px-6">
     <div class="flex justify-center items-center mt-4 mb-2">
-<div class="flex border border-[#164863] rounded-full overflow-hidden">
-                <h1 class="px-6 py-2 bg-[#164863] text-white font-medium m-2 rounded-full focus:outline-none">
-                    เติมเงิน
-                </h1>
+        <div class="flex border border-[#164863] rounded-full overflow-hidden">
+                <a href="{% url 'wallet_top_up' %}" class="px-6 py-2 bg-[#164863] text-white font-medium m-2 rounded-full focus:outline-none">
+                   เติมเงิน
+                </a>
+                <!-- ปุ่มที่ยังไม่ได้เลือก -->
+                <a href="{% url 'wallet_transfer' %}" class="px-6 py-2 bg-white text-[#164863] font-medium m-2 rounded-full focus:outline-none">
+                    โอนเงิน
+                </a>
             </div>
     </div>
     

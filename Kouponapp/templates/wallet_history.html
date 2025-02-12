@@ -4,25 +4,37 @@
 <div class="container mx-auto mt-6 px-6">
     <div class="bg-white rounded-lg shadow-lg p-6">
         <div class="flex justify-between items-center mb-6">
-            <h1 class="text-2xl font-bold">ประวัติการทำรายการ</h1>
+            <h1 class="text-2xl font-bold text-[#164863]">ประวัติการทำรายการ</h1>
             <a href="{% url 'my_wallet' %}" class="text-blue-500 hover:text-blue-600">
                 กลับไปหน้ากระเป๋าเงิน
             </a>
         </div>
 
         <!-- สรุปยอด -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-            <div class="bg-green-100 rounded-lg p-4">
-                <div class="text-gray-600">รายรับทั้งหมด</div>
-                <div class="text-2xl font-bold text-green-600">฿{{ total_credit|floatformat:2 }}</div>
-            </div>
-            <div class="bg-red-100 rounded-lg p-4">
-                <div class="text-gray-600">รายจ่ายทั้งหมด</div>
-                <div class="text-2xl font-bold text-red-600">฿{{ total_debit|floatformat:2 }}</div>
-            </div>
-        </div>
+<div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+    <div class="bg-green-100 rounded-lg p-4">
+        <div class="text-gray-600">รายรับทั้งหมด</div>
+        <div class="text-2xl font-bold text-green-600">฿{{ summary.total_credit|floatformat:2 }}</div>
+    </div>
+        <div class="bg-red-100 rounded-lg p-4">
+        <div class="text-gray-600">รายจ่ายทั้งหมด</div>
+        <div class="text-2xl font-bold text-red-600">฿{{ summary.total_debit|floatformat:2 }}</div>
+    </div>
+
+<!-- สรุปยอดรายเดือน -->
+<div class="bg-green-50 rounded-lg p-4">
+        <div class="text-gray-600">รายรับเดือนนี้</div>
+        <div class="text-2xl font-bold text-green-500">฿{{ summary.month_credit|floatformat:2 }}</div>
+    </div>
+    <div class="bg-red-50 rounded-lg p-4">
+        <div class="text-gray-600">รายจ่ายเดือนนี้</div>
+        <div class="text-2xl font-bold text-red-500">฿{{ summary.month_debit|floatformat:2 }}</div>
+    </div>
+</div>
+
 
         <!-- รายการธุรกรรมทั้งหมด -->
+    <div class="h-[450px] overflow-y-auto place-items-center border-1 shadow-xl">
         {% if transactions %}
         <div class="overflow-x-auto">
             <table class="min-w-full divide-y divide-gray-200">
@@ -61,5 +73,6 @@
         <p class="text-gray-500 text-center py-4">ยังไม่มีรายการธุรกรรม</p>
         {% endif %}
     </div>
+</div>
 </div>
 {% endblock %}

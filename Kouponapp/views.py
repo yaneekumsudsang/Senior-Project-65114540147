@@ -179,9 +179,8 @@ def koupon_logout(request):
     logout(request)
     return redirect('home')
 
-
 @login_required
-def profile_view(request):
+def profile_member(request):
     try:
         member = Member.objects.get(user=request.user)
     except Member.DoesNotExist:
@@ -207,7 +206,7 @@ def profile_view(request):
             member.save()
 
             messages.success(request, 'แก้ไขข้อมูลสำเร็จแล้ว')
-            return redirect('profile')
+            return redirect('profile_member')
         else:
             messages.error(request, 'มีข้อผิดพลาด กรุณาตรวจสอบข้อมูลอีกครั้ง')
     else:
@@ -220,7 +219,49 @@ def profile_view(request):
         'store_request': StoreOwnerRequest.objects.filter(user=request.user).first()
     }
 
-    return render(request, 'profile.html', context)
+    return render(request, 'profile_member.html', context)
+
+@login_required
+def profile_store(request):
+    try:
+        member = Member.objects.get(user=request.user)
+    except Member.DoesNotExist:
+        member = None
+
+    if request.method == 'POST':
+        form = ProfileForm(request.POST, request.FILES, instance=request.user, member=member)
+        if form.is_valid():
+            form.save()
+
+            # สร้างหรืออัพเดท Member
+            if member is None:
+                member = Member.objects.create(user=request.user)
+
+            # บันทึกเบอร์โทรศัพท์
+            if 'phone' in form.cleaned_data:
+                member.phone = form.cleaned_data['phone']
+
+            # บันทึกรูปโปรไฟล์
+            if 'profile_img' in request.FILES:
+                member.profile_img = request.FILES['profile_img']
+
+            member.save()
+
+            messages.success(request, 'แก้ไขข้อมูลสำเร็จแล้ว')
+            return redirect('profile_store')
+        else:
+            messages.error(request, 'มีข้อผิดพลาด กรุณาตรวจสอบข้อมูลอีกครั้ง')
+    else:
+        form = ProfileForm(instance=request.user, member=member)
+
+    context = {
+        'form': form,
+        'member': member,
+        'user': request.user,
+        'store_request': StoreOwnerRequest.objects.filter(user=request.user).first()
+    }
+
+    return render(request, 'profile_store.html', context)
 
 @login_required
 def promotions_store(request):
@@ -1386,13 +1427,39 @@ def top_up(request):
 
 @login_required
 def show_card(request):
-    """หน้าแสดงเลขบัตร"""
+    """หน้าแสดงเลขบัตรและข้อมูลกระเป๋าเงิน"""
     member = request.user.member
+
+    # สร้างเลขบัตรถ้ายังไม่มี
+    if not member.card_number:
+        member.save()
+
+    # ดึงข้อมูลกระเป๋าเงิน
+    wallet, created = Wallet.objects.get_or_create(member=member)
+
+    # คำนวณสถิติการใช้งานวันนี้
+    today_transactions = wallet.transactions.filter(
+        created_at__date=timezone.now().date()
+    )
+    today_spent = today_transactions.filter(
+        transaction_type='DEBIT'
+    ).aggregate(Sum('amount'))['amount__sum'] or Decimal('0')
+
+    today_received = today_transactions.filter(
+        transaction_type='CREDIT'
+    ).aggregate(Sum('amount'))['amount__sum'] or Decimal('0')
+
+    # รายการล่าสุด 5 รายการ
+    recent_transactions = wallet.transactions.all()[:5]
 
     context = {
         'member': member,
         'card_number': member.card_number,
         'username': member.user.username,
+        'balance': wallet.balance,
+        'today_spent': today_spent,
+        'today_received': today_received,
+        'recent_transactions': recent_transactions,
     }
     return render(request, 'wallet_show_card.html', context)
 
@@ -1488,4 +1555,44 @@ def transaction_history(request):
         'transactions': transactions,
         'summary': summary,
     }
+    return render(request, 'wallet_history.html', context)
+
+def financial_dashboard(request):
+    # Get current month
+    today = timezone.now()
+    current_month = today.month
+    current_year = today.year
+
+    # Calculate totals
+    total_credit = Transaction.objects.filter(
+        transaction_type='credit'
+    ).aggregate(Sum('amount'))['amount__sum'] or 0
+
+    total_debit = Transaction.objects.filter(
+        transaction_type='debit'
+    ).aggregate(Sum('amount'))['amount__sum'] or 0
+
+    # Calculate monthly totals
+    month_credit = Transaction.objects.filter(
+        transaction_type='credit',
+        date__month=current_month,
+        date__year=current_year
+    ).aggregate(Sum('amount'))['amount__sum'] or 0
+
+    month_debit = Transaction.objects.filter(
+        transaction_type='debit',
+        date__month=current_month,
+        date__year=current_year
+    ).aggregate(Sum('amount'))['amount__sum'] or 0
+
+    # Prepare context
+    context = {
+        'summary': {
+            'total_credit': total_credit,
+            'total_debit': total_debit,
+            'month_credit': month_credit,
+            'month_debit': month_debit,
+        }
+    }
+
     return render(request, 'wallet_history.html', context)
