@@ -27,9 +27,16 @@ urlpatterns = [
 
     # สำหรับเจ้าของร้าน
     path("owner/promotions/", views.promotions_store, name="promotions_store"),
+    path('promotions/expired/', views.expired_promotions_store, name='expired_promotions_store'),
+    path('promotion/details/uncollected/<int:promotion_id>/', views.PromotionDetailsUncollected,
+    name='promotion_details_uncollected'),
+    path('promotion/details/collected/<int:promotion_id>/', views.PromotionDetailsCollected,
+    name='promotion_details_collected'),
+    path('promotion/details/expired/<int:promotion_id>/', views.PromotionDetailsExpired,
+    name='promotion_details_expired'),
     path("promotion/design/", views.CouponDesign_Store, name="CouponDesign_Store"),
     path("coupon/preview/<int:promotion_id>/", views.CouponPreview, name="CouponPreview"),
-    path("owner/promotions/<int:promotion_id>/<int:coupon_id>/", views.PromotionDetailsStore, name="promotion_details_store"),
+    path("promotion/details/coupon/<int:promotion_id>/<int:coupon_id>/", views.PromotionDetailsCoupon, name="promotion_details_coupon"),
     path("coupons/member/collect/", views.list_member_collect_coupons, name="list_member_collect_coupons"),
 
     # การใช้งานคูปอง

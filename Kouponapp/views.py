@@ -40,13 +40,6 @@ from django.shortcuts import render, redirect
 from django.contrib import messages
 from .models import Coupon, ScannedQRCode
 from django.shortcuts import render, redirect
-from django.contrib.auth.decorators import login_required
-from django.contrib import messages
-from django.http import JsonResponse
-from django.db import transaction
-from decimal import Decimal
-from .models import Wallet, Transaction
-from django.utils import timezone
 from decimal import Decimal
 from django.contrib import messages
 from django.db import transaction
@@ -279,8 +272,13 @@ def promotions_store(request):
     store = Store.objects.filter(owner=request.user.member).first()
 
     if store:
-        # ดึงข้อมูลโปรโมชั่นทั้งหมดของร้าน
-        promotions = Promotion.objects.filter(store=store)
+        # ดึงข้อมูลโปรโมชั่นที่ยังไม่หมดอายุของร้าน
+        current_date = timezone.now().date()  # แปลงเป็น date เพื่อเปรียบเทียบกับ end field
+        promotions = Promotion.objects.filter(
+            store=store,
+            start__lte=current_date,  # วันที่เริ่มต้องน้อยกว่าหรือเท่ากับวันปัจจุบัน
+            end__gte=current_date     # วันที่สิ้นสุดต้องมากกว่าหรือเท่ากับวันปัจจุบัน
+        )
         promotion_stats = []
 
         for promotion in promotions:
@@ -309,12 +307,14 @@ def promotions_store(request):
                     'uncollected_percentage': uncollected_percentage,
                     'used_percentage': used_percentage,
                     'unused_percentage': unused_percentage,
+                    'start_date': promotion.start,
+                    'end_date': promotion.end,
                 })
 
         context = {
             'promotions': promotions,
             'promotion_stats': promotion_stats,
-            'promotion_stats_json': json.dumps(promotion_stats),
+            'promotion_stats_json': json.dumps(promotion_stats, default=str),
             'has_data': len(promotion_stats) > 0
         }
     else:
@@ -325,6 +325,82 @@ def promotions_store(request):
         }
 
     return render(request, 'promotions_store.html', context)
+
+@login_required
+def expired_promotions_store(request):
+    if not request.user.member.is_owner:
+        return redirect('home')
+
+    store = Store.objects.filter(owner=request.user.member).first()
+
+    if store:
+        current_date = timezone.now().date()
+        promotions = Promotion.objects.filter(
+            store=store,
+            end__lt=current_date
+        ).order_by('-end')
+
+        # คำนวณ campaign_duration สำหรับแต่ละ promotion
+        for promotion in promotions:
+            promotion.campaign_duration = (promotion.end - promotion.start).days
+
+        promotion_stats = []
+
+        for promotion in promotions:
+            coupons = Coupon.objects.filter(promotion=promotion)
+            total_coupons = coupons.count()
+
+            if total_coupons > 0:
+                collected_coupons = coupons.filter(collect=True).count()
+                uncollected_coupons = total_coupons - collected_coupons
+                used_coupons = coupons.filter(used=True).count()
+                unused_coupons = total_coupons - used_coupons
+
+                collected_percentage = (collected_coupons / total_coupons) * 100
+                uncollected_percentage = (uncollected_coupons / total_coupons) * 100
+                used_percentage = (used_coupons / total_coupons) * 100
+                unused_percentage = (unused_coupons / total_coupons) * 100
+                success_rate = (used_coupons / collected_coupons * 100) if collected_coupons > 0 else 0
+
+                promotion_stats.append({
+                    'name': promotion.name,
+                    'total_coupons': total_coupons,
+                    'collected_coupons': collected_coupons,
+                    'uncollected_coupons': uncollected_coupons,
+                    'used_coupons': used_coupons,
+                    'unused_coupons': unused_coupons,
+                    'collected_percentage': collected_percentage,
+                    'uncollected_percentage': uncollected_percentage,
+                    'used_percentage': used_percentage,
+                    'unused_percentage': unused_percentage,
+                    'success_rate': success_rate,
+                    'start_date': promotion.start,
+                    'end_date': promotion.end,
+                    'campaign_duration': (promotion.end - promotion.start).days,
+                    'days_since_expired': (current_date - promotion.end).days,
+                })
+
+        context = {
+            'promotions': promotions,  # ส่ง promotions ที่มี campaign_duration แล้ว
+            'store': store,  # เพิ่ม store เข้าไปใน context
+            'promotion_stats': promotion_stats,
+            'promotion_stats_json': json.dumps(promotion_stats, default=str),
+            'has_data': len(promotion_stats) > 0,
+            'total_expired_promotions': promotions.count(),
+            'current_date': current_date,
+        }
+    else:
+        context = {
+            'promotions': [],
+            'store': None,
+            'promotion_stats': [],
+            'promotion_stats_json': '[]',
+            'has_data': False,
+            'total_expired_promotions': 0,
+            'current_date': current_date,
+        }
+
+    return render(request, 'expired_promotions_store.html', context)
 
 @login_required
 def used_coupons_by_member_store(request):
@@ -560,16 +636,12 @@ def detect(request):
 
     return render(request, 'scan_qrcode.html', context={'cam_status': status})
 
-from decimal import Decimal
-from django.contrib import messages
-from django.db import transaction
-from django.utils import timezone
-from django.shortcuts import redirect
-from django.contrib.auth.decorators import login_required
-from .models import Member, Wallet, Store, Promotion, Coupon, Transaction, ScannedQRCode
-
 @login_required
 def Collect_coupons(request, store_id, promotion_id, coupon_id):
+    if not hasattr(request.user, 'member') or request.user.member.is_owner != 0:
+        messages.error(request, "เจ้าของร้านไม่สามารถสะสมคูปองได้")
+        return redirect('promotions_store')
+
     try:
         # ดึงข้อมูลสมาชิกและกระเป๋าเงิน
         current_member = Member.objects.get(user=request.user)
@@ -615,7 +687,11 @@ def Collect_coupons(request, store_id, promotion_id, coupon_id):
 
         # ตรวจสอบว่าสมาชิกมียอดเงินพอหรือไม่
         if customer_wallet.balance < price_to_deduct:
-            messages.error(request, f"ยอดเงินไม่เพียงพอ ต้องการ ฿{price_to_deduct:,.2f} แต่มี ฿{customer_wallet.balance:,.2f}")
+            amount_needed = price_to_deduct - customer_wallet.balance  # คำนวณเงินที่ขาด
+            messages.error(request,
+                           f"ยอดเงินไม่เพียงพอ ต้องการ ฿{price_to_deduct:,.2f}"
+                           f"แต่มี ฿{customer_wallet.balance:,.2f}"
+                           f"ต้องเติมเงินเพิ่มอีก ฿{amount_needed:,.2f} ถึงจะเพียงพอ!")
             return redirect('my_wallet')
 
         # ทำธุรกรรมทั้งหมดในคราวเดียว
@@ -653,17 +729,17 @@ def Collect_coupons(request, store_id, promotion_id, coupon_id):
         if promotion.cups and collected_count + 1 >= promotion.cups:
             if is_free_reward:
                 messages.success(request,
-                                 f"สะสมคูปองและชำระเงิน ฿{price_to_deduct:,.2f} สำเร็จ! "
-                                 f"สะสมครบ {promotion.cups} แก้ว! "
+                                 f"สะสมคูปองและชำระเงิน ฿{price_to_deduct:,.2f} สำเร็จ!"
+                                 f"สะสมครบ {promotion.cups} แก้ว!"
                                  f"รับฟรี {promotion.free} แก้ว!")
             elif is_discount_reward:
                 messages.success(request,
-                                 f"สะสมคูปองและชำระเงิน ฿{price_to_deduct:,.2f} สำเร็จ! "
-                                 f"สะสมครบ {promotion.cups} แก้ว! "
+                                 f"สะสมคูปองและชำระเงิน ฿{price_to_deduct:,.2f} สำเร็จ!"
+                                 f"สะสมครบ {promotion.cups} แก้ว!"
                                  f"คุณได้รับส่วนลด {promotion.discount}% สำหรับการใช้คูปองครั้งต่อไป")
         else:
             messages.success(request,
-                             f"สะสมคูปองและชำระเงิน ฿{price_to_deduct:,.2f} สำเร็จ! "
+                             f"สะสมคูปองและชำระเงิน ฿{price_to_deduct:,.2f} สำเร็จ!"
                              f"สะสมอีก {promotion.cups - (collected_count + 1)} แก้วเพื่อรับสิทธิพิเศษ")
 
     except Exception as e:
@@ -714,12 +790,102 @@ def PromotionDetailsMember(request, store_id, promotion_id, coupon_id):
         'stores': stores,
     })
 
-def PromotionDetailsStore(request, promotion_id, coupon_id):
+@login_required
+def PromotionDetailsUncollected(request, promotion_id):
+    """ แสดงเฉพาะคูปองที่ยังไม่ถูกสะสม """
+    if not request.user.member.is_owner:
+        return redirect('home')
+
+    store = Store.objects.filter(owner=request.user.member).first()
+
+    if store:
+        today = now().date()
+
+        # ดึงโปรโมชั่นที่ถูกกด และตรวจสอบว่ายังไม่หมดอายุ
+        promotion = get_object_or_404(Promotion, id=promotion_id, store=store, end__gte=today)
+
+        # ดึงเฉพาะคูปองที่ยังไม่ถูกสะสม (collect=False)
+        coupons = Coupon.objects.filter(promotion=promotion, collect=False)
+
+        context = {
+            'promotion': promotion,
+            'coupons': coupons,
+            'has_data': coupons.exists(),
+        }
+    else:
+        return redirect('home')
+
+    return render(request, 'PromotionDetailsUncollected.html', context)
+
+@login_required
+def PromotionDetailsCollected(request, promotion_id):
+    """ แสดงเฉพาะคูปองที่ถูกสะสมแล้ว """
+    if not request.user.member.is_owner:
+        return redirect('home')
+
+    store = Store.objects.filter(owner=request.user.member).first()
+
+    if store:
+        today = now().date()
+
+        # ดึงโปรโมชั่นที่ถูกกด และตรวจสอบว่ายังไม่หมดอายุ
+        promotion = get_object_or_404(Promotion, id=promotion_id, store=store, end__gte=today)
+
+        # ดึงเฉพาะคูปองที่ถูกสะสมแล้ว (collect=True)
+        coupons = Coupon.objects.filter(promotion=promotion, collect=True)
+
+        context = {
+            'promotion': promotion,
+            'coupons': coupons,
+            'has_data': coupons.exists(),
+        }
+    else:
+        return redirect('home')
+
+    return render(request, 'PromotionDetailsCollected.html', context)
+
+
+@login_required
+def PromotionDetailsExpired(request, promotion_id):
+    """ แสดงเฉพาะคูปองที่หมดอายุแล้ว """
+    if not request.user.member.is_owner:
+        return redirect('home')
+
+    store = Store.objects.filter(owner=request.user.member).first()
+
+    if store:
+        today = now().date()
+
+        # ตรวจสอบว่าโปรโมชั่นเป็นของร้านค้านี้หรือไม่
+        promotion = Promotion.objects.filter(id=promotion_id, store=store).first()
+
+        if not promotion:
+            return redirect('home')
+
+        # ดึงคูปองที่หมดอายุแล้ว (promotion.end < today)
+        expired_coupons = Coupon.objects.filter(
+            promotion=promotion,
+            promotion__end__lt=today  # ดึงเฉพาะคูปองที่วันหมดอายุน้อยกว่าวันปัจจุบัน
+        ).select_related('member')  # เพิ่มประสิทธิภาพการดึงข้อมูล member
+
+        context = {
+            'promotion': promotion,
+            'coupons': expired_coupons,
+            'has_data': expired_coupons.exists(),
+            'no_coupons_message': "ไม่มีคูปองที่หมดอายุ" if not expired_coupons.exists() else "",
+            'today': today,  # ส่งวันปัจจุบันไปแสดงในเทมเพลต
+        }
+
+        return render(request, 'PromotionDetailsExpired.html', context)
+
+    return redirect('home')
+
+def PromotionDetailsCoupon(request, promotion_id, coupon_id):
     # ดึงข้อมูล Promotion และ Coupon ที่เกี่ยวข้อง
     promotion = get_object_or_404(Promotion, id=promotion_id)
     coupon = get_object_or_404(Coupon, id=coupon_id, promotion=promotion)
 
-    return render(request, 'PromotionDetailsStore.html', {
+    return render(request, 'PromotionDetailsCoupon.html', {
         'promotion': promotion,
         'coupon': coupon,
     })

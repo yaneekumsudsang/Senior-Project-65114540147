@@ -35,7 +35,7 @@
                             <path d="m9.5 9.5 5 5"/>
                         </svg>
                     </div>
-                    <span class="block mt-auto mb-2">{{ message }}</span>
+                    <span class="block mt-auto mb-2">{{ message|safe }}</span>
                 </div>
             {% elif message.tags == "success" %}
                 <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4 w-1/4 text-center shadow-lg h-32 flex flex-col justify-between items-center">
@@ -45,7 +45,7 @@
                             <path d="m9 12 2 2 4-4"/>
                         </svg>
                     </div>
-                    <span class="block mt-auto mb-2">{{ message }}</span>
+                    <span class="block mt-auto mb-2">{{ message|safe }}</span>
                 </div>
             {% endif %}
         {% endfor %}

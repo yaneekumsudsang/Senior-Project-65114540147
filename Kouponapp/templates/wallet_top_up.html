@@ -2,35 +2,144 @@
 
 {% block title %}
 <div class="container mx-auto mt-6 px-6">
+    <!-- Tab navigation -->
     <div class="flex justify-center items-center mt-4 mb-2">
         <div class="flex border border-[#164863] rounded-full overflow-hidden">
-                <a href="{% url 'wallet_top_up' %}" class="px-6 py-2 bg-[#164863] text-white font-medium m-2 rounded-full focus:outline-none">
-                   เติมเงิน
-                </a>
-                <!-- ปุ่มที่ยังไม่ได้เลือก -->
-                <a href="{% url 'wallet_transfer' %}" class="px-6 py-2 bg-white text-[#164863] font-medium m-2 rounded-full focus:outline-none">
-                    โอนเงิน
-                </a>
-            </div>
+            <a href="{% url 'wallet_top_up' %}" class="px-6 py-2 bg-[#164863] text-white font-medium m-2 rounded-full focus:outline-none">
+                เติมเงิน
+            </a>
+            <a href="{% url 'wallet_transfer' %}" class="px-6 py-2 bg-white text-[#164863] font-medium m-2 rounded-full focus:outline-none">
+                โอนเงิน
+            </a>
+        </div>
     </div>
-    
-    <div class="bg-white rounded-lg shadow p-6">
-        <form method="post">
+
+    <!-- Credit card style form -->
+    <div class="bg-white rounded-lg shadow-lg p-6 max-w-xl mx-auto">
+        <!-- Credit card icon -->
+        <div class="flex justify-center mb-6">
+            <div class="w-24 h-24 bg-[#DFE9F4] rounded-full flex items-center justify-center">
+                <svg class="w-12 h-12 text-[#164863]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
+                </svg>
+            </div>
+        </div>
+
+        <form method="post" class="space-y-6">
             {% csrf_token %}
-            <div class="mb-4">
-                <label class="block text-gray-700 mb-2">จำนวนเงิน</label>
-                <input type="number" name="amount" min="0" step="0.01" required
-                       class="w-full p-2 border rounded">
+
+            <!-- Personal Information -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Name -->
+                <div>
+                    <label class="block text-gray-700 text-sm font-medium mb-2">ชื่อ-นามสกุล</label>
+                    <input type="text"
+                           name="name"
+                           placeholder="John Doe"
+                           class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#164863] focus:border-[#164863] outline-none transition-all"
+                           required>
+                </div>
+
+                <!-- Email -->
+                <div>
+                    <label class="block text-gray-700 text-sm font-medium mb-2">อีเมล</label>
+                    <input type="email"
+                           name="email"
+                           placeholder="example@email.com"
+                           class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#164863] focus:border-[#164863] outline-none transition-all"
+                           required>
+                </div>
             </div>
-            <div class="mb-4">
-                <label class="block text-gray-700 mb-2">รายละเอียด (ไม่บังคับ)</label>
-                <input type="text" name="description"
-                       class="w-full p-2 border rounded">
+
+            <!-- Card Number -->
+            <div>
+                <label class="block text-gray-700 text-sm font-medium mb-2">หมายเลขบัตร</label>
+                <input type="text"
+                       pattern="[0-9\s]{13,19}"
+                       maxlength="19"
+                       placeholder="1234 1234 1234 1234"
+                       class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#164863] focus:border-[#164863] outline-none transition-all"
+                       required
+                        id="card-number">
             </div>
-            <button type="submit" class="w-full bg-green-500 text-white py-2 rounded">
+
+            <div class="grid grid-cols-2 gap-4">
+                <!-- Expiry Date -->
+
+                <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+
+<div>
+    <label class="block text-gray-700 text-sm font-medium mb-2">วันหมดอายุ</label>
+    <input type="text"
+           id="expiry-date"
+           pattern="(0[1-9]|1[0-2])\/([0-9]{4})"
+           placeholder="MM/YYYY"
+           maxlength="7"
+           class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#164863] focus:border-[#164863] outline-none transition-all"
+           required>
+</div>
+
+                <!-- CVV -->
+                <div>
+                    <label class="block text-gray-700 text-sm font-medium mb-2">CVV</label>
+                    <input type="text"
+                           pattern="[0-9]{3,4}"
+                           placeholder="123"
+                           maxlength="3"
+                           class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#164863] focus:border-[#164863] outline-none transition-all"
+                           required>
+                </div>
+            </div>
+
+            <!-- Amount -->
+            <div>
+                <label class="block text-gray-700 text-sm font-medium mb-2">จำนวนเงิน</label>
+                <div class="relative">
+                    <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">฿</span>
+                    <input type="number"
+                           name="amount"
+                           min="0"
+                           step="0.01"
+                           class="w-full p-3 pl-8 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#164863] focus:border-[#164863] outline-none transition-all"
+                           required>
+                </div>
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit"
+                    class="w-full bg-[#164863] hover:bg-[#12374d] text-white py-3 rounded-lg text-lg font-medium transition-colors duration-200">
                 ยืนยันการเติมเงิน
             </button>
         </form>
     </div>
 </div>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script>
+    const cardInput = document.getElementById('card-number');
+
+    cardInput.addEventListener('input', function (event) {
+        let value = event.target.value.replace(/\s/g, ''); // ลบช่องว่างทั้งหมด
+        if (!isNaN(value) && value !== '') {
+            // เพิ่มช่องว่างทุกๆ 4 ตัว
+            value = value.replace(/(\d{4})(?=\d)/g, '$1 ');
+        }
+        event.target.value = value;
+    });
+    const expiryDateInput = document.getElementById('expiry-date');
+
+    // ใช้ flatpickr เพื่อให้เลือกเดือนและปี
+    flatpickr("#expiry-date", {
+        dateFormat: "m/Y",  // กำหนดให้แสดงเป็น MM/YYYY
+        allowInput: true,   // อนุญาตให้พิมพ์ได้
+        disableMobile: true, // ปิดการแสดงปฏิทินบนมือถือ (ถ้าต้องการให้ปฏิทินแสดงแบบเดิมบนมือถือ)
+        defaultDate: "01/2023", // กำหนดวันที่เริ่มต้น
+        minDate: "01/2020", // กำหนดวันที่ต่ำสุด
+        maxDate: "12/2100", // กำหนดวันที่สูงสุด
+        monthSelectorType: "static", // ปรับให้เลือกปีและเดือนก่อน
+        onChange: function (selectedDates, dateStr, instance) {
+            // เมื่อมีการเลือกวันที่แล้ว จะปรับให้อยู่ในรูปแบบ MM/YYYY
+            expiryDateInput.value = instance.formatDate(selectedDates[0], "m/Y");
+        }
+    });
+</script>
 {% endblock %}
