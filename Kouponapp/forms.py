@@ -108,9 +108,17 @@ class PromotionForm(forms.ModelForm):
         validators=[MinValueValidator(1)],
     )
 
+    price = forms.DecimalField(
+        label="ราคา",
+        max_digits=10,
+        decimal_places=2,
+        required=True,  # บังคับกรอก
+        validators=[MinValueValidator(0)],  # ค่าต่ำสุดคือ 0
+    )
+
     class Meta:
         model = Promotion
-        fields = ['picture', 'cupsize', 'cups', 'discount', 'free', 'name', 'details', 'start', 'end', 'coupon_count']
+        fields = ['picture', 'cupsize', 'cups', 'discount', 'free', 'name', 'details', 'start', 'end', 'coupon_count','price']
         widgets = {
             'start': forms.DateInput(attrs={'type': 'date'}),
             'end': forms.DateInput(attrs={'type': 'date'}),
@@ -129,7 +137,9 @@ class PromotionForm(forms.ModelForm):
             'details': 'รายละเอียดโปรโมชั่น',
             'start': 'วันที่เริ่มใช้งาน',
             'end': 'วันหมดอายุ',
-            'count': 'จำนวนคูปอง'
+            'count': 'จำนวนคูปอง',
+            'price': 'ราคา',
+
         }
 
     # ฟิลด์จำนวนแก้วที่สะสม

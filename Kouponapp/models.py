@@ -30,6 +30,14 @@ class Member(models.Model):
     def __str__(self):
         return self.user.username
 
+    def ensure_wallet_exists(self):
+        """
+        ตรวจสอบและสร้าง wallet ถ้ายังไม่มี
+        """
+        if not hasattr(self, 'wallet'):
+            return Wallet.objects.create(member=self)
+        return self.wallet
+
     def generate_card_number(self):
         """สร้างเลขบัตรแบบสุ่ม 10 หลัก"""
         while True:
@@ -51,7 +59,6 @@ def save(self, *args, **kwargs):
     if not self.card_number:
         self.card_number = self.generate_card_number()
     super().save(*args, **kwargs)
-
 
 class Store(models.Model):
     id = models.AutoField(primary_key=True)  # ID ของร้านค้า
@@ -86,6 +93,13 @@ class Promotion(models.Model):
     start = models.DateField(verbose_name="วันที่เริ่มใช้งานคูปอง")
     end = models.DateField(verbose_name="วันหมดอายุคูปอง")
     count = models.PositiveIntegerField(default=1, verbose_name="จำนวนคูปอง")
+    price = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        validators=[MinValueValidator(Decimal('0.01'))],
+        default=0,
+        verbose_name="ราคาสินค้า"
+    )
 
     class Meta:
         verbose_name_plural = 'โปรโมชั่น'

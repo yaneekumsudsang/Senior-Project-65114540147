@@ -47,6 +47,14 @@ from django.db import transaction
 from decimal import Decimal
 from .models import Wallet, Transaction
 from django.utils import timezone
+from decimal import Decimal
+from django.contrib import messages
+from django.db import transaction
+from django.utils import timezone
+from django.shortcuts import redirect
+from django.contrib.auth.decorators import login_required
+from .models import Member, Wallet, Store, Promotion, Coupon, Transaction, ScannedQRCode
+
 
 def promotions_view(request):
     data = Promotion.objects.all()[:5]
@@ -552,63 +560,133 @@ def detect(request):
 
     return render(request, 'scan_qrcode.html', context={'cam_status': status})
 
+from decimal import Decimal
+from django.contrib import messages
+from django.db import transaction
+from django.utils import timezone
+from django.shortcuts import redirect
+from django.contrib.auth.decorators import login_required
+from .models import Member, Wallet, Store, Promotion, Coupon, Transaction, ScannedQRCode
+
 @login_required
 def Collect_coupons(request, store_id, promotion_id, coupon_id):
-    """ฟังก์ชันสำหรับการสแกน QR Code และเก็บคูปอง"""
     try:
+        # ดึงข้อมูลสมาชิกและกระเป๋าเงิน
         current_member = Member.objects.get(user=request.user)
+        customer_wallet, created = Wallet.objects.get_or_create(member=current_member)
 
-        # ดึงข้อมูลร้านค้า, โปรโมชั่น และคูปอง
+        # ดึงข้อมูลร้านค้าและกระเป๋าเงินเจ้าของร้าน
         store = Store.objects.get(pk=store_id)
+        store_owner = store.owner
+        owner_wallet, created = Wallet.objects.get_or_create(member=store_owner)
+
+        # ดึงข้อมูลโปรโมชั่นและคูปอง
         promotion = Promotion.objects.get(id=promotion_id, store=store)
         coupon = Coupon.objects.get(id=coupon_id, promotion=promotion)
 
         # บันทึกการสแกน QR Code
-        scanned_qr = ScannedQRCode.objects.create(
+        ScannedQRCode.objects.create(
             scanned_text=str(coupon.id),
             is_url=False,
         )
 
+        # ตรวจสอบเงื่อนไขคูปองว่าถูกใช้ไปแล้วหรือไม่
         if coupon.collect:
-            if coupon.member:
-                messages.error(request, f"คูปองนี้ถูกสะสมไปแล้วโดย {coupon.member.user.first_name}")
-            else:
-                messages.error(request, "คูปองนี้ถูกสะสมไปแล้ว")
-        elif promotion.end < timezone.now().date():
+            messages.error(request, "คูปองนี้ถูกสะสมไปแล้ว")
+            return redirect('my_coupons')
+
+        if promotion.end < timezone.now().date():
             messages.error(request, "คูปองนี้หมดอายุแล้ว")
-        else:
-            # อัปเดตสถานะคูปอง
+            return redirect('my_coupons')
+
+        # นับจำนวนคูปองที่สมาชิกสะสมไปแล้ว
+        collected_count = Coupon.objects.filter(
+            promotion=promotion,
+            member=current_member,
+            collect=True
+        ).count()
+
+        # ตรวจสอบว่าเป็นโปรโมชั่น **สะสมครบได้ฟรี** หรือ **สะสมครบได้ส่วนลด**
+        is_free_reward = bool(promotion.free)  # มีของฟรีไหม
+        is_discount_reward = bool(promotion.discount)  # มีส่วนลดไหม
+
+        # ✅ **ตอนสะสม ให้ตัดเงินเต็มจำนวนเสมอ**
+        price_to_deduct = promotion.price
+
+        # ตรวจสอบว่าสมาชิกมียอดเงินพอหรือไม่
+        if customer_wallet.balance < price_to_deduct:
+            messages.error(request, f"ยอดเงินไม่เพียงพอ ต้องการ ฿{price_to_deduct:,.2f} แต่มี ฿{customer_wallet.balance:,.2f}")
+            return redirect('my_wallet')
+
+        # ทำธุรกรรมทั้งหมดในคราวเดียว
+        with transaction.atomic():
+            # หักเงินเต็มจำนวนจากลูกค้า และเพิ่มเงินให้ร้านค้า
+            if not customer_wallet.deduct_balance(price_to_deduct):
+                messages.error(request, "เกิดข้อผิดพลาดในการหักเงิน")
+                return redirect('my_wallet')
+
+            owner_wallet.add_balance(price_to_deduct)
+
+            # บันทึกประวัติการทำรายการของลูกค้า
+            Transaction.objects.create(
+                wallet=customer_wallet,
+                amount=price_to_deduct,
+                transaction_type='DEBIT',
+                description=f'สะสมคูปอง {promotion.name} ที่ร้าน {store.store_name}'
+            )
+
+            # บันทึกประวัติการทำรายการของร้านค้า
+            Transaction.objects.create(
+                wallet=owner_wallet,
+                amount=price_to_deduct,
+                transaction_type='CREDIT',
+                description=f'รับเงินจากการสะสมคูปอง {promotion.name} โดย {current_member.user.username}'
+            )
+
+            # อัพเดทสถานะคูปอง
             coupon.collect = True
             coupon.collected_at = timezone.now()
             coupon.member = current_member
             coupon.save()
 
-            messages.success(request, f"คูปองถูกสะสมเรียบร้อยแล้วโดย {request.user.first_name}!")
+        # แสดงข้อความตามสถานะการสะสม
+        if promotion.cups and collected_count + 1 >= promotion.cups:
+            if is_free_reward:
+                messages.success(request,
+                                 f"สะสมคูปองและชำระเงิน ฿{price_to_deduct:,.2f} สำเร็จ! "
+                                 f"สะสมครบ {promotion.cups} แก้ว! "
+                                 f"รับฟรี {promotion.free} แก้ว!")
+            elif is_discount_reward:
+                messages.success(request,
+                                 f"สะสมคูปองและชำระเงิน ฿{price_to_deduct:,.2f} สำเร็จ! "
+                                 f"สะสมครบ {promotion.cups} แก้ว! "
+                                 f"คุณได้รับส่วนลด {promotion.discount}% สำหรับการใช้คูปองครั้งต่อไป")
+        else:
+            messages.success(request,
+                             f"สะสมคูปองและชำระเงิน ฿{price_to_deduct:,.2f} สำเร็จ! "
+                             f"สะสมอีก {promotion.cups - (collected_count + 1)} แก้วเพื่อรับสิทธิพิเศษ")
 
-    except Member.DoesNotExist:
-        messages.error(request, "ไม่พบข้อมูลสมาชิกในระบบ")
-    except Store.DoesNotExist:
-        messages.error(request, "ไม่พบร้านค้านี้ในระบบ")
-    except Promotion.DoesNotExist:
-        messages.error(request, "ไม่พบโปรโมชั่นนี้ในระบบ")
-    except Coupon.DoesNotExist:
-        messages.error(request, "ไม่พบคูปองนี้ในระบบ")
+    except Exception as e:
+        messages.error(request, f"เกิดข้อผิดพลาดในการทำรายการ: {str(e)}")
 
     return redirect('my_coupons')
 
-
 @login_required
 def my_coupons(request):
-    """แสดงรายการคูปองที่ผู้ใช้สะสม"""
+    """แสดงรายการคูปองที่ผู้ใช้สะสมและยังไม่หมดอายุ"""
     try:
         # Get the member object of the logged-in user
         member = request.user.member
+
+        # Get current date for expiration comparison
+        current_date = timezone.now().date()
 
         # Get coupons where member matches the logged-in user's member
         coupons = Coupon.objects.filter(
             member=member,  # Filter by member
             collect=True,  # Only show collected coupons
-            used=False  # Exclude used coupons
+            used=False,  # Exclude used coupons
+            promotion__end__gte=current_date  # Only show unexpired coupons
         ).select_related(
             'promotion',
             'promotion__store'
@@ -677,8 +755,12 @@ def list_member_collect_coupons(request):
 
     return render(request, 'list_member_collect_coupons.html', context)
 
+
 @login_required
 def Completed_coupons(request):
+    from django.utils import timezone
+    current_date = timezone.now().date()
+
     current_member = request.user.member
     username = request.user.username
 
@@ -689,7 +771,9 @@ def Completed_coupons(request):
         id__in=scanned_qrcodes.values_list('scanned_text', flat=True),
         collect=True,
         used=False,
-        member=current_member
+        member=current_member,
+        promotion__start__lte=current_date,  # Promotion has started
+        promotion__end__gte=current_date,  # Promotion hasn't ended
     )
                .select_related('promotion', 'promotion__store', 'member')
                .order_by('promotion'))
@@ -699,7 +783,7 @@ def Completed_coupons(request):
         promo_id = coupon.promotion.id
         if promo_id not in promotion_counts:
             promotion_counts[promo_id] = {
-                'total_required': coupon.promotion.cups,  # Changed from count to cups
+                'total_required': coupon.promotion.cups,
                 'collected': 1,
                 'coupons': [coupon]
             }
@@ -894,63 +978,108 @@ def use_coupon(request, promotion_id):
 
     return redirect('completed_coupons')
 
-
 @login_required
 def confirm_coupon_use(request, store_id, promotion_id, coupon_id):
-   try:
-       store = get_object_or_404(Store, id=store_id)
-       promotion = get_object_or_404(Promotion, id=promotion_id, store=store)
-       coupon = get_object_or_404(Coupon, id=coupon_id, promotion=promotion)
+    try:
+        store = get_object_or_404(Store, id=store_id)
+        promotion = get_object_or_404(Promotion, id=promotion_id, store=store)
+        coupon = get_object_or_404(Coupon, id=coupon_id, promotion=promotion)
 
-       print(f"Debug: Processing coupon {coupon_id} for promotion {promotion_id}")
-       print(f"Debug: Current used status: {coupon.used}")
-       print(f"Debug: Current collect status: {coupon.collect}")
+        print(f"Debug: Processing coupon {coupon_id} for promotion {promotion_id}")
+        print(f"Debug: Current used status: {coupon.used}")
+        print(f"Debug: Current collect status: {coupon.collect}")
 
-       collected_coupons = Coupon.objects.filter(
-           promotion=promotion,
-           member=coupon.member,
-           collect=True
-       )
+        collected_coupons = Coupon.objects.filter(
+            promotion=promotion,
+            member=coupon.member,
+            collect=True
+        )
 
-       unused_collected_count = collected_coupons.filter(used=False).count()
+        unused_collected_count = collected_coupons.filter(used=False).count()
 
-       validations = {
-           'is_expired': promotion.end < now().date(),
-           'is_collected': coupon.collect,
-           'has_enough_coupons': unused_collected_count >= promotion.cups,  # Changed from count to cups
-           'already_used': coupon.used,
-           'is_store_owner': request.user.member == store.owner
-       }
+        # ตรวจสอบสิทธิ์การใช้คูปอง
+        validations = {
+            'is_expired': promotion.end < timezone.now().date(),
+            'is_collected': coupon.collect,
+            'has_enough_coupons': unused_collected_count >= promotion.cups,
+            'already_used': coupon.used,
+            'is_store_owner': request.user.member == store.owner
+        }
 
-       context = {
-           'store': store,
-           'promotion': promotion,
-           'coupon': coupon,
-           'member': coupon.member if coupon.member else None,
-           'collected_count': unused_collected_count,
-           'required_count': promotion.cups,  # Changed from count to cups
-           'validations': validations
-       }
+        # ตรวจสอบ Wallet ของลูกค้า
+        customer_wallet = coupon.member.wallet if coupon.member else None
+        store_wallet = store.owner.wallet  # กระเป๋าเงินของร้านค้า
 
-       if request.method == 'POST' and validations['is_store_owner']:
-           if not coupon.used and validations['has_enough_coupons']:
-               coupons_to_use = collected_coupons.filter(used=False)[:promotion.cups]  # Changed from count to cups
+        if promotion.free is None and promotion.discount is not None:
+            # คำนวณราคาหลังหักส่วนลด
+            discount_amount = (promotion.discount / 100) * promotion.price
+            final_price = promotion.price - discount_amount
+            validations['has_sufficient_funds'] = customer_wallet.balance >= final_price if customer_wallet else False
+        else:
+            validations['has_sufficient_funds'] = True  # ฟรี ไม่ต้องตรวจสอบเงิน
 
-               for coup in coupons_to_use:
-                   coup.used = True
-                   coup.used_at = timezone.now()
-                   coup.save()
-                   print(f"Debug: Marked coupon {coup.id} as used")
+        context = {
+            'store': store,
+            'promotion': promotion,
+            'coupon': coupon,
+            'member': coupon.member if coupon.member else None,
+            'collected_count': unused_collected_count,
+            'required_count': promotion.cups,
+            'validations': validations
+        }
 
-               messages.success(request, f"ใช้คูปองสำเร็จ! ใช้คูปองจำนวน {promotion.cups} ใบ")  # Changed from count to cups
-               return redirect('promotions_store')
+        if request.method == 'POST' and validations['is_store_owner']:
+            if not coupon.used and validations['has_enough_coupons']:
+                coupons_to_use = collected_coupons.filter(used=False)[:promotion.cups]
 
-       return render(request, 'confirm_coupon_use.html', context)
+                # ✅ **ถ้าเป็นคูปองแบบฟรี → ไม่ต้องตัดเงิน**
+                if promotion.free is not None:
+                    final_price = Decimal('0.00')
 
-   except Exception as e:
-       print(f"Debug: Error occurred: {str(e)}")
-       messages.error(request, f"เกิดข้อผิดพลาด: {str(e)}")
-       return redirect('promotions_store')
+                # ✅ **ถ้าเป็นคูปองแบบลดราคา → ตัดเงินตามส่วนลด**
+                elif promotion.discount is not None:
+                    discount_amount = (promotion.discount / 100) * promotion.price
+                    final_price = promotion.price - discount_amount
+
+                    # ตรวจสอบว่าลูกค้ามียอดเงินพอหรือไม่
+                    if not customer_wallet or not customer_wallet.deduct_balance(final_price):
+                        messages.error(request, "ยอดเงินไม่เพียงพอ")
+                        return redirect('confirm_coupon_use', store_id=store_id,
+                                        promotion_id=promotion_id, coupon_id=coupon_id)
+
+                    # โอนเงินเข้ากระเป๋าของร้านค้า
+                    store_wallet.add_balance(final_price)
+
+                    # ✅ **บันทึกธุรกรรม**
+                    Transaction.objects.create(
+                        wallet=customer_wallet,
+                        amount=final_price,
+                        transaction_type='DEBIT',
+                        description=f'ใช้คูปองสำหรับ {promotion.name}'
+                    )
+                    Transaction.objects.create(
+                        wallet=store_wallet,
+                        amount=final_price,
+                        transaction_type='CREDIT',
+                        description=f'รับเงินจาก {coupon.member.user.username} สำหรับ {promotion.name}'
+                    )
+
+                # ✅ **อัปเดตสถานะคูปอง**
+                for coup in coupons_to_use:
+                    coup.used = True
+                    coup.used_at = timezone.now()
+                    coup.save()
+                    print(f"Debug: Marked coupon {coup.id} as used")
+
+                messages.success(request, f"ใช้คูปองสำเร็จ! ใช้คูปองจำนวน {promotion.cups} ใบ")
+                return redirect('promotions_store')
+
+        return render(request, 'confirm_coupon_use.html', context)
+
+    except Exception as e:
+        print(f"Debug: Error occurred: {str(e)}")
+        messages.error(request, f"เกิดข้อผิดพลาด: {str(e)}")
+        return redirect('promotions_store')
 
 @login_required
 def coupon_used_history(request):
