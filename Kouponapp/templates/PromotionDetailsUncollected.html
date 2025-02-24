@@ -38,7 +38,7 @@
         {% endif %}
 
         <!-- Promotion Cards -->
-        <div class="grid grid-cols-1 gap-3 h-[500px] overflow-y-auto place-items-center mt-4">
+        <div class="grid grid-cols-1 gap-3 md:h-[500px] h-[450px] overflow-y-auto place-items-center mt-4">
             {% if coupons %}
                 {% for coupon in coupons %}
                     <a href="{% url 'promotion_details_coupon' promotion_id=promotion.id coupon_id=coupon.id %}" class="flex-shrink-0 w-full max-w-[350px]">
@@ -75,7 +75,7 @@
         </div>
     </section>
 <a href="{% url 'promotions_store' %}" class="flex justify-center">
-    <div class="w-1/12 h-10 bg-[#164863] flex justify-center mt-8 text-white font-bold p-2 rounded-full shadow hover:bg-[#DDF2FD] hover:text-[#164863] focus:outline-none focus:ring-2 focus:[#164863] focus:ring-offset-2">
+    <div class="md:w-1/12 md:h-10 w-1/10 h-10 bg-[#164863] flex justify-center mt-8 text-white font-bold p-2 rounded-full shadow hover:bg-[#DDF2FD] hover:text-[#164863] focus:outline-none focus:ring-2 focus:[#164863] focus:ring-offset-2">
         ไปยังหน้าแรก
     </div>
 </a>

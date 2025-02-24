@@ -22,9 +22,9 @@
 <div class="relative inline-block ">
     <div id="profile-image-container">
         {% if member.profile_img %}
-            <img id="profile-preview" src="{{ member.profile_img.url }}" alt="Profile Image" class="w-48 h-48 object-cover rounded-full flex items-center justify-center border border-gray-300">
+            <img id="profile-preview" src="{{ member.profile_img.url }}" alt="Profile Image" class="md:w-48 md:h-48 w-40 h-40 object-cover rounded-full flex items-center justify-center border border-gray-300">
         {% else %}
-            <div id="profile-preview" class="w-48 h-48 bg-[#164863] text-white flex items-center justify-center rounded-full overflow-hidden relative">
+            <div id="profile-preview" class="md:w-48 md:h-48 w-40 h-40 bg-[#164863] text-white flex items-center justify-center rounded-full overflow-hidden relative">
                 <span class="text-9xl font-bold">
                     <svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user-round"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/></svg>
                 </span>

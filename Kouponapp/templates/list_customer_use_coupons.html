@@ -10,23 +10,24 @@
         </div>
 
         <div class="mb-6 bg-white rounded-lg p-6 shadow-md">
-    <div class="flex flex-row flex-wrap gap-3">
-        <div class="text-center p-4 bg-blue-50 rounded-lg flex-1 min-w-[200px] shadow">
+    <div class="grid grid-cols-3 sm:grid-cols-2 md:grid-cols-3 gap-3">
+        <div class="text-center p-4 bg-blue-50 rounded-lg shadow">
             <p class="text-sm text-gray-600">คูปองทั้งหมด</p>
             <p class="text-2xl font-bold text-blue-600">{{ total_collected_coupons }}</p>
         </div>
-        <div class="text-center p-4 bg-green-50 rounded-lg flex-1 min-w-[200px] shadow">
+        <div class="text-center p-4 bg-green-50 rounded-lg shadow">
             <p class="text-sm text-gray-600">คูปองที่ยังไม่ถูกใช้</p>
             <p class="text-2xl font-bold text-green-600">{{ available_coupons }}</p>
         </div>
-        <div class="text-center p-4 bg-red-50 rounded-lg flex-1 min-w-[200px] shadow">
+        <div class="text-center p-4 bg-red-50 rounded-lg shadow">
             <p class="text-sm text-gray-600">คูปองที่ถูกใช้งานแล้ว</p>
             <p class="text-2xl font-bold text-red-600">{{ used_coupons }}</p>
         </div>
     </div>
 </div>
 
-        <div class="h-[450px] overflow-y-auto place-items-center border-1 shadow-xl">
+
+        <div class="md:h-[450px] h-[390px] overflow-y-auto place-items-center border-1 shadow-xl">
             {% if coupons %}
             <div class="bg-white shadow-lg rounded-lg overflow-hidden">
                 <div class="overflow-x-auto">

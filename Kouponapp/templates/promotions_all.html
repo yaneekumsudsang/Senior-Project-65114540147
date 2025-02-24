@@ -14,7 +14,7 @@
         </div>
 
         <!-- Promotion Cards -->
-        <div class="grid grid-cols-1 gap-3 h-[500px] overflow-y-auto place-items-center mt-4">
+        <div class="grid grid-cols-1 gap-3 md:h-[500px] h-[450px] overflow-y-auto place-items-center mt-4">
             {% for promotion in all_promotions %}
                 <a href="{% url 'promotions_all_details' store_id=promotion.store.id promotion_id=promotion.id %}" class="flex-shrink-0">
             <div class="relative bg-[#DDF2FD] w-[435px] h-[150px] flex items-center p-4 rounded-3xl">
@@ -50,7 +50,7 @@
         </div>
     </section>
 <a href="{% url 'promotions_member' %}" class="flex justify-center">
-    <div class="w-1/12 h-10 bg-[#164863] flex justify-center mt-8 text-white font-bold p-2 rounded-full shadow hover:bg-[#DDF2FD] hover:text-[#164863] focus:outline-none focus:ring-2 focus:[#164863] focus:ring-offset-2">
+    <div class="md:w-1/12 md:h-10 w-1/10 h-10 bg-[#164863] flex justify-center mt-8 text-white font-bold p-2 rounded-full shadow hover:bg-[#DDF2FD] hover:text-[#164863] focus:outline-none focus:ring-2 focus:[#164863] focus:ring-offset-2">
         ไปยังหน้าแรก
     </div>
 </a>
