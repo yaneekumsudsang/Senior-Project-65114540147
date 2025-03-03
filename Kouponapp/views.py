@@ -50,11 +50,13 @@ from .models import Member, Wallet, Store, Promotion, Coupon, Transaction, Scann
 
 
 def promotions_view(request):
-    data = Promotion.objects.all()[:5]
-    return render(request, 'home.html', {'data':data})
+    today = date.today()
+    data = Promotion.objects.filter(start__lte=today, end__gte=today)[:5]
+    return render(request, 'home.html', {'data': data})
 
 def promotions_all(request):
-    all_promotions = Promotion.objects.all()  # ดึงข้อมูลโปรโมชั่นทั้งหมด
+    today = date.today()
+    all_promotions = Promotion.objects.filter(end__gte=today)  # ดึงข้อมูลโปรโมชั่นที่ยังไม่หมดอายุ
     return render(request, 'promotions_all.html', {'all_promotions': all_promotions})
 
 def promotions_all_details(request, store_id, promotion_id):
@@ -69,8 +71,10 @@ def promotions_all_details(request, store_id, promotion_id):
     })
 
 def promotions_member(request):
-    # ดึงข้อมูลโปรโมชั่นสำหรับสมาชิก
-    member_promotions = Promotion.objects.all()[:10]
+    today = date.today()
+
+    # ดึงข้อมูลโปรโมชั่นที่ยังไม่หมดอายุสำหรับสมาชิก
+    member_promotions = Promotion.objects.filter(end__gte=today)[:10]
 
     # ดึงข้อมูลคูปองที่ถูกใช้และนับจำนวนคูปองที่ถูกใช้ในแต่ละร้านค้า (เฉพาะผู้ใช้ที่เข้าสู่ระบบ)
     used_coupons_by_store = Coupon.objects.filter(
@@ -222,15 +226,26 @@ def profile_member(request):
 
     return render(request, 'profile_member.html', context)
 
+
 @login_required
 def profile_store(request):
     try:
         member = Member.objects.get(user=request.user)
+        # ตรวจสอบว่ามีร้านหรือไม่
+        store = Store.objects.filter(owner=member).first() if member.is_owner else None
     except Member.DoesNotExist:
         member = None
+        store = None
 
     if request.method == 'POST':
-        form = ProfileForm(request.POST, request.FILES, instance=request.user, member=member)
+        form = ProfileForm(
+            request.POST,
+            request.FILES,
+            instance=request.user,
+            member=member,
+            store=store
+        )
+
         if form.is_valid():
             form.save()
 
@@ -248,17 +263,25 @@ def profile_store(request):
 
             member.save()
 
+            # อัพเดทชื่อร้านถ้าเป็นเจ้าของร้าน
+            if member.is_owner and store and 'store_name' in form.cleaned_data:
+                new_store_name = form.cleaned_data['store_name']
+                if new_store_name and new_store_name != store.store_name:
+                    store.store_name = new_store_name
+                    store.save()
+
             messages.success(request, 'แก้ไขข้อมูลสำเร็จแล้ว')
             return redirect('profile_store')
         else:
             messages.error(request, 'มีข้อผิดพลาด กรุณาตรวจสอบข้อมูลอีกครั้ง')
     else:
-        form = ProfileForm(instance=request.user, member=member)
+        form = ProfileForm(instance=request.user, member=member, store=store)
 
     context = {
         'form': form,
         'member': member,
         'user': request.user,
+        'store': store,
         'store_request': StoreOwnerRequest.objects.filter(user=request.user).first()
     }
 
@@ -921,7 +944,6 @@ def list_member_collect_coupons(request):
 
     return render(request, 'list_member_collect_coupons.html', context)
 
-
 @login_required
 def Completed_coupons(request):
     from django.utils import timezone
@@ -938,8 +960,8 @@ def Completed_coupons(request):
         collect=True,
         used=False,
         member=current_member,
-        promotion__start__lte=current_date,  # Promotion has started
-        promotion__end__gte=current_date,  # Promotion hasn't ended
+        promotion__start__lte=current_date,
+        promotion__end__gte=current_date,
     )
                .select_related('promotion', 'promotion__store', 'member')
                .order_by('promotion'))
@@ -976,14 +998,21 @@ def Completed_coupons(request):
 
 @login_required
 def Pending_coupons(request):
-    scanned_qrcodes = ScannedQRCode.objects.all()
+    from django.utils import timezone
+    current_date = timezone.now().date()
+
+    current_member = request.user.member
     username = request.user.username
 
+    # ค้นหาคูปองที่สะสมแล้วแต่ยังไม่ครบตามเงื่อนไข
     coupons = (Coupon.objects
                .filter(
-                   id__in=scanned_qrcodes.values_list('scanned_text', flat=True),
-                   collect=True
-               )
+        collect=True,
+        used=False,
+        member=current_member,
+        promotion__start__lte=current_date,
+        promotion__end__gte=current_date,
+    )
                .select_related('promotion', 'promotion__store', 'member')
                .order_by('promotion'))
 
@@ -992,7 +1021,7 @@ def Pending_coupons(request):
         promo_id = coupon.promotion.id
         if promo_id not in promotion_counts:
             promotion_counts[promo_id] = {
-                'total_required': coupon.promotion.cups,  # Changed from count to cups
+                'total_required': coupon.promotion.cups,
                 'collected': 1,
                 'coupons': [coupon]
             }
@@ -1012,11 +1041,15 @@ def Pending_coupons(request):
         if promo_data['collected'] < promo_data['total_required']
     ]
 
+    # เพิ่ม debugging เพื่อตรวจสอบข้อมูล
+    print(f"Found {len(coupons)} coupons")
+    print(f"Number of promotions: {len(promotion_counts)}")
+    print(f"Display coupons: {len(display_coupons)}")
+
     return render(request, 'pending_coupons.html', {
         'display_coupons': display_coupons,
         'username': username
     })
-
 
 @login_required
 def verify_coupons(request, promotion_id):
@@ -1227,7 +1260,7 @@ def confirm_coupon_use(request, store_id, promotion_id, coupon_id):
                         wallet=store_wallet,
                         amount=final_price,
                         transaction_type='CREDIT',
-                        description=f'รับเงินจาก {coupon.member.user.username} สำหรับ {promotion.name}'
+                        description=f'รับเงินจาก {coupon.member.user.first_name} สำหรับ {promotion.name}'
                     )
 
                 # ✅ **อัปเดตสถานะคูปอง**
@@ -1795,17 +1828,17 @@ def transfer(request):
                     wallet=wallet,
                     amount=amount,
                     transaction_type='DEBIT',
-                    description=f'โอนเงินให้ {recipient.user.username} - {description}'
+                    description=f'โอนเงินให้ {recipient.user.first_name} - {description}'
                 )
 
                 Transaction.objects.create(
                     wallet=recipient.wallet,
                     amount=amount,
                     transaction_type='CREDIT',
-                    description=f'รับโอนจาก {request.user.username} - {description}'
+                    description=f'รับโอนจาก {request.user.first_name} - {description}'
                 )
 
-            messages.success(request, f'โอนเงินจำนวน ฿{amount:,.2f} ให้ {recipient.user.username} สำเร็จ')
+            messages.success(request, f'โอนเงินจำนวน ฿{amount:,.2f} ให้ {recipient.user.first_name} สำเร็จ')
             return redirect('my_wallet')
 
         except ValueError:

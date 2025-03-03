@@ -61,10 +61,11 @@ class LoginForm(forms.Form):
         })
     )
 
+
 class ProfileForm(forms.ModelForm):
     phone = forms.CharField(
         max_length=10,
-        required=True,  # เปลี่ยนเป็น required เพื่อให้ต้องกรอกเบอร์โทร
+        required=True,
         widget=forms.TextInput(attrs={
             'class': 'w-full p-2 border border-gray-300 rounded-lg bg-white',
             'placeholder': 'เบอร์โทรศัพท์'
@@ -76,17 +77,33 @@ class ProfileForm(forms.ModelForm):
             'class': 'form-control-file',
         })
     )
+    store_name = forms.CharField(
+        max_length=255,
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'w-full p-2 border border-gray-300 rounded-lg bg-white',
+            'placeholder': 'ชื่อร้าน'
+        })
+    )
 
     class Meta:
         model = User
-        fields = ['first_name', 'last_name', 'email']  # ฟิลด์จาก User
+        fields = ['first_name', 'last_name', 'email']
 
     def __init__(self, *args, **kwargs):
-        member = kwargs.pop('member', None)  # รับ instance ของ Member ผ่าน kwargs
+        member = kwargs.pop('member', None)
+        store = kwargs.pop('store', None)
         super().__init__(*args, **kwargs)
+
         if member:
-            self.fields['phone'].initial = member.phone  # ตั้งค่าเบอร์โทรเริ่มต้น
-            self.fields['profile_img'].initial = member.profile_img  # ตั้งค่ารูปโปรไฟล์เริ่มต้น
+            self.fields['phone'].initial = member.phone
+            self.fields['profile_img'].initial = member.profile_img
+
+        if store:
+            self.fields['store_name'].initial = store.store_name
+        else:
+            # ถ้าไม่มีร้าน ซ่อนฟิลด์ชื่อร้าน
+            self.fields['store_name'].widget = forms.HiddenInput()
 
     def save(self, commit=True):
         user = super().save(commit=False)

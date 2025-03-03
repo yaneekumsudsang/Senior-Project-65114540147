@@ -1,4 +1,5 @@
 {% extends 'nav.html' %}
+{% load humanize %}
 
 {% block title %}
 <div class="container mx-auto mt-6 px-6">
@@ -14,21 +15,21 @@
 <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6 ml-6 mr-6">
     <div class="bg-green-100 rounded-lg p-4">
         <div class="text-gray-600">รายรับทั้งหมด</div>
-        <div class="text-2xl font-bold text-green-600">฿{{ summary.total_credit|floatformat:2 }}</div>
+        <div class="text-2xl font-bold text-green-600">฿{{ summary.total_credit|floatformat:2|intcomma }}</div>
     </div>
         <div class="bg-red-100 rounded-lg p-4">
         <div class="text-gray-600">รายจ่ายทั้งหมด</div>
-        <div class="text-2xl font-bold text-red-600">฿{{ summary.total_debit|floatformat:2 }}</div>
+        <div class="text-2xl font-bold text-red-600">฿{{ summary.total_debit|floatformat:2|intcomma }}</div>
     </div>
 
 <!-- สรุปยอดรายเดือน -->
 <div class="bg-green-50 rounded-lg p-4">
         <div class="text-gray-600">รายรับเดือนนี้</div>
-        <div class="text-2xl font-bold text-green-500">฿{{ summary.month_credit|floatformat:2 }}</div>
+        <div class="text-2xl font-bold text-green-500">฿{{ summary.month_credit|floatformat:2|intcomma }}</div>
     </div>
     <div class="bg-red-50 rounded-lg p-4">
         <div class="text-gray-600">รายจ่ายเดือนนี้</div>
-        <div class="text-2xl font-bold text-red-500">฿{{ summary.month_debit|floatformat:2 }}</div>
+        <div class="text-2xl font-bold text-red-500">฿{{ summary.month_debit|floatformat:2|intcomma }}</div>
     </div>
 </div>
 
@@ -60,9 +61,9 @@
                                 {{ transaction.get_transaction_type_display }}
                             </span>
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-right {% if transaction.transaction_type == 'DEBIT' %}text-red-600{% else %}text-green-600{% endif %}">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-center {% if transaction.transaction_type == 'DEBIT' %}text-red-600{% else %}text-green-600{% endif %}">
                             {% if transaction.transaction_type == 'DEBIT' %}-{% else %}+{% endif %}
-                            ฿{{ transaction.amount|floatformat:2 }}
+                            ฿{{ transaction.amount|floatformat:2|intcomma }}
                         </td>
                     </tr>
                     {% endfor %}

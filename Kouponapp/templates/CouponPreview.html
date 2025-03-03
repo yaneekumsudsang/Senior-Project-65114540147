@@ -47,7 +47,6 @@
 
         <!-- QR Code -->
         <div class="flex flex-col items-center justify-center">
-            <p class="mb-2">Coupon ID: {{ qr_code.coupon.promotion_count }}</p>
             <img src="{% static qr_code.collect_qr_path %}" alt="QR Code for Coupon {{ qr_code.coupon.id }}" class="w-48 h-48">
         </div>
 
@@ -55,7 +54,6 @@
         <p class="text-center text-gray-400 text-sm mt-4">
             ใช้งานได้ถึง {{ promotion.end|date:"d F Y" }}
         </p>
-     <p class="text-center text-sm text-gray-600">URL: {{ qr_code.coupon.collect_qr_code_url }}</p>
     </div>
 
     {% endfor %}

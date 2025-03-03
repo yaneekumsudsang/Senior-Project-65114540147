@@ -25,13 +25,10 @@
             <div class="absolute bottom-0 left-0 w-64 h-64 bg-[#164863] rounded-full opacity-20 transform -translate-x-32 translate-y-24"></div>
 
             <!-- Card content -->
-            <h2 class="text-xl mb-2 font-mono text-[#164863]">Koupon wallet</h2>
-            <div class="text-4xl font-bold mb-8 text-[#164863]">
-                {{ balance|floatformat:2 }} บาท
-            </div>
+            <h2 class="text-xl mb-10 font-mono text-[#164863]">Koupon wallet</h2>
 
             <!-- Card number with proper spacing -->
-            <div class="text-xl font-mono tracking-wider mb-4 mt-auto text-[#164863]">
+            <div class="text-4xl font-bold tracking-wider mb-10 mt-auto text-[#164863]">
                 {{ card_number|slice:":4" }} {{ card_number|slice:"4:8" }} {{ card_number|slice:"8:12" }} {{ card_number|slice:"12:16" }}
             </div>
 

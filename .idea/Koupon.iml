@@ -22,6 +22,7 @@
     <orderEntry type="library" name="Chart.js" level="application" />
     <orderEntry type="library" name="chartjs-plugin-datalabels" level="application" />
     <orderEntry type="library" name="chart.js" level="application" />
+    <orderEntry type="library" name="flatpickr" level="application" />
   </component>
   <component name="TemplatesService">
     <option name="TEMPLATE_CONFIGURATION" value="Django" />
