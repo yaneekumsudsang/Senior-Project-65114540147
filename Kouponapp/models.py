@@ -20,7 +20,7 @@ class Member(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, unique=True, verbose_name="ชื่อผู้ใช้")
     is_owner = models.BooleanField(default=False, verbose_name="เป็นเจ้าของร้าน")  # ใช้ BooleanField แทนค่า 1/0
     phone = models.CharField(max_length=10, blank=True, null=True, verbose_name="เบอร์โทรศัพท์")
-    profile_img = models.ImageField(upload_to='profiles/', blank=True, null=True, verbose_name="รูปโปรไฟล์")
+    profile_img = models.ImageField(upload_to='profiles/', blank=True, null=True, max_length=255, verbose_name="รูปโปรไฟล์")
     card_number = models.CharField(max_length=16, unique=True, null=True, blank=True, verbose_name="เลขบัตร")
 
     class Meta:
@@ -222,7 +222,7 @@ class Wallet(models.Model):
         verbose_name_plural = "กระเป๋าเงินทั้งหมด"
 
     def __str__(self):
-        return f"กระเป๋าเงินของ {self.member.user.username}"
+        return f"กระเป๋าเงินของ {self.member.user.first_name}"
 
     def deduct_balance(self, amount):
         """
@@ -244,8 +244,8 @@ class Wallet(models.Model):
 
 class Transaction(models.Model):
     TRANSACTION_TYPES = [
-        ('DEBIT', 'หักเงิน'),
-        ('CREDIT', 'เพิ่มเงิน'),
+        ('DEBIT', 'จ่ายเงิน'),
+        ('CREDIT', 'รับเงิน'),
     ]
 
     wallet = models.ForeignKey(

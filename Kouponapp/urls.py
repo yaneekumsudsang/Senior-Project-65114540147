@@ -24,6 +24,7 @@ urlpatterns = [
     # คูปองที่ใช้แล้ว
     path("coupon/used/history/", views.coupon_used_history, name="coupon_used_history"),
     path("coupons/used/store/", views.used_coupons_by_member_store, name="used_coupons_by_member_store"),
+    path("coupons/expired/", views.expired_coupons, name="expired_coupons"),
 
     # สำหรับเจ้าของร้าน
     path("owner/promotions/", views.promotions_store, name="promotions_store"),
@@ -73,7 +74,6 @@ urlpatterns = [
     path("admin-coupons/", views.admin_coupon_management, name="admin_coupon_management"),
     path("admin-coupons/<int:coupon_id>/", views.coupon_detail, name="coupon_detail"),
     path("admin-coupons/delete/<int:coupon_id>/", views.delete_coupon, name="delete_coupon"),
-    path("coupons/expired/", views.expired_coupons, name="expired_coupons"),
 
     # การจัดการวอเลต
     path('wallet/', views.my_wallet, name='my_wallet'),

@@ -48,6 +48,7 @@ Table member {
   id integer
   user_id integer [note: 'foreign key to user']
   phone varchar
+  card_number varchar
 }
 
 Table store {
@@ -94,6 +95,21 @@ Table storeownerrequest {
   approved_by_id integer [note: 'foreign key to user']
 }
 
+Table wallet {
+  id integer
+  member_id integer [note: 'foreign key to member']
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table transaction {
+  id integer
+  wallet_id integer [note: 'foreign key to wallet']
+  transaction_type varchar
+  description varchar
+  created_at timestamp
+}
+
 Ref: logentry.user_id > user.id // many-to-one
 Ref: logentry.content_type_id > contenttype.id // many-to-one
 Ref: permission.content_type_id > contenttype.id // many-to-one
@@ -104,3 +120,5 @@ Ref: coupon.promotion_id > promotion.id // many-to-one
 Ref: coupon.member_id > member.id // many-to-one
 Ref: storeownerrequest.user_id > user.id // many-to-one
 Ref: storeownerrequest.approved_by_id > user.id // many-to-one
+Ref: wallet.member_id > member.id // many-to-one
+Ref: transaction.wallet_id > wallet.id // many-to-one

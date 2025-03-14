@@ -47,18 +47,54 @@ from django.utils import timezone
 from django.shortcuts import redirect
 from django.contrib.auth.decorators import login_required
 from .models import Member, Wallet, Store, Promotion, Coupon, Transaction, ScannedQRCode
+from datetime import date
+from django.shortcuts import render
+from django.db.models import Count
+from .models import Promotion, Coupon, Store
+from django.utils import timezone
 
 
 def promotions_view(request):
     today = date.today()
-    data = Promotion.objects.filter(start__lte=today, end__gte=today)[:5]
-    return render(request, 'home.html', {'data': data})
+    data = []
+    error_message = None
 
+    try:
+        # ค้นหาร้านค้าที่มีโปรโมชั่นที่ยังไม่หมดอายุ
+        stores_with_promotions = Store.objects.filter(promotions__start__lte=today,
+                                                      promotions__end__gte=today).distinct()
+        valid_promotions = []
+
+        for store in stores_with_promotions:
+            # ค้นหาโปรโมชั่นแรกของร้านที่ยังไม่หมดอายุ
+            promo = store.promotions.filter(start__lte=today, end__gte=today).order_by('start').first()
+
+            if promo:
+                # นับจำนวนคูปองที่ยังไม่ถูกสะสม (`collect=False`)
+                uncollected_coupons_count = Coupon.objects.filter(promotion=promo, collect=False).count()
+
+                # ตรวจสอบว่าคูปองที่ยังไม่ถูกสะสมต้องมากกว่า `cups` ของโปรโมชั่น
+                if promo.cups is not None and uncollected_coupons_count > promo.cups:
+                    valid_promotions.append(promo)
+
+            if len(valid_promotions) >= 5:  # จำกัดแค่ 5 ร้านแรก
+                break
+
+        data = valid_promotions
+        if not data:
+            error_message = "ขณะนี้ยังไม่มีโปรโมชั่นที่สามารถใช้ได้"
+    except Exception as e:
+        error_message = "เกิดข้อผิดพลาดในการดึงข้อมูลโปรโมชั่น"
+
+    return render(request, 'home.html', {'data': data, 'error_message': error_message})
+
+@login_required
 def promotions_all(request):
     today = date.today()
     all_promotions = Promotion.objects.filter(end__gte=today)  # ดึงข้อมูลโปรโมชั่นที่ยังไม่หมดอายุ
     return render(request, 'promotions_all.html', {'all_promotions': all_promotions})
 
+@login_required
 def promotions_all_details(request, store_id, promotion_id):
     promotion = get_object_or_404(Promotion, id=promotion_id, store_id=store_id)
     coupons = Coupon.objects.filter(promotion=promotion)
@@ -70,6 +106,7 @@ def promotions_all_details(request, store_id, promotion_id):
         'stores': stores,
     })
 
+@login_required
 def promotions_member(request):
     today = date.today()
 
@@ -100,31 +137,37 @@ def register(request):
 
         if form.is_valid():
             username = form.cleaned_data['username']
-            first_name = form.cleaned_data['first_name']
-            last_name = form.cleaned_data['last_name']
-            phone = form.cleaned_data['phone']
             email = form.cleaned_data['email']
-            password = form.cleaned_data['password']
 
-            # Create user
-            user = User.objects.create_user(
-                username=username,
-                first_name=first_name,
-                last_name=last_name,
-                email=email,
-                password=password
-            )
-            user.save()
+            # ตรวจสอบว่าชื่อผู้ใช้หรืออีเมลซ้ำหรือไม่
+            if User.objects.filter(username=username).exists():
+                messages.error(request, 'ชื่อผู้ใช้นี้มีอยู่แล้ว กรุณาใช้ชื่ออื่น')
+            elif User.objects.filter(email=email).exists():
+                messages.error(request, 'อีเมลนี้ถูกใช้แล้ว กรุณาใช้อีเมลอื่น')
+            else:
+                # ข้อมูลผู้ใช้ที่ถูกต้อง
+                first_name = form.cleaned_data['first_name']
+                last_name = form.cleaned_data['last_name']
+                phone = form.cleaned_data['phone']
+                password = form.cleaned_data['password']
 
-            # creat member
-            member = Member(user=user, phone=phone)
-            member.save()
+                # Create user
+                user = User.objects.create_user(
+                    username=username,
+                    first_name=first_name,
+                    last_name=last_name,
+                    email=email,
+                    password=password
+                )
+                user.save()
 
-            # Display success message
-            messages.success(request, 'สมัครสมาชิกสำเร็จ')
-            return redirect('login')  # Redirect to login page
-        else:
-            messages.error(request, 'กรุณาตรวจสอบข้อมูลที่กรอก')
+                # Create member
+                member = Member(user=user, phone=phone)
+                member.save()
+
+                messages.success(request, 'สมัครสมาชิกสำเร็จ')
+                return redirect('login')  # เปลี่ยนเส้นทางไปหน้าเข้าสู่ระบบ
+
     else:
         form = RegisterForm()
 
@@ -163,9 +206,6 @@ def user_login(request):
                     # ถ้าไม่ใช่เจ้าของร้าน, redirect ไปยังหน้าโปรไฟล์หรือตามต้องการ
                     return redirect('promotions_member')  # หรือหน้าอื่นที่ต้องการ
 
-                messages.success(request, 'เข้าสู่ระบบสำเร็จ')
-                return redirect('home')  # Redirect to the home page
-
             else:
                 logger.warning(f'Failed login attempt for username: {username}')
                 messages.error(request, 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง')
@@ -180,6 +220,7 @@ def user_login(request):
     logger.info('Rendering login form')
     return render(request, 'login.html', {'form': form})
 
+@login_required
 def koupon_logout(request):
     logout(request)
     return redirect('home')
@@ -225,7 +266,6 @@ def profile_member(request):
     }
 
     return render(request, 'profile_member.html', context)
-
 
 @login_required
 def profile_store(request):
@@ -705,7 +745,7 @@ def Collect_coupons(request, store_id, promotion_id, coupon_id):
         is_free_reward = bool(promotion.free)  # มีของฟรีไหม
         is_discount_reward = bool(promotion.discount)  # มีส่วนลดไหม
 
-        # ✅ **ตอนสะสม ให้ตัดเงินเต็มจำนวนเสมอ**
+        #  **ตอนสะสม ให้ตัดเงินเต็มจำนวนเสมอ**
         price_to_deduct = promotion.price
 
         # ตรวจสอบว่าสมาชิกมียอดเงินพอหรือไม่
@@ -802,6 +842,7 @@ def my_coupons(request):
         messages.error(request, "ไม่พบข้อมูลสมาชิกในระบบ")
         return redirect('home')
 
+@login_required
 def PromotionDetailsMember(request, store_id, promotion_id, coupon_id):
     promotion = get_object_or_404(Promotion, id=promotion_id, store_id=store_id)
     coupon = get_object_or_404(Coupon, id=coupon_id, promotion=promotion)
@@ -866,7 +907,6 @@ def PromotionDetailsCollected(request, promotion_id):
         return redirect('home')
 
     return render(request, 'PromotionDetailsCollected.html', context)
-
 
 @login_required
 def PromotionDetailsExpired(request, promotion_id):
@@ -946,7 +986,6 @@ def list_member_collect_coupons(request):
 
 @login_required
 def Completed_coupons(request):
-    from django.utils import timezone
     current_date = timezone.now().date()
 
     current_member = request.user.member
@@ -1222,7 +1261,7 @@ def confirm_coupon_use(request, store_id, promotion_id, coupon_id):
             'promotion': promotion,
             'coupon': coupon,
             'member': coupon.member if coupon.member else None,
-            'collected_count': unused_collected_count,
+            'collected_count': collected_coupons.count(),  # เปลี่ยนจาก unused_collected_count
             'required_count': promotion.cups,
             'validations': validations
         }
@@ -1231,11 +1270,11 @@ def confirm_coupon_use(request, store_id, promotion_id, coupon_id):
             if not coupon.used and validations['has_enough_coupons']:
                 coupons_to_use = collected_coupons.filter(used=False)[:promotion.cups]
 
-                # ✅ **ถ้าเป็นคูปองแบบฟรี → ไม่ต้องตัดเงิน**
+                #  **ถ้าเป็นคูปองแบบฟรี → ไม่ต้องตัดเงิน**
                 if promotion.free is not None:
                     final_price = Decimal('0.00')
 
-                # ✅ **ถ้าเป็นคูปองแบบลดราคา → ตัดเงินตามส่วนลด**
+                #  **ถ้าเป็นคูปองแบบลดราคา → ตัดเงินตามส่วนลด**
                 elif promotion.discount is not None:
                     discount_amount = (promotion.discount / 100) * promotion.price
                     final_price = promotion.price - discount_amount
@@ -1249,7 +1288,7 @@ def confirm_coupon_use(request, store_id, promotion_id, coupon_id):
                     # โอนเงินเข้ากระเป๋าของร้านค้า
                     store_wallet.add_balance(final_price)
 
-                    # ✅ **บันทึกธุรกรรม**
+                    #  **บันทึกธุรกรรม**
                     Transaction.objects.create(
                         wallet=customer_wallet,
                         amount=final_price,
@@ -1263,7 +1302,7 @@ def confirm_coupon_use(request, store_id, promotion_id, coupon_id):
                         description=f'รับเงินจาก {coupon.member.user.first_name} สำหรับ {promotion.name}'
                     )
 
-                # ✅ **อัปเดตสถานะคูปอง**
+                #  **อัปเดตสถานะคูปอง**
                 for coup in coupons_to_use:
                     coup.used = True
                     coup.used_at = timezone.now()
@@ -1300,7 +1339,7 @@ def coupon_used_history(request):
         return render(request, 'coupon_used_history.html', context)
 
     except Member.DoesNotExist:
-        messages.error(request, "ไม่พบข้อมูลสมาชิกในระบบ")
+        messages.error(request, "ไม่พบข้อมูลลูกค้าในระบบ")
         return redirect('home')
 
 @login_required
@@ -1413,7 +1452,7 @@ def approve_store_request(request, request_id):
     member.save()
 
     messages.success(request, f"อนุมัติคำขอ และสร้างร้าน {new_store.store_name} สำเร็จ!<br>"
-                              f"ผู้ใช้ {shop_request.user.username} เป็นเจ้าของร้านแล้ว")
+                              f"ผู้ใช้ {shop_request.user.first_name} เป็นเจ้าของร้านแล้ว")
     return redirect('admin_store_requests')
 
 def approved_store_owners(request):
@@ -1490,7 +1529,6 @@ def delete_store(request, store_id):
         except Exception as e:
             messages.error(request, f'เกิดข้อผิดพลาดในการลบร้านค้า: {str(e)}')
     return redirect('admin_store_management')
-
 
 @login_required
 @user_passes_test(lambda u: u.is_staff)
@@ -1755,39 +1793,15 @@ def top_up(request):
 
 @login_required
 def show_card(request):
-    """หน้าแสดงเลขบัตรและข้อมูลกระเป๋าเงิน"""
+    """หน้าแสดงเฉพาะเลขบัตร"""
     member = request.user.member
 
     # สร้างเลขบัตรถ้ายังไม่มี
     if not member.card_number:
         member.save()
 
-    # ดึงข้อมูลกระเป๋าเงิน
-    wallet, created = Wallet.objects.get_or_create(member=member)
-
-    # คำนวณสถิติการใช้งานวันนี้
-    today_transactions = wallet.transactions.filter(
-        created_at__date=timezone.now().date()
-    )
-    today_spent = today_transactions.filter(
-        transaction_type='DEBIT'
-    ).aggregate(Sum('amount'))['amount__sum'] or Decimal('0')
-
-    today_received = today_transactions.filter(
-        transaction_type='CREDIT'
-    ).aggregate(Sum('amount'))['amount__sum'] or Decimal('0')
-
-    # รายการล่าสุด 5 รายการ
-    recent_transactions = wallet.transactions.all()[:5]
-
     context = {
-        'member': member,
         'card_number': member.card_number,
-        'username': member.user.username,
-        'balance': wallet.balance,
-        'today_spent': today_spent,
-        'today_received': today_received,
-        'recent_transactions': recent_transactions,
     }
     return render(request, 'wallet_show_card.html', context)
 

@@ -1,29 +1,86 @@
-{% extends "nav.html" %}
+<!DOCTYPE html>
+{% load static %}
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
 
-{% block title %}
+<style>
+        body {
+            min-height: 100vh;
+        }
+        .left-side {
+            background-image: url("{% static 'image/background.jpg' %}");
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+        .nail-card {
+            background-color: rgba(255, 255, 255, 0.7);
+            transition: transform 0.3s ease;
+        }
+        .nail-card:hover {
+            transform: translateY(-5px);
+        }
+        .decorative-icon {
+            position: absolute;
+            opacity: 0.5;
+        }
+    </style>
+</head>
+<body>
+    <div class="flex flex-col md:flex-row w-full h-screen">
 
-<!-- Promotion Section -->
-<section class="mt-8 px-6">
+      <div class="w-full md:w-1/2 h-full left-side relative">
+        <div class="w-full h-full flex justify-center items-center">
+            <div class="flex justify-center absolute bottom-20">
+                <div class="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-4 p-4 md:p-0">
+                    <a href="/register" class="flex items-center border border-[#164863] bg-white px-2 py-3 rounded-lg hover:bg-[#164863] text-[#164863] hover:text-[#DDF2FD] mx-0.5 h-12 w-34">
+                        <span class="mr-5 md:mr-1 text-m">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-user"><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M15 18a3 3 0 1 0-6 0"/><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7z"/><circle cx="12" cy="13" r="2"/></svg>
+                        </span>
+                        <span class="font-medium">สมัครสมาชิก</span>
+                    </a>
+                    <a href="/login" class="flex items-center border border-[#164863] bg-white px-2 py-3 rounded-lg hover:bg-[#164863] text-[#164863] hover:text-[#DDF2FD] mx-0.5 h-12 w-34">
+                        <span class="mr-5 md:mr-1 text-m">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-log-in"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" x2="3" y1="12" y2="12"/></svg>
+                        </span>
+                        <span class="font-medium">เข้าสู่ระบบ</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+      </div>
+
+      <div class="w-full md:w-1/2 h-full bg-white">
+
+<div class="mt-8 px-6">
     <div class="flex justify-between items-center">
             <div class="flex border border-[#164863] rounded-full overflow-hidden">
                 <h1 class="px-6 py-2 bg-[#164863] text-white font-medium m-2 rounded-full focus:outline-none">
                     โปรโมชั่นที่น่าสนใจ
                 </h1>
             </div>
+    <div class="mt-20">
         {% if not user.is_authenticated %}
             <!-- ถ้าไม่ได้ล็อกอินให้ Redirect ไปหน้าล็อกอิน -->
-            <a href="{% url 'login' %}?next={% url 'promotions_member' %}" class="text-sm text-gray-500 ">
+            <a href="{% url 'login' %}?next={% url 'promotions_member' %}" class="text-sm text-gray-500 hover:underline">
                 ดูทั้งหมด
             </a>
         {% else %}
             <!-- ถ้าล็อกอินแล้วก็แสดงปุ่มตามปกติ -->
-            <a href="{% url 'promotions_all' %}" class="text-sm text-gray-500">ดูทั้งหมด</a>
+            <a href="{% url 'promotions_all' %}" class="text-sm text-gray-500 hover:underline">ดูทั้งหมด</a>
         {% endif %}
     </div>
-
-
-<!-- รวมข้อมูลในกรอบเดียว -->
-        <div class="flex space-x-4 overflow-x-auto mt-4 ml-10 mr-10 p-8 no-scrollbar">
+</div>
+    <!-- รวมข้อมูลในกรอบเดียว -->
+        <div class="grid grid-cols-1 gap-3 h-[500px] overflow-y-auto place-items-center mt-4">
+         {% if error_message %}
+        <div class="text-center col-span-3">
+            <p class="text-red-500 font-bold">{{ error_message }}</p>
+        </div>
+    {% else %}
             {% for i in data %}
                 <a href="#" class="block">
                 <div class="relative bg-[#DDF2FD] w-[350px] h-[150px] flex items-center p-4 rounded-3xl">
@@ -55,12 +112,16 @@
                         <p class="text-sm mt-3 text-[#164863]">ใช้งานได้ถึง: {{ i.end|date:"d M Y" }}</p>
                     </div>
                 </div>
-            {% empty %}
+                {% empty %}
                 <div class="text-center col-span-3">
-                    <p class="text-gray-500">ยังไม่มีคูปองที่สะสม</p>
+                    <p class="text-gray-500">ขณะนี้ยังไม่มีโปรโมชั่น</p>
                 </div>
                 </a>
             {% endfor %}
+        {% endif %}
         </div>
-</section>
-{% endblock %}
+    </div>
+      </div>
+    </div>
+</body>
+</html>

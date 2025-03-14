@@ -35,20 +35,15 @@
     </div>
     </div>
     <!-- ปุ่มปิด -->
-    <button onclick="closeScanner()" class="mt-10 bg-white text-[#164863] w-12 h-12 rounded-full flex items-center justify-center shadow-md hover:bg-[#DDF2FD] hover:text-[#164863] transition">
+     <a href="javascript:history.back()" class="mt-10 bg-white text-[#164863] w-12 h-12 rounded-full flex items-center justify-center shadow-md hover:bg-[#DDF2FD] hover:text-[#164863] transition">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
         </svg>
-    </button>
+    </a>
     </div>
 
     <!-- JavaScript -->
     <script>
-
-        function closeScanner() {
-            // นำกลับไปยังหน้าแรกหรือหน้าที่ต้องการ
-            window.location.href = "/";
-        }
 
         function onScanSuccess(decodedText, decodedResult) {
             console.log(`QR Code Scanned: ${decodedText}`);
@@ -84,6 +79,5 @@
             errorMessageElement.textContent = "ไม่สามารถเปิดกล้องได้: " + err;
         });
     </script>
-</div>
 </body>
 </html>
