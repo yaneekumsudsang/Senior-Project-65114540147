@@ -4,7 +4,6 @@ from .models import *
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.core.exceptions import ValidationError
 
-
 class RegisterForm(forms.Form):
     username = forms.CharField(label="ชื่อผู้ใช้",
                                max_length=150,
@@ -60,7 +59,6 @@ class LoginForm(forms.Form):
             'placeholder': 'รหัสผ่าน',
         })
     )
-
 
 class ProfileForm(forms.ModelForm):
     phone = forms.CharField(

@@ -34,11 +34,9 @@ from django.utils import timezone
 from datetime import date
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.db.models import Count, Q, Sum
-from .models import Store, Promotion, Coupon
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
 from django.contrib import messages
-from .models import Coupon, ScannedQRCode
 from django.shortcuts import render, redirect
 from decimal import Decimal
 from django.contrib import messages
@@ -46,13 +44,10 @@ from django.db import transaction
 from django.utils import timezone
 from django.shortcuts import redirect
 from django.contrib.auth.decorators import login_required
-from .models import Member, Wallet, Store, Promotion, Coupon, Transaction, ScannedQRCode
 from datetime import date
 from django.shortcuts import render
 from django.db.models import Count
-from .models import Promotion, Coupon, Store
 from django.utils import timezone
-
 
 def promotions_view(request):
     today = date.today()
@@ -61,11 +56,11 @@ def promotions_view(request):
 
     try:
         # ค้นหาร้านค้าที่มีโปรโมชั่นที่ยังไม่หมดอายุ
-        stores_with_promotions = Store.objects.filter(promotions__start__lte=today,
+        store_with_promotions = Store.objects.filter(promotions__start__lte=today,
                                                       promotions__end__gte=today).distinct()
         valid_promotions = []
 
-        for store in stores_with_promotions:
+        for store in store_with_promotions:
             # ค้นหาโปรโมชั่นแรกของร้านที่ยังไม่หมดอายุ
             promo = store.promotions.filter(start__lte=today, end__gte=today).order_by('start').first()
 
@@ -98,37 +93,34 @@ def promotions_all(request):
 def promotions_all_details(request, store_id, promotion_id):
     promotion = get_object_or_404(Promotion, id=promotion_id, store_id=store_id)
     coupons = Coupon.objects.filter(promotion=promotion)
-    stores = Store.objects.all()
+    store = Store.objects.all()
 
     return render(request, 'PromotionsAllDetails.html', {
         'promotion': promotion,
         'coupons': coupons,
-        'stores': stores,
+        'store': store,
     })
 
 @login_required
 def promotions_member(request):
     today = date.today()
 
-    # ดึงข้อมูลโปรโมชั่นที่ยังไม่หมดอายุสำหรับสมาชิก
     member_promotions = Promotion.objects.filter(end__gte=today)[:10]
 
-    # ดึงข้อมูลคูปองที่ถูกใช้และนับจำนวนคูปองที่ถูกใช้ในแต่ละร้านค้า (เฉพาะผู้ใช้ที่เข้าสู่ระบบ)
     used_coupons_by_store = Coupon.objects.filter(
-        used=True,  # คูปองที่ถูกใช้แล้ว
-        member=request.user.member  # คูปองที่ถูกใช้โดยผู้ใช้ที่เข้าสู่ระบบ
+        used=True,
+        member=request.user.member
     ).values(
-        'promotion__store__store_name'  # ชื่อร้านค้า
+        'promotion__store__store_name'
     ).annotate(
-        total_used=Count('id')  # นับจำนวนคูปองที่ถูกใช้
+        total_used=Count('id')
     )
 
-    # สร้าง dictionary เพื่อเก็บข้อมูลร้านค้าและจำนวนคูปองที่ถูกใช้
     store_data = {item['promotion__store__store_name']: item['total_used'] for item in used_coupons_by_store}
 
     return render(request, 'member.html', {
         'promotions_member': member_promotions,
-        'store_data': store_data  # ส่งข้อมูลร้านค้าและจำนวนคูปองที่ถูกใช้ไปยังเทมเพลต
+        'store_data': store_data
     })
 
 def register(request):
@@ -139,19 +131,16 @@ def register(request):
             username = form.cleaned_data['username']
             email = form.cleaned_data['email']
 
-            # ตรวจสอบว่าชื่อผู้ใช้หรืออีเมลซ้ำหรือไม่
             if User.objects.filter(username=username).exists():
                 messages.error(request, 'ชื่อผู้ใช้นี้มีอยู่แล้ว กรุณาใช้ชื่ออื่น')
             elif User.objects.filter(email=email).exists():
                 messages.error(request, 'อีเมลนี้ถูกใช้แล้ว กรุณาใช้อีเมลอื่น')
             else:
-                # ข้อมูลผู้ใช้ที่ถูกต้อง
                 first_name = form.cleaned_data['first_name']
                 last_name = form.cleaned_data['last_name']
                 phone = form.cleaned_data['phone']
                 password = form.cleaned_data['password']
 
-                # Create user
                 user = User.objects.create_user(
                     username=username,
                     first_name=first_name,
@@ -161,12 +150,11 @@ def register(request):
                 )
                 user.save()
 
-                # Create member
                 member = Member(user=user, phone=phone)
                 member.save()
 
                 messages.success(request, 'สมัครสมาชิกสำเร็จ')
-                return redirect('login')  # เปลี่ยนเส้นทางไปหน้าเข้าสู่ระบบ
+                return redirect('login')
 
     else:
         form = RegisterForm()
@@ -175,7 +163,7 @@ def register(request):
 
 logger = logging.getLogger(__name__)
 def user_login(request):
-    logger.info('Starting login process')  # Log when function starts
+    logger.info('Starting login process')
     print('starting login process')
     if request.method == 'POST':
         print('Received POST request')
@@ -188,12 +176,12 @@ def user_login(request):
             password = form.cleaned_data['password']
             print(username, password)
 
-            print(f'Attempting to authenticate user: {username}')  # Debug username
+            print(f'Attempting to authenticate user: {username}')
             user = authenticate(request, username=username, password=password)
 
             if user is not None:
                 print(f'User {username} authenticated successfully')
-                login(request, user)  # Log in the user
+                login(request, user)
 
                 if user.is_superuser:
                     return redirect('admin_member_management')
@@ -479,13 +467,11 @@ def CouponDesign_Store(request, id=None):
     member = get_object_or_404(Member, user=request.user)
     store = get_object_or_404(Store, owner=member)
 
-    if id:  # แก้ไขโปรโมชั่นที่มีอยู่
-        promotion = get_object_or_404(Promotion, id=id)
-    else:  # สร้างโปรโมชั่นใหม่
-        promotion = None
+    # ลบเงื่อนไขการตรวจสอบ id ออก และกำหนด promotion เป็น None เสมอ
+    promotion = None
 
     if request.method == 'POST':
-        form = PromotionForm(request.POST, request.FILES, instance=promotion)
+        form = PromotionForm(request.POST, request.FILES)  # ลบ instance=promotion ออก
         if form.is_valid():
             # บันทึก Promotion
             promotion = form.save(commit=False)
@@ -493,30 +479,26 @@ def CouponDesign_Store(request, id=None):
             promotion.save()
 
             # จัดการคูปองตามจำนวน `count` ที่กำหนด
-            desired_coupon_count = promotion.count or 1  # ถ้า `count` ไม่มีค่า ให้ใช้ค่า 1
-            existing_coupons = Coupon.objects.filter(promotion=promotion)
+            desired_coupon_count = promotion.count or 1
 
-            # ลบคูปองที่เกินจำนวน `count`
-            if existing_coupons.count() > desired_coupon_count:
-                excess_coupons = existing_coupons[desired_coupon_count:]
-                excess_coupons.delete()
+            # ไม่จำเป็นต้องตรวจสอบหรือลบคูปองที่มีอยู่ เพราะเป็นการสร้างใหม่เสมอ
 
-            # สร้างคูปองใหม่ถ้าจำนวนปัจจุบันไม่เพียงพอ
-            for i in range(existing_coupons.count(), desired_coupon_count):
+            # สร้างคูปองใหม่ตามจำนวนที่ต้องการ
+            for i in range(desired_coupon_count):
                 Coupon.objects.create(
                     promotion=promotion,
-                    promotion_count=i + 1,  # กำหนดเลขลำดับของคูปอง
+                    promotion_count=i + 1,
                     collect=False
                 )
 
             # เปลี่ยนเส้นทางไปยัง CouponPreview
             return redirect('CouponPreview', promotion_id=promotion.id)
         else:
-            print("Form Errors:", form.errors)  # แสดงข้อผิดพลาดของฟอร์ม
+            print("Form Errors:", form.errors)
     else:
-        form = PromotionForm(instance=promotion)
+        form = PromotionForm()  # ลบ instance=promotion ออก
 
-    return render(request, 'CouponDesign_Store.html', {'form': form, 'promotion': promotion})
+    return render(request, 'CouponDesign_Store.html', {'form': form, 'promotion': None})
 
 def generate_coupon_qr_data(promotion, coupon_number):
     qr_data = {
@@ -664,34 +646,36 @@ def generate_qr_base64(qr_url):
 
 class CameraStream(str):
     def __init__(self):
-        self.camera = cv2.VideoCapture(0)
+        self.camera = cv2.VideoCapture(0)  # เปิดกล้องเว็บแคมตัวแรกของระบบ (index 0)
 
-    def get_frames(self):
-        while True:
+    def get_frames(self): # เมธอดที่ใช้ดึงภาพ (frame) จากกล้องแบบต่อเนื่อง
+        while True: # วนลูปไม่รู้จบ เพื่อให้ได้ภาพวิดีโอแบบ real-time
             # Capture frame-by-frame
-            success, frame = self.camera.read()
-            if not success:
-                break
-            else:
-                ret, buffer = cv2.imencode('.jpg', frame)
-                color_image = np.asanyarray(frame)
-                if decode(color_image):
-                    for qrcode in decode(color_image):
-                        barcode_data = (qrcode.data).decode('utf-8')
-                else:
-                    frame = buffer.tobytes()
+            success, frame = self.camera.read() # อ่านภาพจากกล้อง: success คือสถานะการอ่าน, frame คือภาพที่ได้
+            if not success: # ถ้าอ่านภาพไม่สำเร็จ (กล้องเสีย หรือไม่พร้อมใช้งาน)
+                break # หยุดลูปและเลิกส่งภาพ
+            else: # ถ้าอ่านภาพสำเร็จ
+                ret, buffer = cv2.imencode('.jpg', frame)   # แปลงภาพเป็นไฟล์ .jpg แล้วเก็บผลลัพธ์ไว้ในตัวแปร buffer
+                color_image = np.asanyarray(frame) # แปลง frame ให้เป็น array ของ numpy (ใช้กับการตรวจจับ QR code)
+                if decode(color_image): # ถ้าในภาพมี QR code ที่สามารถตรวจจับได้
+                    for qrcode in decode(color_image): # วนลูป QR code ที่ตรวจจับได้ (อาจมีหลายอัน)
+                        barcode_data = (qrcode.data).decode('utf-8') # แปลงข้อมูลจาก QR code เป็นข้อความ UTF-8
+                else: # ถ้าไม่พบ QR code ในภาพ
+                    frame = buffer.tobytes()  # แปลง buffer ที่เป็นภาพ jpg ให้เป็น byte เพื่อส่งผ่าน HTTP
                     #hasil2 = b'--frame\r\n'b'Content-Type: image/jpeg\r\n\r\n' + barcode_frame + b'\r\n\r\n'
                     yield (b'--frame\r\n'
                            b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')
+                    # ส่งภาพในรูปแบบ multipart stream ซึ่งใช้สำหรับแสดงวิดีโอแบบสดใน <img>
 
-def camera_feed(request):
-    stream = CameraStream()
-    frames = stream.get_frames()
+def camera_feed(request): # view สำหรับส่งภาพจากกล้องแบบ streaming ไปยังเบราว์เซอร์
+    stream = CameraStream() # สร้างอินสแตนซ์ของ CameraStream เพื่อใช้งานกล้อง
+    frames = stream.get_frames() # ดึงเฟรมจากกล้องแบบต่อเนื่อง
     return StreamingHttpResponse(frames, content_type='multipart/x-mixed-replace; boundary=frame')
+    # ส่งภาพที่ได้กลับไปยัง browser โดยใช้ multipart stream
 
-def detect(request):
-    stream = CameraStream()
-    success, frame = stream.camera.read()
+def detect(request): # view สำหรับตรวจสอบว่ากล้องใช้งานได้หรือไม่
+    stream = CameraStream() # สร้างอินสแตนซ์ของ CameraStream เพื่อเปิดกล้อง
+    success, frame = stream.camera.read() # ลองอ่านภาพจากกล้องหนึ่งครั้ง
     if success:
         status = True
     else:
@@ -846,12 +830,12 @@ def my_coupons(request):
 def PromotionDetailsMember(request, store_id, promotion_id, coupon_id):
     promotion = get_object_or_404(Promotion, id=promotion_id, store_id=store_id)
     coupon = get_object_or_404(Coupon, id=coupon_id, promotion=promotion)
-    stores = Store.objects.all()
+    store = Store.objects.all()
 
     return render(request, 'PromotionDetailsMember.html', {
         'promotion': promotion,
         'coupon': coupon,
-        'stores': stores,
+        'store': store,
     })
 
 @login_required
@@ -907,41 +891,6 @@ def PromotionDetailsCollected(request, promotion_id):
         return redirect('home')
 
     return render(request, 'PromotionDetailsCollected.html', context)
-
-@login_required
-def PromotionDetailsExpired(request, promotion_id):
-    """ แสดงเฉพาะคูปองที่หมดอายุแล้ว """
-    if not request.user.member.is_owner:
-        return redirect('home')
-
-    store = Store.objects.filter(owner=request.user.member).first()
-
-    if store:
-        today = now().date()
-
-        # ตรวจสอบว่าโปรโมชั่นเป็นของร้านค้านี้หรือไม่
-        promotion = Promotion.objects.filter(id=promotion_id, store=store).first()
-
-        if not promotion:
-            return redirect('home')
-
-        # ดึงคูปองที่หมดอายุแล้ว (promotion.end < today)
-        expired_coupons = Coupon.objects.filter(
-            promotion=promotion,
-            promotion__end__lt=today  # ดึงเฉพาะคูปองที่วันหมดอายุน้อยกว่าวันปัจจุบัน
-        ).select_related('member')  # เพิ่มประสิทธิภาพการดึงข้อมูล member
-
-        context = {
-            'promotion': promotion,
-            'coupons': expired_coupons,
-            'has_data': expired_coupons.exists(),
-            'no_coupons_message': "ไม่มีคูปองที่หมดอายุ" if not expired_coupons.exists() else "",
-            'today': today,  # ส่งวันปัจจุบันไปแสดงในเทมเพลต
-        }
-
-        return render(request, 'PromotionDetailsExpired.html', context)
-
-    return redirect('home')
 
 def PromotionDetailsCoupon(request, promotion_id, coupon_id):
     # ดึงข้อมูล Promotion และ Coupon ที่เกี่ยวข้อง
@@ -1377,13 +1326,11 @@ def request_store_ownership(request):
         member = Member.objects.get(user=request.user)
     except Member.DoesNotExist:
         member = None
-
     # Check for any existing requests
     existing_requests = StoreOwnerRequest.objects.filter(user=request.user).exists()
     if existing_requests:
         messages.warning(request, "คุณเคยส่งคำขอไปแล้ว ไม่สามารถส่งคำขอซ้ำได้")
         return render(request, 'request_store_ownership.html', {'form': StoreOwnershipRequestForm()})
-
     if request.method == 'POST':
         form = StoreOwnershipRequestForm(request.POST)
         if form.is_valid():
@@ -1391,12 +1338,11 @@ def request_store_ownership(request):
             store_request.user = request.user
             store_request.save()
             messages.success(request, "ส่งคำขอสำเร็จ! รอแอดมินตรวจสอบ")
-            return redirect('request_store_ownership.html')
+            return redirect('profile_member')  # Changed from 'request_store_ownership.html'
         else:
             messages.error(request, "กรุณากรอกข้อมูลให้ถูกต้อง")
     else:
         form = StoreOwnershipRequestForm()
-
     return render(request, 'request_store_ownership.html', {'form': form})
 
 # ฟังก์ชันสำหรับแอดมินดูคำขอ
@@ -1467,7 +1413,7 @@ def approved_store_owners(request):
 @user_passes_test(lambda u: u.is_staff)
 def admin_store_management(request):
     # ดึงข้อมูลร้านค้าที่เจ้าของมี is_owner = True
-    stores = Store.objects.select_related(
+    store = Store.objects.select_related(
         'owner',
         'owner__user'
     ).prefetch_related(
@@ -1478,7 +1424,7 @@ def admin_store_management(request):
     )
 
     # นับจำนวนร้านค้าทั้งหมด
-    total_stores = stores.count()
+    total_store = store.count()
 
     # นับจำนวนโปรโมชันทั้งหมดเฉพาะจากร้านที่ is_owner = True
     total_promotions = Promotion.objects.filter(
@@ -1491,7 +1437,7 @@ def admin_store_management(request):
     ).count()
 
     # คำนวณสถิติคูปองสำหรับแต่ละร้าน
-    stores = stores.annotate(
+    store = store.annotate(
         total_coupons=Count('promotions__coupons'),
         uncollected_coupons=Count(
             'promotions__coupons',
@@ -1508,8 +1454,8 @@ def admin_store_management(request):
     )
 
     context = {
-        'stores': stores,
-        'total_stores': total_stores,
+        'store': store,
+        'total_store': total_store,
         'total_promotions': total_promotions,
         'total_coupons': total_coupons,
         'page_title': 'Store Management',
@@ -1589,30 +1535,56 @@ def admin_member_management(request):
 @user_passes_test(lambda u: u.is_staff)
 def member_detail(request, member_id):
     member = get_object_or_404(Member.objects.select_related(
-        'user'
+        'user',
+        'wallet'  # Include wallet information
     ).prefetch_related(
-        'stores',
-        'stores__promotions',
-        'stores__promotions__coupons'
+        'store',
+        'store__promotions',
+        'store__promotions__coupons',
+        'coupon_set'  # Include coupons directly associated with the member
     ), id=member_id)
 
     # รวมข้อมูลสถิติของสมาชิก
     member_stats = {
-        'total_stores': member.stores.count(),
-        'total_promotions': sum(s.promotions.count() for s in member.stores.all()),
+        'total_store': member.store.count(),
+        'total_promotions': sum(s.promotions.count() for s in member.store.all()),
         'total_coupons': sum(
             p.coupons.count()
-            for s in member.stores.all()
+            for s in member.store.all()
             for p in s.promotions.all()
         ),
-        'active_promotions': member.stores.filter(
+        'active_promotions': member.store.filter(
             promotions__end__gte=timezone.now()
-        ).distinct().count()
+        ).distinct().count(),
+        # เพิ่มข้อมูลคูปองที่สะสมและใช้แล้ว
+        'collected_coupons': Coupon.objects.filter(
+            member=member,
+            collect=True
+        ).count(),
+        'used_coupons': Coupon.objects.filter(
+            member=member,
+            used=True
+        ).count()
     }
+
+    # รายการคูปองที่สะสม (แสดงเฉพาะที่ยังไม่ได้ใช้)
+    collected_coupons = Coupon.objects.filter(
+        member=member,
+        collect=True,
+        used=False
+    ).select_related('promotion', 'promotion__store').order_by('collected_at')
+
+    # รายการคูปองที่ใช้แล้ว
+    used_coupons = Coupon.objects.filter(
+        member=member,
+        used=True
+    ).select_related('promotion', 'promotion__store').order_by('-used_at')
 
     context = {
         'member': member,
         'stats': member_stats,
+        'collected_coupons': collected_coupons,
+        'used_coupons': used_coupons,
     }
 
     return render(request, 'member_detail.html', context)

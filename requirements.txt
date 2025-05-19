@@ -4,3 +4,4 @@ pillow
 django-qr-code
 opencv-python
 pyzbar
+segno

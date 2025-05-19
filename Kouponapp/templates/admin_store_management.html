@@ -13,7 +13,7 @@
             <div class="grid grid-cols-3 md:grid-cols-3 lg:grid-cols-3 gap-4">
                 <div class="text-center p-4 bg-blue-50 rounded-lg shadow">
                     <p class="text-sm text-gray-600">จำนวนร้านค้าทั้งหมด</p>
-                    <p class="text-2xl font-bold text-blue-600">{{ total_stores }}</p>
+                    <p class="text-2xl font-bold text-blue-600">{{ total_store }}</p>
                 </div>
                 <div class="text-center p-4 bg-yellow-50 rounded-lg shadow">
                     <p class="text-sm text-gray-600">จำนวนโปรโมชั่นทั้งหมด</p>
@@ -37,7 +37,7 @@
         {% endif %}
 
         <div class="h-[400px] overflow-y-auto place-items-center border-1 shadow-xl">
-            {% if stores %}
+            {% if store %}
             <div class="bg-white shadow-lg rounded-lg overflow-hidden">
                 <div class="overflow-x-auto">
                     <table class="min-w-full divide-y divide-gray-200">
@@ -55,7 +55,7 @@
     </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
-                            {% for store in stores %}
+                            {% for store in store %}
     <tr class="hover:bg-gray-50">
         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">{{ store.id }}</td>
         <td class="px-2 py-4 whitespace-nowrap"><div class="text-sm font-medium text-gray-900 text-center">{{ store.store_name }}</div></td>

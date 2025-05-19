@@ -33,8 +33,6 @@ urlpatterns = [
     name='promotion_details_uncollected'),
     path('promotion/details/collected/<int:promotion_id>/', views.PromotionDetailsCollected,
     name='promotion_details_collected'),
-    path('promotion/details/expired/<int:promotion_id>/', views.PromotionDetailsExpired,
-    name='promotion_details_expired'),
     path("promotion/design/", views.CouponDesign_Store, name="CouponDesign_Store"),
     path("coupon/preview/<int:promotion_id>/", views.CouponPreview, name="CouponPreview"),
     path("promotion/details/coupon/<int:promotion_id>/<int:coupon_id>/", views.PromotionDetailsCoupon, name="promotion_details_coupon"),

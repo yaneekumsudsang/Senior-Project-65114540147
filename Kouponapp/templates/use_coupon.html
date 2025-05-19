@@ -14,9 +14,9 @@
 
         <div class="grid grid-cols-1 gap-6 max-w-md mx-auto">
             {% with coupon=coupons.0 %}
-            <div class="bg-white rounded-lg shadow-lg overflow-hidden border-t-4 border-[#164863]">
-                <div class="absolute z-10 top-1/2 left-0 transform -translate-y-1/2 -translate-x-1/2 w-14 h-14 bg-white rounded-full border-2 border-gray-100" style="clip-path: inset(0 0 0 50%);"></div>
-                <div class="absolute z-10 top-1/2 right-0 transform -translate-y-1/2 translate-x-1/2 w-14 h-14 bg-white rounded-full border-2 border-gray-100" style="clip-path: inset(0 50% 0 0);"></div>
+            <div class="bg-white rounded-lg shadow-lg overflow-hidden border-t-4 border-[#164863] relative">
+                <div class="absolute z-10 top-44 left-0 transform -translate-y-1/2 w-7 h-14 bg-white rounded-r-full border-r-2 border-y-2 border-gray-100"></div>
+                <div class="absolute z-10 top-44 right-0 transform -translate-y-1/2 w-7 h-14 bg-white rounded-l-full border-l-2 border-y-2 border-gray-100"></div>
 
                 <div class="p-6">
                     <div class="flex justify-between items-center mb-4">
@@ -34,7 +34,7 @@
                         <p>{{ promotion.details }}</p>
                     </div>
 
-                    <div class="border-t-2 border-dashed mt-6 mb-4"></div>
+                    <div class="border-t-4 border-dashed mt-5 mb-4"></div>
 
                     <div class="flex flex-col items-center justify-center">
                         <p class="mb-2 text-[#164863] ">คิวอาร์โค้ดสำหรับแลกคูปอง</p>
@@ -43,9 +43,7 @@
 {% else %}
     <p class="text-red-500">ไม่พบ QR Code สำหรับโปรโมชั่นนี้</p>
 {% endif %}
-
                     </div>
-
                     <p class="text-sm text-gray-500 mb-4 text-end">
                         ใช้งานได้ถึง: {{ coupon.promotion.end|date:"d F Y" }}
                     </p>

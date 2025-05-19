@@ -1,17 +1,15 @@
-
-<!-- member_detail.html -->
-{% extends "nav.html" %}
+{% extends 'nav.html' %}
 
 {% block title %}
 <div class="max-h-screen py-4">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <a href="javascript:history.back()"
-       class="inline-flex items-center px-4 py-2 bg-[#DDF2FD] hover:bg-[#164863] text-[#164863] hover:text-[#DDF2FD] text-sm font-medium rounded-lg transition duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
-       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-chevron-left"><circle cx="12" cy="12" r="10"/><path d="m14 16-4-4 4-4"/></svg>
-        <span class="ml-2">ย้อนกลับ</span>
-    </a>
+            class="inline-flex items-center px-4 py-2 bg-[#DDF2FD] hover:bg-[#164863] text-[#164863] hover:text-[#DDF2FD] text-sm font-medium rounded-lg transition duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-chevron-left"><circle cx="12" cy="12" r="10"/><path d="m14 16-4-4 4-4"/></svg>
+            <span class="ml-2">ย้อนกลับ</span>
+        </a>
 
-        <div class="flex justify-center items-center">
+        <div class="flex justify-center items-center mt-4">
             <div class="flex border border-[#164863] rounded-full overflow-hidden">
                 <h1 class="px-6 py-2 bg-[#164863] text-white font-medium m-2 rounded-full focus:outline-none">
                     ข้อมูลสมาชิก {{ member.user.first_name }} {{ member.user.last_name }}
@@ -19,166 +17,364 @@
             </div>
         </div>
 
-        <!-- ข้อมูลพื้นฐานสมาชิก -->
-        <div class="mt-6 bg-white rounded-lg p-6 shadow-lg">
-            <h2 class="text-xl font-semibold mb-4">ข้อมูลส่วนตัว</h2>
+<div class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-8">
+    <!-- กล่องซ้าย: ข้อมูลสมาชิก -->
+    <div class="bg-white rounded-xl shadow-lg overflow-hidden transform transition-all hover:shadow-xl">
+        <div class="bg-gradient-to-r from-blue-800 to-blue-600 text-white px-6 py-4">
+            <h2 class="text-xl font-semibold flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
+                </svg>
+                ข้อมูลสมาชิก
+            </h2>
+        </div>
+        <div class="p-6">
+            <div class="flex flex-col items-center mb-6">
+                <div class="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mb-3">
+    {% if member.profile_img %}
+        <img src="{{ member.profile_img.url }}" alt="{{ member.user.first_name }}'s profile" class="w-full h-full object-cover rounded-full">
+    {% else %}
+        <span class="text-blue-700 text-2xl font-bold">{{ member.user.first_name|slice:"0:1" }}{{ member.user.last_name|slice:"0:1" }}</span>
+    {% endif %}
+</div>
+                <h3 class="text-xl font-bold text-gray-800">{{ member.user.first_name }} {{ member.user.last_name }}</h3>
+                <p class="text-blue-600">{{ member.user.username }}</p>
+            </div>
+
+            <div class="space-y-4">
+                <div class="flex justify-between items-center p-3 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors">
+                    <span class="font-medium text-gray-700 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2 text-blue-600" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a5 5 0 00-4.546 2.916A5.986 5.986 0 005 10a6 6 0 0012 0c0-.35-.035-.691-.1-1.021A5 5 0 0010 11z" clip-rule="evenodd" />
+                        </svg>
+                        สถานะ
+                    </span>
+                    {% if member.is_owner %}
+                        <span class="px-3 py-1 text-sm rounded-full bg-green-100 text-green-800 font-medium">เจ้าของร้าน</span>
+                    {% else %}
+                        <span class="px-3 py-1 text-sm rounded-full bg-blue-100 text-blue-800 font-medium">สมาชิกทั่วไป</span>
+                    {% endif %}
+                </div>
+
+                <div class="flex justify-between items-center p-3 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors">
+                    <span class="font-medium text-gray-700 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2 text-blue-600" viewBox="0 0 20 20" fill="currentColor">
+                            <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+                            <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+                        </svg>
+                        อีเมล
+                    </span>
+                    <span class="text-gray-800 font-medium">{{ member.user.email }}</span>
+                </div>
+
+                <div class="flex justify-between items-center p-3 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors">
+                    <span class="font-medium text-gray-700 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2 text-blue-600" viewBox="0 0 20 20" fill="currentColor">
+                            <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
+                        </svg>
+                        เบอร์โทรศัพท์
+                    </span>
+                    <span class="text-gray-800 font-medium">{{ member.phone|default:"ไม่ระบุ" }}</span>
+                </div>
+
+                <div class="flex justify-between items-center p-3 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors">
+                    <span class="font-medium text-gray-700 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2 text-blue-600" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" />
+                        </svg>
+                        เลขบัตร
+                    </span>
+                    <span class="text-gray-800 font-medium">{{ member.card_number }}</span>
+                </div>
+
+                <div class="flex justify-between items-center p-4 rounded-lg bg-gradient-to-r from-blue-50 to-green-50 border border-green-100">
+                    <span class="font-medium text-gray-700 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-green-600" viewBox="0 0 20 20" fill="currentColor">
+                            <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clip-rule="evenodd" />
+                        </svg>
+                        ยอดเงินคงเหลือ
+                    </span>
+                    <span class="text-xl font-bold text-green-600">฿{{ member.wallet.balance }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- กล่องขวา: สถิติ -->
+    <div class="bg-white rounded-xl shadow-lg overflow-hidden transform transition-all hover:shadow-xl">
+        <div class="bg-gradient-to-r from-blue-600 to-blue-400 text-white px-6 py-4">
+            <h2 class="text-xl font-semibold flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
+                </svg>
+                สถิติการใช้งาน
+            </h2>
+        </div>
+        <div class="p-6">
             <div class="grid grid-cols-2 gap-4">
-                <div>
-                    <p class="text-gray-600">รหัสสมาชิก:</p>
-                    <p class="font-medium">{{ member.id }}</p>
+                <div class="p-4 rounded-lg bg-blue-50 border border-blue-100 flex flex-col items-center justify-center">
+                    <span class="text-blue-800 font-bold text-2xl mb-1">{{ stats.total_store }}</span>
+                    <span class="text-sm text-gray-600">ร้านค้าทั้งหมด</span>
                 </div>
-                <div>
-                    <p class="text-gray-600">ชื่อ-นามสกุล:</p>
-                    <p class="font-medium">{{ member.user.first_name }} {{ member.user.last_name }}</p>
+                <div class="p-4 rounded-lg bg-indigo-50 border border-indigo-100 flex flex-col items-center justify-center">
+                    <span class="text-indigo-800 font-bold text-2xl mb-1">{{ stats.total_promotions }}</span>
+                    <span class="text-sm text-gray-600">โปรโมชั่นทั้งหมด</span>
                 </div>
-                <div>
-                    <p class="text-gray-600">อีเมล:</p>
-                    <p class="font-medium">{{ member.user.email }}</p>
+                <div class="p-4 rounded-lg bg-green-50 border border-green-100 flex flex-col items-center justify-center">
+                    <span class="text-green-800 font-bold text-2xl mb-1">{{ stats.active_promotions }}</span>
+                    <span class="text-sm text-gray-600">โปรโมชั่นที่ใช้ได้</span>
                 </div>
-                <div>
-                    <p class="text-gray-600">เบอร์โทรศัพท์:</p>
-                    <p class="font-medium">{{ member.phone|default:"-" }}</p>
+                <div class="p-4 rounded-lg bg-purple-50 border border-purple-100 flex flex-col items-center justify-center">
+                    <span class="text-purple-800 font-bold text-2xl mb-1">{{ stats.total_coupons }}</span>
+                    <span class="text-sm text-gray-600">คูปองทั้งหมด</span>
                 </div>
-                <div>
-                    <p class="text-gray-600">สถานะ:</p>
-                    <p class="font-medium">
-                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {% if member.is_owner %}bg-green-100 text-green-800{% else %}bg-gray-100 text-gray-800{% endif %}">
-                            {{ member.is_owner|yesno:"เจ้าของร้าน,สมาชิกทั่วไป" }}
-                        </span>
-                    </p>
+            </div>
+
+            <div class="mt-6 space-y-4">
+                <div class="relative pt-1">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <span class="text-xs font-semibold inline-block py-1 px-2 uppercase rounded-full text-yellow-600 bg-yellow-100">
+                                คูปองที่สะสม
+                            </span>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-xs font-semibold inline-block text-yellow-600">
+                                {{ stats.collected_coupons }}/{{ stats.total_coupons }}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="overflow-hidden h-2 mb-4 text-xs flex rounded bg-yellow-100 mt-2">
+                        <div style="width:{% widthratio stats.collected_coupons stats.total_coupons 100 %}%"
+                            class="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-yellow-500">
+                        </div>
+                    </div>
                 </div>
-                <div>
-                    <p class="text-gray-600">วันที่สมัคร:</p>
-                    <p class="font-medium">{{ member.user.date_joined|date:"d M Y" }}</p>
+
+                <div class="relative pt-1">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <span class="text-xs font-semibold inline-block py-1 px-2 uppercase rounded-full text-gray-600 bg-gray-100">
+                                คูปองที่ใช้แล้ว
+                            </span>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-xs font-semibold inline-block text-gray-600">
+                                {{ stats.used_coupons }}/{{ stats.total_coupons }}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="overflow-hidden h-2 mb-4 text-xs flex rounded bg-gray-100 mt-2">
+                        <div style="width:{% widthratio stats.used_coupons stats.total_coupons 100 %}%"
+                            class="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-gray-500">
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-
-        <!-- สถิติสมาชิก -->
-        <div class="mt-6 grid grid-cols-4 gap-4">
-            <div class="bg-white p-6 rounded-lg shadow-lg text-center">
-                <p class="text-gray-600">จำนวนร้านค้า</p>
-                <p class="text-2xl font-bold text-blue-600">{{ stats.total_stores }}</p>
-            </div>
-            <div class="bg-white p-6 rounded-lg shadow-lg text-center">
-                <p class="text-gray-600">จำนวนโปรโมชั่น</p>
-                <p class="text-2xl font-bold text-green-600">{{ stats.total_promotions }}</p>
-            </div>
-            <div class="bg-white p-6 rounded-lg shadow-lg text-center">
-                <p class="text-gray-600">คูปองที่สะสม</p>
-                <p class="text-2xl font-bold text-yellow-600">{{ stats.total_collected_coupons }}</p>
-            </div>
-            <div class="bg-white p-6 rounded-lg shadow-lg text-center">
-                <p class="text-gray-600">คูปองที่ใช้แล้ว</p>
-                <p class="text-2xl font-bold text-red-600">{{ stats.total_used_coupons }}</p>
-            </div>
-        </div>
-
-        <!-- รายการร้านค้า (แสดงเฉพาะกรณีเป็นเจ้าของร้าน) -->
-        {% if member.is_owner %}
-        <div class="mt-6 bg-white rounded-lg p-6 shadow-lg">
-            <h2 class="text-xl font-semibold mb-4">รายการร้านค้า</h2>
-            {% if member.store_set.exists %}
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50">
-                        <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">รหัสร้าน</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ชื่อร้าน</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">จำนวนโปรโมชั่น</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">จำนวนคูปอง</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">การจัดการ</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-200">
-                        {% for store in member.store_set.all %}
-                        <tr class="hover:bg-gray-50">
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ store.id }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm font-medium text-gray-900">{{ store.store_name }}</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-center">
-                                <div class="text-sm text-gray-900">{{ store.promotions.count }}</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-center">
-                                <div class="text-sm text-gray-900">
-                                    {{ store.promotions.all|join:", "|default:"0" }}
-                                </div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                <a href="{% url 'store_detail' store.id %}" class="text-indigo-600 hover:text-indigo-900">ดูข้อมูล</a>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-            {% else %}
-            <p class="text-center text-gray-500">ไม่มีร้านค้า</p>
-            {% endif %}
-        </div>
-        {% endif %}
-
-        <!-- ประวัติการสะสมคูปอง -->
-        <div class="mt-6 bg-white rounded-lg p-6 shadow-lg">
-            <h2 class="text-xl font-semibold mb-4">ประวัติการสะสมคูปอง</h2>
-            {% if member.user.collection_set.exists %}
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50">
-                        <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">รหัสคูปอง</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">โปรโมชั่น</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ร้านค้า</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">วันที่สะสม</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">วันที่ใช้งาน</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">สถานะ</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-200">
-                        {% for collection in member.user.collection_set.all %}
-                        <tr class="hover:bg-gray-50">
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ collection.coupon.id }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm font-medium text-gray-900">{{ collection.coupon.promotion.name }}</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm text-gray-900">{{ collection.coupon.promotion.store.store_name }}</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm text-gray-900">{{ collection.collected_date|date:"d M Y" }}</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm text-gray-900">{{ collection.used_date|date:"d M Y"|default:"-" }}</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {% if collection.used %}bg-red-100 text-red-800{% elif collection.collect %}bg-green-100 text-green-800{% else %}bg-gray-100 text-gray-800{% endif %}">
-                                    {% if collection.used %}
-                                        ใช้งานแล้ว
-                                    {% elif collection.collect %}
-                                        สะสมแล้ว
-                                    {% else %}
-                                        ยังไม่ได้สะสม
-                                    {% endif %}
-                                </span>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-            {% else %}
-            <p class="text-center text-gray-500">ไม่มีประวัติการสะสมคูปอง</p>
-            {% endif %}
-        </div>
-
-        <!-- ปุ่มลบสมาชิก -->
-        {% if member.id %}
-<form action="{% url 'delete_member' member.id %}" method="POST" class="inline" onsubmit="return confirm('คุณแน่ใจหรือไม่ที่จะลบสมาชิกนี้?');">
-    {% csrf_token %}
-    <button type="submit" class="text-red-600 hover:text-red-900 ml-2">ลบ</button>
-</form>
-{% endif %}
     </div>
 </div>
+
+            <!-- คอลัมน์ขวา: แท็บข้อมูลเพิ่มเติม -->
+            <div class="col-span-2">
+                <!-- แท็บเนวิเกชัน -->
+                <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+                    <div class="border-b border-gray-200">
+                        <nav class="flex -mb-px">
+                            <button id="store-tab" data-tab="store" class="active-tab flex-1 px-4 py-3 text-center text-[#164863] border-b-2 border-[#164863] font-medium">
+                                ร้านค้า
+                            </button>
+                            <button id="collected-tab" data-tab="collected" class="inactive-tab flex-1 px-4 py-3 text-center text-gray-500 hover:text-gray-700 border-b-2 border-transparent hover:border-gray-300">
+                                คูปองที่สะสม
+                            </button>
+                            <button id="used-tab" data-tab="used" class="inactive-tab flex-1 px-4 py-3 text-center text-gray-500 hover:text-gray-700 border-b-2 border-transparent hover:border-gray-300">
+                                คูปองที่ใช้แล้ว
+                            </button>
+                            <button id="transactions-tab" data-tab="transactions" class="inactive-tab flex-1 px-4 py-3 text-center text-gray-500 hover:text-gray-700 border-b-2 border-transparent hover:border-gray-300">
+                                ประวัติธุรกรรม
+                            </button>
+                        </nav>
+                    </div>
+
+                    <!-- เนื้อหาแท็บ -->
+                    <div class="p-4">
+                        <!-- ร้านค้า Tab -->
+                        <div id="store" class="tab-content block">
+                            {% if member.store.all %}
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    {% for store in member.store.all %}
+                                        <div class="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden hover:shadow-md transition duration-150">
+                                            <div class="px-4 py-3 bg-gray-50 border-b border-gray-200">
+                                                <h3 class="text-lg font-medium text-gray-800">{{ store.store_name }}</h3>
+                                            </div>
+                                            <div class="p-4">
+                                                <p class="text-gray-500 mb-3">โปรโมชั่น: {{ store.promotions.count }}</p>
+                                                <a href="{% url 'store_detail' store.id %}" class="inline-flex items-center px-3 py-1.5 text-sm bg-[#DDF2FD] hover:bg-[#164863] text-[#164863] hover:text-[#DDF2FD] rounded-md transition duration-150">
+                                                    ดูรายละเอียด
+                                                </a>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <div class="py-8 px-4 rounded-lg bg-gray-50 text-center">
+                                    <p class="text-gray-500">ไม่มีร้านค้า</p>
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- คูปองที่สะสม Tab -->
+                        <div id="collected" class="tab-content hidden">
+                            {% if collected_coupons %}
+                                <div class="overflow-x-auto">
+                                    <table class="min-w-full divide-y divide-gray-200">
+                                        <thead class="bg-gray-50">
+                                            <tr>
+                                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">ชื่อร้าน</th>
+                                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">โปรโมชั่น</th>
+                                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">วันที่สะสม</th>
+                                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">สถานะ</th>
+                                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">การดำเนินการ</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="bg-white divide-y divide-gray-200">
+                                            {% for coupon in collected_coupons %}
+                                                <tr class="hover:bg-gray-50">
+                                                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{{ coupon.promotion.store.store_name }}</td>
+                                                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{{ coupon.promotion.name }}</td>
+                                                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">{{ coupon.collected_at|date:"d/m/Y H:i" }}</td>
+                                                    <td class="px-4 py-3 whitespace-nowrap">
+                                                        <span class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">พร้อมใช้งาน</span>
+                                                    </td>
+                                                    <td class="px-4 py-3 whitespace-nowrap text-sm">
+                                                        <a href="{% url 'coupon_detail' coupon.id %}" class="text-blue-600 hover:text-blue-900 hover:underline">รายละเอียด</a>
+                                                    </td>
+                                                </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            {% else %}
+                                <div class="py-8 px-4 rounded-lg bg-gray-50 text-center">
+                                    <p class="text-gray-500">ไม่มีคูปองที่สะสม</p>
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- คูปองที่ใช้แล้ว Tab -->
+                        <div id="used" class="tab-content hidden">
+                            {% if used_coupons %}
+                                <div class="overflow-x-auto">
+                                    <table class="min-w-full divide-y divide-gray-200">
+                                        <thead class="bg-gray-50">
+                                            <tr>
+                                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">ชื่อร้าน</th>
+                                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">โปรโมชั่น</th>
+                                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">วันที่ใช้</th>
+                                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">สถานะ</th>
+                                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">การดำเนินการ</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="bg-white divide-y divide-gray-200">
+                                            {% for coupon in used_coupons %}
+                                                <tr class="hover:bg-gray-50">
+                                                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{{ coupon.promotion.store.store_name }}</td>
+                                                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{{ coupon.promotion.name }}</td>
+                                                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">{{ coupon.used_at|date:"d/m/Y H:i" }}</td>
+                                                    <td class="px-4 py-3 whitespace-nowrap">
+                                                        <span class="px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-800">ใช้งานแล้ว</span>
+                                                    </td>
+                                                    <td class="px-4 py-3 whitespace-nowrap text-sm">
+                                                        <a href="{% url 'coupon_detail' coupon.id %}" class="text-blue-600 hover:text-blue-900 hover:underline">รายละเอียด</a>
+                                                    </td>
+                                                </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            {% else %}
+                                <div class="py-8 px-4 rounded-lg bg-gray-50 text-center">
+                                    <p class="text-gray-500">ไม่มีคูปองที่ใช้แล้ว</p>
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- ประวัติธุรกรรม Tab -->
+                        <div id="transactions" class="tab-content hidden">
+                            {% if member.wallet.transactions.all %}
+                                <div class="overflow-x-auto">
+                                    <table class="min-w-full divide-y divide-gray-200">
+                                        <thead class="bg-gray-50">
+                                            <tr>
+                                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">วันที่</th>
+                                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">ประเภท</th>
+                                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">จำนวนเงิน</th>
+                                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">รายละเอียด</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="bg-white divide-y divide-gray-200">
+                                            {% for transaction in member.wallet.transactions.all %}
+                                                <tr class="hover:bg-gray-50">
+                                                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">{{ transaction.created_at|date:"d/m/Y H:i" }}</td>
+                                                    <td class="px-4 py-3 whitespace-nowrap">
+                                                        {% if transaction.transaction_type == 'CREDIT' %}
+                                                            <span class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">รับเงิน</span>
+                                                        {% else %}
+                                                            <span class="px-2 py-1 text-xs rounded-full bg-red-100 text-red-800">จ่ายเงิน</span>
+                                                        {% endif %}
+                                                    </td>
+                                                    <td class="px-4 py-3 whitespace-nowrap text-sm font-medium {% if transaction.transaction_type == 'CREDIT' %}text-green-600{% else %}text-red-600{% endif %}">
+                                                        {% if transaction.transaction_type == 'CREDIT' %}+{% else %}-{% endif %}฿{{ transaction.amount }}
+                                                    </td>
+                                                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">{{ transaction.description }}</td>
+                                                </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            {% else %}
+                                <div class="py-8 px-4 rounded-lg bg-gray-50 text-center">
+                                    <p class="text-gray-500">ไม่มีประวัติธุรกรรม</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- เพิ่ม JavaScript สำหรับการเปลี่ยนแท็บ -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const tabs = document.querySelectorAll('[data-tab]');
+
+        tabs.forEach(tab => {
+            tab.addEventListener('click', function() {
+                const tabId = this.getAttribute('data-tab');
+
+                // ซ่อนทุกเนื้อหาแท็บ
+                document.querySelectorAll('.tab-content').forEach(content => {
+                    content.classList.add('hidden');
+                    content.classList.remove('block');
+                });
+
+                // แสดงเนื้อหาแท็บที่เลือก
+                document.getElementById(tabId).classList.remove('hidden');
+                document.getElementById(tabId).classList.add('block');
+
+                // อัปเดตสถานะของแท็บ
+                document.querySelectorAll('.active-tab').forEach(activeTab => {
+                    activeTab.classList.remove('active-tab', 'text-[#164863]', 'border-[#164863]');
+                    activeTab.classList.add('inactive-tab', 'text-gray-500', 'border-transparent');
+                });
+
+                this.classList.remove('inactive-tab', 'text-gray-500', 'border-transparent');
+                this.classList.add('active-tab', 'text-[#164863]', 'border-[#164863]');
+            });
+        });
+    });
+</script>
 {% endblock %}

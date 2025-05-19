@@ -8,7 +8,6 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 import segno
 import os
 from django.conf import settings
-from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.core.validators import MinValueValidator
@@ -18,7 +17,7 @@ import string
 
 class Member(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, unique=True, verbose_name="ชื่อผู้ใช้")
-    is_owner = models.BooleanField(default=False, verbose_name="เป็นเจ้าของร้าน")  # ใช้ BooleanField แทนค่า 1/0
+    is_owner = models.BooleanField(default=False, verbose_name="เป็นเจ้าของร้าน")
     phone = models.CharField(max_length=10, blank=True, null=True, verbose_name="เบอร์โทรศัพท์")
     profile_img = models.ImageField(upload_to='profiles/', blank=True, null=True, max_length=255, verbose_name="รูปโปรไฟล์")
     card_number = models.CharField(max_length=16, unique=True, null=True, blank=True, verbose_name="เลขบัตร")
@@ -63,10 +62,10 @@ def save(self, *args, **kwargs):
 class Store(models.Model):
     id = models.AutoField(primary_key=True)  # ID ของร้านค้า
     store_name = models.CharField(max_length=255, verbose_name="ชื่อร้าน")  # ชื่อร้านค้า
-    owner = models.ForeignKey(
+    owner = models.OneToOneField(
         Member,
         on_delete=models.CASCADE,
-        related_name='stores',
+        related_name='store',
         verbose_name="เจ้าของร้าน"
     )  # เชื่อมกับ Member (ผู้เป็นเจ้าของร้าน)
 
@@ -199,6 +198,10 @@ class StoreOwnerRequest(models.Model):
         blank=True,
         related_name='approved_requests'
     )
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['user'], name='unique_store_owner_request')
+        ]
 
 class Wallet(models.Model):
     member = models.OneToOneField(
